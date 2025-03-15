@@ -6,7 +6,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
-
+//FamilyProfiles
 @Entity
 public class FamilyProfiles {
     @Id
