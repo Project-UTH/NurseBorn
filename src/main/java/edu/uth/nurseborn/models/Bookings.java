@@ -7,7 +7,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-
+//Bookings
 @Entity
 public class Bookings {
     @Id
