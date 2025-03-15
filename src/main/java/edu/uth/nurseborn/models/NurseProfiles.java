@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+//NurseProfiles
 @Entity
 public class NurseProfiles {
     @Id
