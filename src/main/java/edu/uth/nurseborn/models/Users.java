@@ -7,7 +7,7 @@ import jakarta.persistence.Lob;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
-
+//Users
 @Entity
 public class Users {
     @Id
