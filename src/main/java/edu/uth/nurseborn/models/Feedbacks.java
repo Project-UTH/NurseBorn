@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
+//Feedbacks
 public class Feedbacks {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
