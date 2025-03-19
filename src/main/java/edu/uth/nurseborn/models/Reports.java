@@ -23,7 +23,6 @@ public class Reports {
     @Lob
     @Column(name = "report_type", nullable = false)
     private String reportType;
-
     @Lob
     @Column(name = "data")
     private String data;
