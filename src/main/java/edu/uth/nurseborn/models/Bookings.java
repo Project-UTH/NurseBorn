@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 //Bookings
 @Entity
+@Table(name="Bookings")
 public class Bookings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

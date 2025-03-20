@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 
 @Entity
+@Table(name="Services")
 public class Services {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

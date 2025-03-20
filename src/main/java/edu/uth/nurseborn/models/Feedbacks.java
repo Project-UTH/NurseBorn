@@ -9,6 +9,7 @@ import java.time.Instant;
 
 @Entity
 //Feedbacks
+@Table(name="Feedbacks")
 public class Feedbacks {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 //FamilyProfiles
 @Entity
+@Table(name="FamilyProfiles")
 public class FamilyProfiles {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

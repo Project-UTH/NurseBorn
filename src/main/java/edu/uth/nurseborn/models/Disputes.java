@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
+@Table(name="Disputes")
 public class Disputes {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
