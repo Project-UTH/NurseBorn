@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en" th:include="master/masterpage">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <body>
+<div th:replace="master/head::head"></div>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            <div th:replace="~{master/layoutmenu :: menu}"></div>
+            <div th:replace="master/layoutmenu::menu"></div>
             <div class="layout-page">
-                <div th:replace="~{master/navbar :: navbar}"></div>
+                <div th:replace="master/navbar"></div>
                 <div class="content-wrapper">
                     <div class="content-xxl flex-grow-1 container-p-y">
                         <th:block th:fragment="content">
                             <h2>Chao mung ban den voi website </h2>
-
                         </th:block>
                     </div>
                 </div>
