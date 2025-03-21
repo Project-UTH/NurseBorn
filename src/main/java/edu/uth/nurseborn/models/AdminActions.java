@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-@Table(name="AdminActions")
+@Table(name = "AdminActions")
 public class AdminActions {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class AdminActions {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "admin_user_id", nullable = false)
-    private Users adminUser;
+    private edu.uth.nurseborn.models.Users adminUser;
 
     @Lob
     @Column(name = "action_type", nullable = false)
@@ -27,7 +27,7 @@ public class AdminActions {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "target_user_id", nullable = false)
-    private Users targetUser;
+    private edu.uth.nurseborn.models.Users targetUser;
 
     @Lob
     @Column(name = "description")
@@ -45,11 +45,11 @@ public class AdminActions {
         this.id = id;
     }
 
-    public Users getAdminUser() {
+    public edu.uth.nurseborn.models.Users getAdminUser() {
         return adminUser;
     }
 
-    public void setAdminUser(Users adminUser) {
+    public void setAdminUser(edu.uth.nurseborn.models.Users adminUser) {
         this.adminUser = adminUser;
     }
 
@@ -61,11 +61,11 @@ public class AdminActions {
         this.actionType = actionType;
     }
 
-    public Users getTargetUser() {
+    public edu.uth.nurseborn.models.Users getTargetUser() {
         return targetUser;
     }
 
-    public void setTargetUser(Users targetUser) {
+    public void setTargetUser(edu.uth.nurseborn.models.Users targetUser) {
         this.targetUser = targetUser;
     }
 

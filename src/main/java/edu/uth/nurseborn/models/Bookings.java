@@ -7,9 +7,9 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-//Bookings
+
 @Entity
-@Table(name="Bookings")
+@Table(name = "Bookings")
 public class Bookings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,17 +19,17 @@ public class Bookings {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "family_user_id", nullable = false)
-    private Users familyUser;
+    private edu.uth.nurseborn.models.Users familyUser;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "nurse_user_id", nullable = false)
-    private Users nurseUser;
+    private edu.uth.nurseborn.models.Users nurseUser;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "service_id", nullable = false)
-    private Services service;
+    private edu.uth.nurseborn.models.Services service;
 
     @Lob
     @Column(name = "service_type", nullable = false)
@@ -61,27 +61,27 @@ public class Bookings {
         this.id = id;
     }
 
-    public Users getFamilyUser() {
+    public edu.uth.nurseborn.models.Users getFamilyUser() {
         return familyUser;
     }
 
-    public void setFamilyUser(Users familyUser) {
+    public void setFamilyUser(edu.uth.nurseborn.models.Users familyUser) {
         this.familyUser = familyUser;
     }
 
-    public Users getNurseUser() {
+    public edu.uth.nurseborn.models.Users getNurseUser() {
         return nurseUser;
     }
 
-    public void setNurseUser(Users nurseUser) {
+    public void setNurseUser(edu.uth.nurseborn.models.Users nurseUser) {
         this.nurseUser = nurseUser;
     }
 
-    public Services getService() {
+    public edu.uth.nurseborn.models.Services getService() {
         return service;
     }
 
-    public void setService(Services service) {
+    public void setService(edu.uth.nurseborn.models.Services service) {
         this.service = service;
     }
 

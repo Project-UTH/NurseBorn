@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name="Services")
+@Table(name = "Services")
 public class Services {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class Services {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "nurse_user_id", nullable = false)
-    private Users nurseUser;
+    private edu.uth.nurseborn.models.Users nurseUser;
 
     @Column(name = "service_name", nullable = false, length = 100)
     private String serviceName;
@@ -47,11 +47,11 @@ public class Services {
         this.id = id;
     }
 
-    public Users getNurseUser() {
+    public edu.uth.nurseborn.models.Users getNurseUser() {
         return nurseUser;
     }
 
-    public void setNurseUser(Users nurseUser) {
+    public void setNurseUser(edu.uth.nurseborn.models.Users nurseUser) {
         this.nurseUser = nurseUser;
     }
 

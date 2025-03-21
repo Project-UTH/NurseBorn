@@ -8,8 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-//Feedbacks
-@Table(name="Feedbacks")
+@Table(name = "Feedbacks")
 public class Feedbacks {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +23,12 @@ public class Feedbacks {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "family_user_id", nullable = false)
-    private Users familyUser;
+    private edu.uth.nurseborn.models.Users familyUser;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "nurse_user_id", nullable = false)
-    private Users nurseUser;
+    private edu.uth.nurseborn.models.Users nurseUser;
 
     @Column(name = "rating")
     private Integer rating;
@@ -62,19 +61,19 @@ public class Feedbacks {
         this.booking = booking;
     }
 
-    public Users getFamilyUser() {
+    public edu.uth.nurseborn.models.Users getFamilyUser() {
         return familyUser;
     }
 
-    public void setFamilyUser(Users familyUser) {
+    public void setFamilyUser(edu.uth.nurseborn.models.Users familyUser) {
         this.familyUser = familyUser;
     }
 
-    public Users getNurseUser() {
+    public edu.uth.nurseborn.models.Users getNurseUser() {
         return nurseUser;
     }
 
-    public void setNurseUser(Users nurseUser) {
+    public void setNurseUser(edu.uth.nurseborn.models.Users nurseUser) {
         this.nurseUser = nurseUser;
     }
 

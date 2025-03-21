@@ -7,9 +7,9 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-//NurseProfiles
+
 @Entity
-@Table(name="NurseProfiles")
+@Table(name = "NurseProfiles")
 public class NurseProfiles {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,7 @@ public class NurseProfiles {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private edu.uth.nurseborn.models.Users user;
 
     @Column(name = "location", nullable = false, length = 100)
     private String location;
@@ -50,6 +50,10 @@ public class NurseProfiles {
     @Column(name = "profile_image")
     private String profileImage;
 
+    @ColumnDefault("0")
+    @Column(name = "is_approved")
+    private Boolean isApproved;
+
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -62,11 +66,11 @@ public class NurseProfiles {
         this.id = id;
     }
 
-    public Users getUser() {
+    public edu.uth.nurseborn.models.Users getUser() {
         return user;
     }
 
-    public void setUser(Users user) {
+    public void setUser(edu.uth.nurseborn.models.Users user) {
         this.user = user;
     }
 
@@ -132,6 +136,14 @@ public class NurseProfiles {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public Boolean getIsApproved() {
+        return isApproved;
+    }
+
+    public void setIsApproved(Boolean isApproved) {
+        this.isApproved = isApproved;
     }
 
     public Instant getUpdatedAt() {

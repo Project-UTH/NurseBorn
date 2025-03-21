@@ -6,9 +6,9 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
-//FamilyProfiles
+
 @Entity
-@Table(name="FamilyProfiles")
+@Table(name = "FamilyProfiles")
 public class FamilyProfiles {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class FamilyProfiles {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private edu.uth.nurseborn.models.Users user;
 
     @Column(name = "family_size")
     private Integer familySize;
@@ -42,11 +42,11 @@ public class FamilyProfiles {
         this.id = id;
     }
 
-    public Users getUser() {
+    public edu.uth.nurseborn.models.Users getUser() {
         return user;
     }
 
-    public void setUser(Users user) {
+    public void setUser(edu.uth.nurseborn.models.Users user) {
         this.user = user;
     }
 

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name="Earnings")
+@Table(name = "Earnings")
 public class Earnings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class Earnings {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "nurse_user_id", nullable = false)
-    private Users nurseUser;
+    private edu.uth.nurseborn.models.Users nurseUser;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
@@ -57,11 +57,11 @@ public class Earnings {
         this.booking = booking;
     }
 
-    public Users getNurseUser() {
+    public edu.uth.nurseborn.models.Users getNurseUser() {
         return nurseUser;
     }
 
-    public void setNurseUser(Users nurseUser) {
+    public void setNurseUser(edu.uth.nurseborn.models.Users nurseUser) {
         this.nurseUser = nurseUser;
     }
 

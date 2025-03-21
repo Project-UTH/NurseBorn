@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-@Table(name="Messages")
+@Table(name = "Messages")
 public class Messages {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,12 +18,17 @@ public class Messages {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "sender_id", nullable = false)
-    private Users sender;
+    private edu.uth.nurseborn.models.Users sender;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "receiver_id", nullable = false)
-    private Users receiver;
+    private edu.uth.nurseborn.models.Users receiver;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "booking_id")
+    private Bookings booking;
 
     @Lob
     @Column(name = "content", nullable = false)
@@ -48,20 +53,28 @@ public class Messages {
         this.id = id;
     }
 
-    public Users getSender() {
+    public edu.uth.nurseborn.models.Users getSender() {
         return sender;
     }
 
-    public void setSender(Users sender) {
+    public void setSender(edu.uth.nurseborn.models.Users sender) {
         this.sender = sender;
     }
 
-    public Users getReceiver() {
+    public edu.uth.nurseborn.models.Users getReceiver() {
         return receiver;
     }
 
-    public void setReceiver(Users receiver) {
+    public void setReceiver(edu.uth.nurseborn.models.Users receiver) {
         this.receiver = receiver;
+    }
+
+    public Bookings getBooking() {
+        return booking;
+    }
+
+    public void setBooking(Bookings booking) {
+        this.booking = booking;
     }
 
     public String getContent() {

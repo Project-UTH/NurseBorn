@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-@Table(name="Disputes")
+@Table(name = "Disputes")
 public class Disputes {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +23,7 @@ public class Disputes {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "raised_by_user_id", nullable = false)
-    private Users raisedByUser;
+    private edu.uth.nurseborn.models.Users raisedByUser;
 
     @Lob
     @Column(name = "description", nullable = false)
@@ -57,11 +57,11 @@ public class Disputes {
         this.booking = booking;
     }
 
-    public Users getRaisedByUser() {
+    public edu.uth.nurseborn.models.Users getRaisedByUser() {
         return raisedByUser;
     }
 
-    public void setRaisedByUser(Users raisedByUser) {
+    public void setRaisedByUser(edu.uth.nurseborn.models.Users raisedByUser) {
         this.raisedByUser = raisedByUser;
     }
 
