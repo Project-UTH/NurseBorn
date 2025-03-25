@@ -4,26 +4,30 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.Instant;
+import java.time.LocalTime;
 
 @Entity
-@Table(name = "UnavailableSchedules")
-public class UnavailableSchedules {
+@Table(name = "NurseAvailability")
+public class NurseAvailability {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "availability_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "nurse_profile_id", nullable = false)
-    private NurseProfiles nurseProfile;
+    private edu.uth.nurseborn.models.NurseProfile nurseProfile;
+
+    @Lob
+    @Column(name = "day_of_week", nullable = false)
+    private String dayOfWeek;
 
     @Column(name = "start_time", nullable = false)
-    private Instant startTime;
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private Instant endTime;
+    private LocalTime endTime;
 
     public Integer getId() {
         return id;
@@ -33,27 +37,35 @@ public class UnavailableSchedules {
         this.id = id;
     }
 
-    public NurseProfiles getNurseProfile() {
+    public edu.uth.nurseborn.models.NurseProfile getNurseProfile() {
         return nurseProfile;
     }
 
-    public void setNurseProfile(NurseProfiles nurseProfile) {
+    public void setNurseProfile(edu.uth.nurseborn.models.NurseProfile nurseProfile) {
         this.nurseProfile = nurseProfile;
     }
 
-    public Instant getStartTime() {
+    public String getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(String dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Instant startTime) {
+    public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
     }
 
-    public Instant getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Instant endTime) {
+    public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
 
