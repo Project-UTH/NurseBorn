@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yêu Cầu Công Việc</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      .btn-custom {
+        min-width: 90px;
+        margin-left: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Yêu Cầu Công Việc</h2>
+      <ul class="list-group" id="jobRequestsList">
+        <!-- Requests sẽ được hiển thị ở đây -->
+      </ul>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Dữ liệu giả định
+        const mockData = [
+          {
+            family_user_id: "Gia đình A",
+            address: "123 Đường ABC, Quận 1, TP.HCM",
+            created_at: "2023-01-01T08:00:00Z",
+            start_time: "2023-01-02T09:00:00Z",
+            end_time: "2023-01-02T11:00:00Z",
+          },
+          {
+            family_user_id: "Gia đình B",
+            address: "456 Đường XYZ, Quận 2, TP.HCM",
+            created_at: "2023-01-01T09:30:00Z",
+            start_time: "2023-01-02T10:00:00Z",
+            end_time: "2023-01-02T12:00:00Z",
+          },
+          {
+            family_user_id: "Gia đình C",
+            address: "789 Đường DEF, Quận 3, TP.HCM",
+            created_at: "2023-01-01T10:00:00Z",
+            start_time: "2023-01-02T13:00:00Z",
+            end_time: "2023-01-02T15:00:00Z",
+          },
+        ];
+
+        const ninetyMinutes = 90 * 60 * 1000; // 90 phút tính bằng milliseconds
+        const now = new Date();
+
+        mockData.forEach((request) => {
+          const requestTime = new Date(request.created_at);
+          const startTime = new Date(request.start_time);
+          const endTime = new Date(request.end_time);
+          const workHours = Math.abs(endTime - startTime) / 36e5; // Tính số giờ làm việc
+          const timeSinceRequest = now - requestTime;
+          const isExpired = timeSinceRequest > ninetyMinutes;
+          const minutesAgo = Math.floor(timeSinceRequest / 60000); // Tính số phút trước
+
+          $("#jobRequestsList").append(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center ${
+                      isExpired ? "list-group-item-warning" : ""
+                    }">
+                        <div>
+                            <strong>Yêu cầu từ ${
+                              request.family_user_id
+                            }</strong><br>
+                            Địa chỉ: ${request.address}<br>
+                            Gửi yêu cầu từ ${minutesAgo} phút trước<br>
+                            Thời gian bắt đầu: ${startTime.toLocaleString()}<br>
+                            Số giờ làm việc: ${workHours} giờ
+                        </div>
+                        <div class="d-flex flex-column">
+                            <button class="btn btn-success btn-sm btn-custom" ${
+                              isExpired ? "disabled" : ""
+                            }>Chấp Nhận</button>
+                            <button class="btn btn-danger btn-sm btn-custom" ${
+                              isExpired ? "disabled" : ""
+                            }>Từ Chối</button>
+                            <button class="btn btn-info btn-sm btn-custom mt-2">Trò chuyện</button>
+                        </div>
+                    </li>
+                `);
+
+          if (isExpired) {
+            alert(`Yêu cầu từ ${request.family_user_id} đã quá hạn phản hồi.`);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
