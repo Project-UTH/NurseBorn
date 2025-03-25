@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html
+  lang="en"
+  class="light-style customizer-hide"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../assets/"
+  data-template="vertical-menu-template-free"
+>
+<div th:replace="master/head::head"></div>
+
+  <body>
+    <!-- Content -->
+    <div class="container-xxl">
+      <div class="authentication-wrapper authentication-basic container-p-y">
+        <div class="authentication-inner">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-2">Đăng ký tài khoản y tá</h4>
+              <p class="mb-4">Nhập thông tin của bạn để tham gia hệ thống</p>
+              
+              <form id="registerNurseForm" class="mb-3" action="register-nurse" method="POST">
+                <div class="mb-3">
+                  <label for="full_name" class="form-label">Họ và tên</label>
+                  <input type="text" class="form-control" id="full_name" name="full_name" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" name="email" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="password" class="form-label">Mật khẩu</label>
+                  <input type="password" class="form-control" id="password" name="password" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="phone_number" class="form-label">Số điện thoại</label>
+                  <input type="text" class="form-control" id="phone_number" name="phone_number" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="location" class="form-label">Khu vực làm việc</label>
+                  <input type="text" class="form-control" id="location" name="location" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="skills" class="form-label">Kỹ năng chuyên môn</label>
+                  <textarea class="form-control" id="skills" name="skills" required></textarea>
+                </div>
+    
+                <div class="mb-3">
+                  <label for="experience_years" class="form-label">Số năm kinh nghiệm</label>
+                  <input type="number" class="form-control" id="experience_years" name="experience_years" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label for="hourly_rate" class="form-label">Mức giá theo giờ (VNĐ)</label>
+                  <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" required />
+                </div>
+    
+                <div class="mb-3">
+                  <label class="form-label">Thời gian làm việc</label>
+                  <div id="availability-section">
+                    <div class="availability-item">
+                      <select name="day_of_week[]" class="form-select">
+                        <option value="Monday">Thứ Hai</option>
+                        <option value="Tuesday">Thứ Ba</option>
+                        <option value="Wednesday">Thứ Tư</option>
+                        <option value="Thursday">Thứ Năm</option>
+                        <option value="Friday">Thứ Sáu</option>
+                        <option value="Saturday">Thứ Bảy</option>
+                        <option value="Sunday">Chủ Nhật</option>
+                      </select>
+                      <label class="form-label">Thời gian bắt đầu</label>
+                      <input type="time" name="start_time[]" class="form-control" required />
+                      <label class="form-label">Thời gian kết thúc</label>
+                      <input type="time" name="end_time[]" class="form-control" required />
+                      <button type="button" class="btn btn-danger remove-availability">Xóa</button>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary mt-2" id="add-availability">Thêm thời gian</button>
+                </div>
+    
+                <button class="btn btn-primary d-grid w-100">Đăng ký</button>
+              </form>
+              
+              <p class="text-center">
+                <span>Đã có tài khoản?</span>
+                <a href="auth-login-basic.html">Đăng nhập ngay</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      document.getElementById("add-availability").addEventListener("click", function() {
+        let container = document.getElementById("availability-section");
+        let newItem = document.createElement("div");
+        newItem.classList.add("availability-item");
+        newItem.innerHTML = `
+          <select name="day_of_week[]" class="form-select">
+            <option value="Monday">Thứ Hai</option>
+            <option value="Tuesday">Thứ Ba</option>
+            <option value="Wednesday">Thứ Tư</option>
+            <option value="Thursday">Thứ Năm</option>
+            <option value="Friday">Thứ Sáu</option>
+            <option value="Saturday">Thứ Bảy</option>
+            <option value="Sunday">Chủ Nhật</option>
+          </select>
+          <input type="time" name="start_time[]" class="form-control" required />
+          <input type="time" name="end_time[]" class="form-control" required />
+          <button type="button" class="btn btn-danger remove-availability">Xóa</button>
+        `;
+        container.appendChild(newItem);
+      });
+      
+      document.getElementById("availability-section").addEventListener("click", function(event) {
+        if (event.target.classList.contains("remove-availability")) {
+          event.target.parentElement.remove();
+        }
+      });
+    </script>    
+
+    <!-- / Content -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+    <script src="/assets/vendor/js/menu.js"></script>
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+
+    <!-- Main JS -->
+    <script src="/assets/js/main.js"></script>
+
+    <!-- Page JS -->
+
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+  </body>
+</html>

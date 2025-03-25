@@ -5,7 +5,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalTime;
-
+//Tạo class NurseAvailability
 @Entity
 @Table(name = "NurseAvailability")
 public class NurseAvailability {
