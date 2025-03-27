@@ -1,141 +1,159 @@
 package edu.uth.nurseborn.models;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-
-import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "NurseProfiles")
 public class NurseProfile {
     @Id
-    @Column(name = "nurse_profile_id", nullable = false)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "nurse_profile_id")
+    private Integer nurseProfileId;
 
-    @Column(name = "location", nullable = false, length = 100)
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @Column(name = "location", nullable = false)
     private String location;
 
-    @Lob
     @Column(name = "skills", nullable = false)
     private String skills;
 
     @Column(name = "experience_years", nullable = false)
     private Integer experienceYears;
 
-    @Lob
     @Column(name = "certifications")
     private String certifications;
 
-    @Lob
-    @Column(name = "availability", nullable = false)
-    private String availability;
+    @Column(name = "hourly_rate", nullable = false)
+    private Double hourlyRate;
 
-    @Column(name = "hourly_rate", nullable = false, precision = 10, scale = 2)
-    private BigDecimal hourlyRate;
-
-    @Lob
     @Column(name = "bio")
     private String bio;
 
-    @ColumnDefault("'default_profile.jpg'")
     @Column(name = "profile_image")
-    private String profileImage;
+    private String profileImage = "default_profile.jpg";
 
-    @ColumnDefault("0")
     @Column(name = "is_approved")
-    private Boolean isApproved;
+    private Boolean isApproved = false;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
-    public Integer getId() {
-        return id;
+    @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<NurseAvailability> nurseAvailabilities;
+
+    @PrePersist
+    @PreUpdate
+    public void setUpdatedAt() {
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    // Getters, setters
+
+    public Integer getNurseProfileId() {
+        return nurseProfileId;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getSkills() {
         return skills;
-    }
-
-    public void setSkills(String skills) {
-        this.skills = skills;
     }
 
     public Integer getExperienceYears() {
         return experienceYears;
     }
 
-    public void setExperienceYears(Integer experienceYears) {
-        this.experienceYears = experienceYears;
-    }
-
     public String getCertifications() {
         return certifications;
     }
 
-    public void setCertifications(String certifications) {
-        this.certifications = certifications;
-    }
-
-    public String getAvailability() {
-        return availability;
-    }
-
-    public void setAvailability(String availability) {
-        this.availability = availability;
-    }
-
-    public BigDecimal getHourlyRate() {
+    public Double getHourlyRate() {
         return hourlyRate;
-    }
-
-    public void setHourlyRate(BigDecimal hourlyRate) {
-        this.hourlyRate = hourlyRate;
     }
 
     public String getBio() {
         return bio;
     }
 
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
     public String getProfileImage() {
         return profileImage;
+    }
+
+    public Boolean getApproved() {
+        return isApproved;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public List<NurseAvailability> getNurseAvailabilities() {
+        return nurseAvailabilities;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public void setSkills(String skills) {
+        this.skills = skills;
+    }
+
+    public void setExperienceYears(Integer experienceYears) {
+        this.experienceYears = experienceYears;
+    }
+
+    public void setCertifications(String certifications) {
+        this.certifications = certifications;
+    }
+
+    public void setHourlyRate(Double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
 
-    public Boolean getIsApproved() {
-        return isApproved;
+    public void setApproved(Boolean approved) {
+        isApproved = approved;
     }
 
-    public void setIsApproved(Boolean isApproved) {
+    public void setNurseAvailabilities(List<NurseAvailability> nurseAvailabilities) {
+        this.nurseAvailabilities = nurseAvailabilities;
+    }
+
+    public NurseProfile() {}
+
+    public NurseProfile(User user, String location, String skills, Integer experienceYears, String certifications, Double hourlyRate, String bio, String profileImage, Boolean isApproved, List<NurseAvailability> nurseAvailabilities) {
+        this.user = user;
+        this.location = location;
+        this.skills = skills;
+        this.experienceYears = experienceYears;
+        this.certifications = certifications;
+        this.hourlyRate = hourlyRate;
+        this.bio = bio;
+        this.profileImage = profileImage;
         this.isApproved = isApproved;
+        this.nurseAvailabilities = nurseAvailabilities;
     }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
 }

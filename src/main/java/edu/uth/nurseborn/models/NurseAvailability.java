@@ -1,27 +1,24 @@
 package edu.uth.nurseborn.models;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-//Tạo class NurseAvailability
+
 @Entity
 @Table(name = "NurseAvailability")
 public class NurseAvailability {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "availability_id", nullable = false)
-    private Integer id;
+    @Column(name = "availability_id")
+    private Integer availabilityId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne
     @JoinColumn(name = "nurse_profile_id", nullable = false)
-    private edu.uth.nurseborn.models.NurseProfile nurseProfile;
+    private NurseProfile nurseProfile;
 
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "day_of_week", nullable = false)
-    private String dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
@@ -29,44 +26,54 @@ public class NurseAvailability {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    public Integer getId() {
-        return id;
+    // Getters, setters
+
+    public Integer getAvailabilityId() {
+        return availabilityId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public edu.uth.nurseborn.models.NurseProfile getNurseProfile() {
+    public NurseProfile getNurseProfile() {
         return nurseProfile;
     }
 
-    public void setNurseProfile(edu.uth.nurseborn.models.NurseProfile nurseProfile) {
-        this.nurseProfile = nurseProfile;
-    }
-
-    public String getDayOfWeek() {
+    public DayOfWeek getDayOfWeek() {
         return dayOfWeek;
-    }
-
-    public void setDayOfWeek(String dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
     }
 
     public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
     public LocalTime getEndTime() {
         return endTime;
+    }
+
+    public void setNurseProfile(NurseProfile nurseProfile) {
+        this.nurseProfile = nurseProfile;
+    }
+
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
     }
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
 
+    public NurseAvailability() {}
+
+    public NurseAvailability(NurseProfile nurseProfile, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        this.nurseProfile = nurseProfile;
+        this.dayOfWeek = dayOfWeek;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+}
+
+enum DayOfWeek {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
 }

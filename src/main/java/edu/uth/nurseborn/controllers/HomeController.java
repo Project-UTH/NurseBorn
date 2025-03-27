@@ -32,6 +32,9 @@ public class HomeController {
     public String registerNurse() {
         return "master/auth-register-basic-nurse";
     }
+
+    @GetMapping("/job-re")
+    public String jobRe() {return "nurse/job-requests";}
 }
 
 
