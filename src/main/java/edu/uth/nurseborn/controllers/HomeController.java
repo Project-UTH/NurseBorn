@@ -35,6 +35,18 @@ public class HomeController {
 
     @GetMapping("/job-re")
     public String jobRe() {return "nurse/job-requests";}
+
+    //Phần tính năng dành cho y tá
+    @GetMapping("/job-requests")
+    public String jobrequests() {
+        return "nurse/job-requests";
+    }
+    @GetMapping("/manage-services")
+    public String manageservices() {
+        return "nurse/manage-services";
+    }
+    @GetMapping("/create-profile")
+    public String createprofile() {return "nurse/create-profile";
 }
 
 
