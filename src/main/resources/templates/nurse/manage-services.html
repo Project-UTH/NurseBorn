@@ -1,52 +1,379 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quản Lý Dịch Vụ</title>
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-  </head>
-  <body>
-    <div class="container mt-5">
-      <h2>Quản Lý Dịch Vụ</h2>
-      <div id="calendar">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Thứ Hai</th>
-              <th>Thứ Ba</th>
-              <th>Thứ Tư</th>
-              <th>Thứ Năm</th>
-              <th>Thứ Sáu</th>
-              <th>Thứ Bảy</th>
-              <th>Chủ Nhật</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Available</td>
-              <td>Available</td>
-              <td>Available</td>
-              <td>Available</td>
-              <td>Available</td>
-              <td>Unavailable</td>
-              <td>Unavailable</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-secondary" onclick="editSchedule()">
-        Chỉnh Sửa Lịch
-      </button>
-    </div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div th:replace="master/head::head"></div>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="master/layoutmenu::menu"></div>
+    <div class="layout-page">
+      <div th:replace="master/navbar"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <html lang="vi">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Lịch Làm Việc Y Tá Điều Dưỡng</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+            <style>
+              :root {
+                --primary: #3f51b5;
+                --primary-light: #757de8;
+                --primary-dark: #002984;
+                --secondary: #ff9800;
+                --success: #28a745;
+                --danger: #dc3545;
+                --warning: #ffc107;
+                --info: #17a2b8;
+                --light: #f8f9fa;
+                --dark: #343a40;
+              }
 
-    <script>
-      function editSchedule() {
-        alert("Chức năng chỉnh sửa lịch đang được phát triển.");
-      }
-    </script>
-  </body>
+              body {
+                background-color: #f0f2f5;
+                color: #333;
+                font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              }
+
+              .container {
+                max-width: 1400px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+                padding: 25px;
+                margin-top: 30px;
+              }
+
+              h2 {
+                color: var(--primary-dark);
+                font-weight: 600;
+                margin-bottom: 20px;
+                text-align: center;
+              }
+
+              .shift-label {
+                font-weight: bold;
+                color: var(--primary);
+                margin-bottom: 10px;
+                text-align: center;
+              }
+
+              .table {
+                border-radius: 8px;
+                overflow: hidden;
+                border: none;
+              }
+
+              th {
+                background-color: var(--primary);
+                color: white;
+                text-align: center;
+                padding: 15px;
+                font-weight: 500;
+              }
+
+              td {
+                vertical-align: middle;
+                text-align: center;
+                padding: 15px;
+                font-size: 14px;
+              }
+
+              .hospital {
+                background-color: rgba(23, 162, 184, 0.1);
+                color: var(--info);
+                border-left: 5px solid var(--info);
+              }
+
+              .appointment {
+                background-color: rgba(40, 167, 69, 0.1);
+                color: var(--success);
+                border-left: 5px solid var(--success);
+              }
+
+              .unavailable {
+                background-color: rgba(52, 58, 64, 0.1);
+                color: var(--dark);
+                border-left: 5px solid var(--dark);
+              }
+
+              .btn-custom {
+                background-color: var(--primary);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.3s;
+                margin: 10px 0;
+              }
+
+              .btn-custom:hover {
+                background-color: var(--primary-dark);
+                color: white;
+              }
+
+              .btn-info-custom {
+                background-color: var(--secondary);
+                color: white;
+                margin: 5px;
+              }
+
+              .btn-info-custom:hover {
+                background-color: #e68900;
+                color: white;
+              }
+
+              small {
+                font-size: 11px;
+                color: #666;
+                display: block;
+                margin-top: 5px;
+              }
+
+              .modal-content {
+                border-radius: 10px;
+              }
+
+              .modal-header {
+                background-color: var(--primary);
+                color: white;
+              }
+
+              .modal-body .note {
+                background-color: var(--light);
+                padding: 10px;
+                border-radius: 5px;
+                border-left: 4px solid var(--secondary);
+              }
+            </style>
+          </head>
+          <body>
+          <div class="container">
+            <h2><i class="fas fa-calendar-alt mr-2"></i>Lịch Làm Việc </h2>
+
+            <div class="text-center mb-3">
+              <button class="btn btn-custom" onclick="editSchedule()">
+                <i class="fas fa-edit mr-2"></i>Chỉnh Sửa Lịch Làm Việc
+              </button>
+            </div>
+
+            <div id="calendar">
+              <table class="table table-bordered">
+                <thead>
+                <tr>
+                  <th>Thứ Hai</th>
+                  <th>Thứ Ba</th>
+                  <th>Thứ Tư</th>
+                  <th>Thứ Năm</th>
+                  <th>Thứ Sáu</th>
+                  <th>Thứ Bảy</th>
+                  <th>Chủ Nhật</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td colspan="7" class="shift-label">Ca Sáng (6:00 - 12:00)</td>
+                </tr>
+                <tr>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>7:00 - 12:00 (5h)</small>
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>8:00 - 10:00 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Nguyễn Văn An', '123 Đường Láng, Hà Nội', '8:00 - 10:00', 'Kiểm tra sức khỏe tổng quát, đo huyết áp')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>7:00 - 11:00 (4h)</small>
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>9:00 - 11:30 (2.5h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Trần Thị Bích', '45 Nguyễn Trãi, TP.HCM', '9:00 - 11:30', 'Chăm sóc vết thương sau phẫu thuật')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>8:00 - 12:00 (4h)</small>
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>10:00 - 12:00 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Lê Văn Cường', '78 Đường Số 3, Đà Nẵng', '10:00 - 12:00', 'Theo dõi điều trị bệnh mãn tính')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="7" class="shift-label">Ca Chiều (12:00 - 18:00)</td>
+                </tr>
+                <tr>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>13:00 - 17:00 (4h)</small>
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>14:00 - 16:00 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Phạm Thị Dung', '22 Lê Lợi, Huế', '14:00 - 16:00', 'Tiêm vaccine định kỳ')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>13:30 - 15:30 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Hoàng Văn Đức', '56 Trần Phú, Nha Trang', '13:30 - 15:30', 'Chăm sóc người cao tuổi tại nhà')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>13:00 - 16:00 (3h)</small>
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>14:00 - 16:30 (2.5h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Nguyễn Thị Hương', '12 Pasteur, Hà Nội', '14:00 - 16:30', 'Kiểm tra và chăm sóc thai kỳ')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="7" class="shift-label">Ca Tối (18:00 - 22:00)</td>
+                </tr>
+                <tr>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khám Bệnh<br>
+                    <small>18:00 - 20:00 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Trần Văn Minh', '89 Điện Biên Phủ, TP.HCM', '18:00 - 20:00', 'Theo dõi điều trị sau xuất viện')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="hospital">
+                    <i class="fas fa-hospital mr-1"></i> Bệnh Viện<br>
+                    <small>18:00 - 21:00 (3h)</small>
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                  <td class="appointment">
+                    <i class="fas fa-user-check mr-1"></i> Khách đặt<br>
+                    <small>19:00 - 21:00 (2h)</small>
+                    <button class="btn btn-info-custom btn-sm" data-toggle="modal" data-target="#clientInfoModal"
+                            onclick="showClientInfo('Lê Thị Lan', '34 Lý Thường Kiệt, Hà Nội', '19:00 - 21:00', 'Chăm sóc điều dưỡng tại nhà')">
+                      Xem Thông Tin
+                    </button>
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                  <td class="unavailable">
+                    <i class="fas fa-ban mr-1"></i> Nghỉ
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Modal Thông Tin Khách Hàng -->
+          <div class="modal fade" id="clientInfoModal" tabindex="-1" role="dialog" aria-labelledby="clientInfoModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="clientInfoModalLabel">Thông Tin Khách Hàng</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p><strong>Tên:</strong> <span id="clientName"></span></p>
+                  <p><strong>Địa chỉ:</strong> <span id="clientAddress"></span></p>
+                  <p><strong>Giờ làm việc:</strong> <span id="clientHours"></span></p>
+                  <p><strong>Ghi chú:</strong></p>
+                  <div class="note" id="clientNote"></div>
+                  <div class="text-center mt-3">
+                    <button class="btn btn-custom" onclick="chatWithClient()">
+                      <i class="fas fa-comment-medical mr-2"></i>Nhắn Tin Với Khách Hàng
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+          <script>
+            function editSchedule() {
+              alert('Chức năng chỉnh sửa lịch làm việc:\n- Nhấp đúp vào ô để thay đổi thông tin\n- Sử dụng form quản lý để cập nhật chi tiết\n- Lưu ý các thay đổi sẽ được ghi nhận vào hệ thống');
+            }
+
+            function showClientInfo(name, address, hours, note) {
+              document.getElementById('clientName').textContent = name;
+              document.getElementById('clientAddress').textContent = address;
+              document.getElementById('clientHours').textContent = hours;
+              document.getElementById('clientNote').textContent = note;
+            }
+
+            function chatWithClient() {
+              alert("Chức năng chat với khách hàng:\n- Hệ thống nhắn tin sẽ được kích hoạt\n- Vui lòng chọn phương thức liên lạc phù hợp");
+            }
+          </script>
+          </body>
+          </html>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Core JS -->
+<!-- build:js assets/vendor/js/core.js -->
+<script src="/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/assets/vendor/libs/popper/popper.js"></script>
+<script src="/assets/vendor/js/bootstrap.js"></script>
+<script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+<script src="/assets/vendor/js/menu.js"></script>
+<!-- endbuild -->
+
+<!-- Vendors JS -->
+<script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+
+<!-- Main JS -->
+<script src="/assets/js/main.js"></script>
+
+<!-- Page JS -->
+<script src="/assets/js/dashboards-analytics.js"></script>
+
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
 </html>
