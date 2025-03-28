@@ -1,98 +1,492 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yêu Cầu Công Việc</title>
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-      .btn-custom {
-        min-width: 90px;
-        margin-left: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container mt-5">
-      <h2>Yêu Cầu Công Việc</h2>
-      <ul class="list-group" id="jobRequestsList">
-        <!-- Requests sẽ được hiển thị ở đây -->
-      </ul>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div th:replace="master/head::head"></div>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="master/layoutmenu::menu"></div>
+    <div class="layout-page">
+      <div th:replace="master/navbar"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <html lang="vi">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Yêu Cầu Công Việc</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <style>
+              :root {
+                --primary: #3f51b5;
+                --primary-light: #757de8;
+                --primary-dark: #002984;
+                --secondary: #ff9800;
+                --success: #28a745;
+                --danger: #dc3545;
+                --warning: #ffc107;
+                --info: #17a2b8;
+                --light: #f8f9fa;
+                --dark: #343a40;
+              }
+
+              body {
+                background-color: #f0f2f5;
+                color: #333;
+                font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              }
+
+              .page-header {
+                background-color: var(--primary);
+                padding: 1.5rem 0;
+                margin-bottom: 2rem;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+              }
+
+              .page-header h1 {
+                color: #000000; /* Changed to black as requested */
+                font-weight: 600;
+                margin-bottom: 0;
+              }
+
+              .card {
+                border: none;
+                border-radius: 10px;
+                box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+                margin-bottom: 24px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                overflow: hidden;
+              }
+
+              .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+              }
+
+              .card-header {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #eee;
+                padding: 16px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              }
+
+              .card-body {
+                padding: 20px 25px;
+              }
+
+              .btn-custom {
+                min-width: 100px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 7px 15px;
+                transition: all 0.3s;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                margin: 0 5px; /* Horizontal spacing between buttons */
+              }
+
+              .btn-custom:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+              }
+
+              .btn-custom:first-child {
+                margin-left: 0;
+              }
+
+              .btn-custom:last-child {
+                margin-right: 0;
+              }
+
+              .search-box {
+                position: relative;
+                max-width: 450px;
+                width: 100%;
+              }
+
+              .search-box input {
+                border-radius: 25px;
+                padding: 10px 20px 10px 45px;
+                border: 1px solid #ddd;
+                font-size: 15px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                transition: all 0.3s;
+              }
+
+              .search-box input:focus {
+                box-shadow: 0 2px 8px rgba(63, 81, 181, 0.2);
+                border-color: var(--primary-light);
+              }
+
+              .search-icon {
+                position: absolute;
+                left: 18px;
+                top: 12px;
+                color: #888;
+              }
+
+              .filter-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 24px;
+              }
+
+              .filter-btn {
+                padding: 8px 18px;
+                border-radius: 25px;
+                background-color: #e9ecef;
+                color: #495057;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.3s;
+              }
+
+              .filter-btn:hover {
+                background-color: #dee2e6;
+              }
+
+              .filter-btn.active {
+                background-color: var(--primary);
+                color: white;
+                box-shadow: 0 3px 8px rgba(63, 81, 181, 0.25);
+              }
+
+              .job-request-item {
+                border-left: 5px solid var(--primary);
+                transition: all 0.3s;
+                margin-bottom: 20px;
+                background-color: #fffef0; /* Light yellow background similar to image */
+              }
+
+              .job-request-item:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+              }
+
+              .job-request-item.expired {
+                border-left-color: var(--warning);
+                background-color: #fff8e1;
+              }
+
+              .job-request-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #eee;
+                margin-bottom: 15px;
+              }
+
+              .job-request-title {
+                font-weight: 600;
+                color: var(--primary-dark);
+                margin-bottom: 0;
+                font-size: 1.1rem;
+              }
+
+              .job-request-time {
+                font-size: 14px;
+                color: #666;
+                font-style: italic;
+              }
+
+              .job-request-details {
+                margin-bottom: 20px;
+              }
+
+              .job-request-detail-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+              }
+
+              .detail-icon {
+                color: var(--primary);
+                width: 30px;
+                margin-right: 12px;
+                text-align: center;
+                font-size: 1.1em;
+              }
+
+              /* Changed from column to row */
+              .action-buttons {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                width: 100%;
+              }
+
+              .status-badge {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 15px;
+                font-size: 12px;
+                font-weight: 500;
+                margin-left: 12px;
+              }
+
+              .status-new {
+                background-color: #e3f2fd;
+                color: #0d47a1;
+              }
+
+              .status-expired {
+                background-color: #fff3e0;
+                color: #e65100;
+              }
+
+              .expired-tag {
+                color: #ff5722;
+                font-weight: 500;
+                font-size: 14px;
+              }
+
+              .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: #6c757d;
+              }
+
+              .empty-state i {
+                font-size: 56px;
+                color: #dee2e6;
+                margin-bottom: 20px;
+              }
+
+              .empty-state p {
+                font-size: 16px;
+              }
+
+              /* Responsive adjustments */
+              @media (max-width: 768px) {
+                .page-header .d-flex {
+                  flex-direction: column;
+                  align-items: flex-start;
+                }
+
+                .page-header .btn {
+                  margin-top: 15px;
+                }
+
+                .action-buttons {
+                  flex-wrap: wrap;
+                }
+
+                .btn-custom {
+                  margin: 5px;
+                  flex: 1;
+                  min-width: 120px;
+                }
+
+                .search-box {
+                  width: 100%;
+                  max-width: 100%;
+                }
+              }
+            </style>
+          </head>
+          <body>
+          <header class="page-header">
+            <div class="container">
+              <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3">Yêu Cầu Công Việc</h1>
+                <button class="btn btn-light d-flex align-items-center">
+                  <i class="fas fa-plus mr-2"></i>Tạo yêu cầu mới
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <div class="container">
+            <div class="card mb-4">
+              <div class="card-header">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input type="text" class="form-control" placeholder="Tìm kiếm yêu cầu..." id="searchInput">
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="filter-buttons">
+                  <button class="filter-btn active" data-filter="all">Tất cả</button>
+                  <button class="filter-btn" data-filter="new">Mới</button>
+                  <button class="filter-btn" data-filter="expired">Hết hạn</button>
+                </div>
+
+                <div id="jobRequestsContainer">
+                  <!-- Job requests will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            $(document).ready(function () {
+              // Dữ liệu giả định
+              const mockData = [
+                {
+                  family_user_id: "Gia đình A",
+                  address: "123 Đường ABC, Quận 1, TP.HCM",
+                  created_at: "2023-01-01T08:00:00Z",
+                  start_time: "2023-01-02T09:00:00Z",
+                  end_time: "2023-01-02T11:00:00Z",
+                  is_expired: true,
+                  note: "Lưu ý: cần người biết chăm sóc người già."
+                },
+                {
+                  family_user_id: "Gia đình B",
+                  address: "456 Đường XYZ, Quận 2, TP.HCM",
+                  created_at: "2023-01-01T09:30:00Z",
+                  start_time: "2023-01-02T10:00:00Z",
+                  end_time: "2023-01-02T12:00:00Z",
+                  is_expired: false,
+                  note: "Nhà có chó, xin cân nhắc trước khi nhận việc."
+                },
+                {
+                  family_user_id: "Gia đình C",
+                  address: "789 Đường DEF, Quận 3, TP.HCM",
+                  created_at: "2023-01-01T10:00:00Z",
+                  start_time: "2023-01-02T13:00:00Z",
+                  end_time: "2023-01-02T15:00:00Z",
+                  is_expired: false,
+                  note: "Ghi chú: Ưu tiên người đến đúng giờ."
+                },
+              ];
+
+              const now = new Date();
+
+              function formatTime(date) {
+                return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              }
+
+              function formatDate(date) {
+                return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+              }
+
+              function renderRequests() {
+                $("#jobRequestsContainer").empty();
+
+                if (mockData.length === 0) {
+                  $("#jobRequestsContainer").html(`
+          <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <p>Không có yêu cầu công việc nào</p>
+          </div>
+        `);
+                  return;
+                }
+
+                mockData.forEach((request) => {
+                  const requestTime = new Date(request.created_at);
+                  const startTime = new Date(request.start_time);
+                  const endTime = new Date(request.end_time);
+                  const workHours = Math.abs(endTime - startTime) / 36e5;
+                  const timeSinceRequest = now - requestTime;
+                  const minutesAgo = Math.floor(timeSinceRequest / 60000);
+                  const isExpired = request.is_expired;
+
+                  $("#jobRequestsContainer").append(`
+          <div class="card job-request-item ${isExpired ? 'expired' : ''}" data-status="${isExpired ? 'expired' : 'new'}">
+            <div class="card-body">
+              <div class="job-request-header">
+                <h5 class="job-request-title">
+                  ${request.family_user_id}
+                  ${isExpired ? '<span class="expired-tag ml-2">Hết hạn</span>' : ''}
+                </h5>
+                <span class="job-request-time">${minutesAgo} phút trước</span>
+              </div>
+
+              <div class="job-request-details">
+                <div class="job-request-detail-item">
+                  <span class="detail-icon"><i class="fas fa-map-marker-alt"></i></span>
+                  <span>${request.address}</span>
+                </div>
+                <div class="job-request-detail-item">
+                  <span class="detail-icon"><i class="fas fa-calendar-alt"></i></span>
+                  <span>Ngày: ${formatDate(startTime)}</span>
+                </div>
+                <div class="job-request-detail-item">
+                  <span class="detail-icon"><i class="fas fa-clock"></i></span>
+                  <span>Thời gian: ${formatTime(startTime)} - ${formatTime(endTime)} (${Math.round(workHours)} giờ)</span>
+                </div>
+                <div class="job-request-detail-item">
+                  <span class="detail-icon"><i class="fas fa-sticky-note"></i></span>
+                  <span><strong>Ghi chú:</strong> ${request.note}</span>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <button class="btn btn-success btn-sm btn-custom" ${isExpired ? "disabled" : ""}>
+                  <i class="fas fa-check mr-1"></i> Chấp Nhận
+                </button>
+                <button class="btn btn-danger btn-sm btn-custom" ${isExpired ? "disabled" : ""}>
+                  <i class="fas fa-times mr-1"></i> Từ Chối
+                </button>
+                <button class="btn btn-info btn-sm btn-custom">
+                  <i class="fas fa-comments mr-1"></i> Trò chuyện
+                </button>
+              </div>
+            </div>
+          </div>
+        `);
+                });
+              }
+
+              renderRequests();
+
+              $("#searchInput").on("keyup", function () {
+                const searchText = $(this).val().toLowerCase();
+                $(".job-request-item").each(function () {
+                  const content = $(this).text().toLowerCase();
+                  $(this).toggle(content.includes(searchText));
+                });
+              });
+
+              $(".filter-btn").on("click", function () {
+                $(".filter-btn").removeClass("active");
+                $(this).addClass("active");
+                const filter = $(this).data("filter");
+                if (filter === "all") {
+                  $(".job-request-item").show();
+                } else {
+                  $(".job-request-item").hide();
+                  $(`.job-request-item[data-status="${filter}"]`).show();
+                }
+              });
+            });
+          </script>
+          </body>
+          </html>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
+<!-- Core JS -->
+<!-- build:js assets/vendor/js/core.js -->
+<script src="/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/assets/vendor/libs/popper/popper.js"></script>
+<script src="/assets/vendor/js/bootstrap.js"></script>
+<script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 
-    <script>
-      $(document).ready(function () {
-        // Dữ liệu giả định
-        const mockData = [
-          {
-            family_user_id: "Gia đình A",
-            address: "123 Đường ABC, Quận 1, TP.HCM",
-            created_at: "2023-01-01T08:00:00Z",
-            start_time: "2023-01-02T09:00:00Z",
-            end_time: "2023-01-02T11:00:00Z",
-          },
-          {
-            family_user_id: "Gia đình B",
-            address: "456 Đường XYZ, Quận 2, TP.HCM",
-            created_at: "2023-01-01T09:30:00Z",
-            start_time: "2023-01-02T10:00:00Z",
-            end_time: "2023-01-02T12:00:00Z",
-          },
-          {
-            family_user_id: "Gia đình C",
-            address: "789 Đường DEF, Quận 3, TP.HCM",
-            created_at: "2023-01-01T10:00:00Z",
-            start_time: "2023-01-02T13:00:00Z",
-            end_time: "2023-01-02T15:00:00Z",
-          },
-        ];
+<script src="/assets/vendor/js/menu.js"></script>
+<!-- endbuild -->
 
-        const ninetyMinutes = 90 * 60 * 1000; // 90 phút tính bằng milliseconds
-        const now = new Date();
+<!-- Vendors JS -->
+<script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
 
-        mockData.forEach((request) => {
-          const requestTime = new Date(request.created_at);
-          const startTime = new Date(request.start_time);
-          const endTime = new Date(request.end_time);
-          const workHours = Math.abs(endTime - startTime) / 36e5; // Tính số giờ làm việc
-          const timeSinceRequest = now - requestTime;
-          const isExpired = timeSinceRequest > ninetyMinutes;
-          const minutesAgo = Math.floor(timeSinceRequest / 60000); // Tính số phút trước
+<!-- Main JS -->
+<script src="/assets/js/main.js"></script>
 
-          $("#jobRequestsList").append(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center ${
-                      isExpired ? "list-group-item-warning" : ""
-                    }">
-                        <div>
-                            <strong>Yêu cầu từ ${
-                              request.family_user_id
-                            }</strong><br>
-                            Địa chỉ: ${request.address}<br>
-                            Gửi yêu cầu từ ${minutesAgo} phút trước<br>
-                            Thời gian bắt đầu: ${startTime.toLocaleString()}<br>
-                            Số giờ làm việc: ${workHours} giờ
-                        </div>
-                        <div class="d-flex flex-column">
-                            <button class="btn btn-success btn-sm btn-custom" ${
-                              isExpired ? "disabled" : ""
-                            }>Chấp Nhận</button>
-                            <button class="btn btn-danger btn-sm btn-custom" ${
-                              isExpired ? "disabled" : ""
-                            }>Từ Chối</button>
-                            <button class="btn btn-info btn-sm btn-custom mt-2">Trò chuyện</button>
-                        </div>
-                    </li>
-                `);
+<!-- Page JS -->
+<script src="/assets/js/dashboards-analytics.js"></script>
 
-          if (isExpired) {
-            alert(`Yêu cầu từ ${request.family_user_id} đã quá hạn phản hồi.`);
-          }
-        });
-      });
-    </script>
-  </body>
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
 </html>
