@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div th:replace="master/head::head"></div>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div th:replace="master/layoutmenu::menu"></div>
+        <div class="layout-page">
+            <div th:replace="master/navbar"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+                    <head>
+                        <title>Nursing Service Evaluation</title>
+                        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+                        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+                        <style>
+                            .rating {
+                                display: flex;
+                                flex-direction: row-reverse;
+                                justify-content: flex-end;
+                            }
+                            .rating input {
+                                display: none;
+                            }
+                            .rating label {
+                                color: #ddd;
+                                font-size: 30px;
+                                padding: 0 5px;
+                                cursor: pointer;
+                            }
+                            .rating input:checked ~ label {
+                                color: #ffc107;
+                            }
+                            .rating label:hover,
+                            .rating label:hover ~ label {
+                                color: #ffc107;
+                            }
+                            .card {
+                                border-radius: 10px;
+                                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                            }
+                            .card-header {
+                                background-color: #4e73df;
+                                color: white;
+                                border-radius: 10px 10px 0 0 !important;
+                            }
+                            /* Loại bỏ dấu gạch dưới cho tất cả các liên kết */
+                            a {
+                                text-decoration: none;
+                            }
+
+                            /* Nếu muốn loại bỏ hiệu ứng hover */
+                            a:hover {
+                                text-decoration: none;
+                            }
+
+                            /* Nếu muốn giữ màu gốc của liên kết */
+                            a, a:hover {
+                                color: inherit;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                    <div class="container py-5">
+                        <div class="row justify-content-center">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header text-center py-3">
+                                        <h4 class="mb-0">Nursing Service Evaluation</h4>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <form id="feedbackForm" enctype="multipart/form-data">
+                                            <!-- Thông tin đặt lịch -->
+                                            <div class="mb-4">
+                                                <label for="booking_id" class="form-label">Booking code</label>
+                                                <select class="form-select" id="booking_id" name="booking_id" required>
+                                                    <option value="" selected disabled>-- Select the booking code--</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Hidden fields for user IDs -->
+                                            <input type="hidden" id="family_user_id" name="family_user_id">
+                                            <input type="hidden" id="nurse_user_id" name="nurse_user_id">
+
+                                            <!-- Thông tin điều dưỡng -->
+                                            <div class="mb-4">
+                                                <label class="form-label">Nurse</label>
+                                                <div class="d-flex align-items-center p-3 bg-light rounded">
+                                                    <div class="avatar me-3">
+                                                        <img src="/api/placeholder/60/60" alt="Nurse Avatar" class="rounded-circle" width="60">
+                                                    </div>
+                                                    <div>
+                                                        <h5 id="nurse_name" class="mb-0">Nurse Name</h5>
+                                                        <p id="service_details" class="text-muted mb-0">Service Details</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Đánh giá sao -->
+                                            <div class="mb-4">
+                                                <label class="form-label d-block">Feedbacks</label>
+                                                <div class="rating">
+                                                    <input type="radio" id="star5" name="rating" value="5" required>
+                                                    <label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
+
+                                                    <input type="radio" id="star4" name="rating" value="4">
+                                                    <label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
+
+                                                    <input type="radio" id="star3" name="rating" value="3">
+                                                    <label for="star3" title="3 stars"><i class="fas fa-star"></i></label>
+
+                                                    <input type="radio" id="star2" name="rating" value="2">
+                                                    <label for="star2" title="2 stars"><i class="fas fa-star"></i></label>
+
+                                                    <input type="radio" id="star1" name="rating" value="1">
+                                                    <label for="star1" title="1 stars"><i class="fas fa-star"></i></label>
+                                                </div>
+                                                <div class="form-text mt-2">1 to 5 stars</div>
+                                            </div>
+
+                                            <!-- Nhận xét -->
+                                            <div class="mb-4">
+                                                <label for="comment" class="form-label">Your review</label>
+                                                <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="Share your experience..."></textarea>
+                                            </div>
+
+                                            <!-- Minh chứng (Evidence) -->
+                                            <div class="mb-4">
+                                                <label for="evidence" class="form-label">Evidence (optional)</label>
+                                                <input class="form-control" type="file" id="evidence" name="evidence" accept="image/*,application/pdf" multiple>
+                                                <div class="form-text mt-2">Upload images or PDF files (max 5 files)</div>
+                                            </div>
+
+                                            <!-- Thời gian tạo (hidden) -->
+                                            <input type="hidden" id="created_at" name="created_at" value="">
+
+                                            <!-- Nút gửi -->
+                                            <div class="text-center">
+                                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                                    <i class="fas fa-paper-plane me-2"></i>Submit a review
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+                    <script>
+                        // Initialize tooltips
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl)
+                        })
+
+                        // Validate file upload
+                        document.getElementById('evidence').addEventListener('change', function(e) {
+                            const files = e.target.files;
+                            const maxFiles = 5;
+                            const maxFileSize = 5 * 1024 * 1024; // 5MB
+
+                            if (files.length > maxFiles) {
+                                alert(`You can upload a maximum of ${maxFiles} files`);
+                                e.target.value = ''; // Clear the file input
+                                return;
+                            }
+
+                            for (let file of files) {
+                                if (file.size > maxFileSize) {
+                                    alert('File size should not exceed 5MB');
+                                    e.target.value = ''; // Clear the file input
+                                    return;
+                                }
+                            }
+                        });
+
+                        // Set current datetime when form is submitted
+                        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+                            e.preventDefault();
+
+                            // Format current date time for MySQL DATETIME format
+                            const now = new Date();
+                            const formattedDate = now.getFullYear() + '-' +
+                                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                                String(now.getDate()).padStart(2, '0') + ' ' +
+                                String(now.getHours()).padStart(2, '0') + ':' +
+                                String(now.getMinutes()).padStart(2, '0') + ':' +
+                                String(now.getSeconds()).padStart(2, '0');
+
+                            document.getElementById('created_at').value = formattedDate;
+
+                            // Form validation
+                            let rating = document.querySelector('input[name="rating"]:checked');
+                            if (!rating) {
+                                alert('Please rate with stars');
+                                return;
+                            }
+
+                            // Here you would typically submit the form via AJAX or FormData
+                            const formData = new FormData(this);
+
+                            console.log('Form submitted!', {
+                                booking_id: formData.get('booking_id'),
+                                family_user_id: formData.get('family_user_id'),
+                                nurse_user_id: formData.get('nurse_user_id'),
+                                rating: rating.value,
+                                comment: formData.get('comment'),
+                                created_at: formattedDate,
+                                evidence: formData.getAll('evidence')
+                            });
+
+                            alert('Thank you for your feedback!');
+                            // Reset form
+                            this.reset();
+                        });
+
+                        // Event listener for booking selection
+                        document.getElementById('booking_id').addEventListener('change', function(e) {
+                            const bookingId = e.target.value;
+
+                            if (bookingId) {
+                                // Simulating data fetch
+                                document.getElementById('family_user_id').value = '12345';
+                                document.getElementById('nurse_user_id').value = '67890';
+                                document.getElementById('nurse_name').textContent = 'Nguyen Thien T';
+                                document.getElementById('service_details').textContent = 'Home Care Service - 12/03/2025';
+                            }
+                        });
+                    </script>
+                    </body>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Core JS -->
+<!-- build:js assets/vendor/js/core.js -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+<script src="/static/assets/vendor/js/menu.js"></script>
+<!-- endbuild -->
+
+<!-- Vendors JS -->
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+
+<!-- Main JS -->
+<script src="/static/assets/js/main.js"></script>
+
+<!-- Page JS -->
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
