@@ -1,5 +1,6 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.ReportType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -72,7 +73,4 @@ public class Report {
         this.reportType = reportType;
         this.data = data;
     }
-}
-enum ReportType {
-    SERVICE_DEMAND, USER_ACTIVITY, PLATFORM_PERFORMANCE
 }

@@ -1,5 +1,6 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.ActionType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -84,7 +85,4 @@ public class AdminAction {
         this.target = target;
         this.description = description;
     }
-}
-enum ActionType {
-    APPROVE_USER, RESOLVE_DISPUTE, OTHER
 }

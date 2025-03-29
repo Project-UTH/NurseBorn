@@ -1,5 +1,7 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.BookingStatus;
+import edu.uth.nurseborn.models.enums.ServiceType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -137,9 +139,3 @@ public class Booking {
     }
 }
 
-enum ServiceType {
-    HOURLY, DAILY, WEEKLY
-}
-enum BookingStatus {
-    PENDING, ACCEPTED, COMPLETED, CANCELLED
-}

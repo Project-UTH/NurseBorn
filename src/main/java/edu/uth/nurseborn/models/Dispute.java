@@ -1,5 +1,6 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.DisputeStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -96,7 +97,4 @@ public class Dispute {
         this.status = status;
         this.resolvedAt = resolvedAt;
     }
-}
-enum DisputeStatus {
-    OPEN, RESOLVED, CLOSED
 }

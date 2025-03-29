@@ -1,7 +1,8 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.DayOfWeek;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
 import java.time.LocalTime;
 
 @Entity
@@ -74,6 +75,3 @@ public class NurseAvailability {
     }
 }
 
-enum DayOfWeek {
-    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
-}

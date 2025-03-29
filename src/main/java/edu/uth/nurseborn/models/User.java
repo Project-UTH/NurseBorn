@@ -1,5 +1,6 @@
 package edu.uth.nurseborn.models;
 
+import edu.uth.nurseborn.models.enums.Role;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -158,6 +159,3 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     }
 }
 
-enum Role { // Thêm enum
-    FAMILY, NURSE, ADMIN
-}
