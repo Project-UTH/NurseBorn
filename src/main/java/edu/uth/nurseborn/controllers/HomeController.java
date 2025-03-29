@@ -46,9 +46,16 @@ public class HomeController {
         return "nurse/manage-services";
     }
     @GetMapping("/create-profile")
-    public String createprofile() {
-        return "nurse/create-profile";
+    public String createprofile() {return "nurse/create-profile";
+    }
+    @GetMapping("/nursepage")
+    public String nursepage() {
+        return "master/nursepage";
+    }@GetMapping("/nurse_review")
+    public String nurse_review() {
+        return "master/nurse_review";
     }
 }
+
 
 
