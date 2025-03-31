@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div th:replace="master/head::head"></div>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="master/layoutmenu::menu"></div>
+    <div class="layout-page">
+      <div th:replace="master/navbar"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <!DOCTYPE html>
+          <html lang="vi">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Dashboard Y Tá</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+          </head>
+          <body>
+          <div class="container mt-5">
+            <h2 class="text-center text-primary">Báo Cáo Thu Nhập</h2>
+            <div class="row">
+              <div class="col-md-8">
+                <select id="timeRange" class="form-control mb-3" onchange="updateChart()">
+                  <option value="daily">Theo Ngày</option>
+                  <option value="monthly">Theo Tháng</option>
+                  <option value="yearly">Theo Năm</option>
+                </select>
+                <div id="incomeChart"></div>
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-primary w-100 mb-3" onclick="exportReport()">Xuất Báo Cáo</button>
+                <div class="list-group">
+                  <h4 class="text-center">Danh Sách Giao Dịch</h4>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <span>Giao dịch #12345</span> <span class="text-success">Hoàn thành</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <span>Giao dịch #12346</span> <span class="text-danger">Chưa thanh toán</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <span>Giao dịch #12347</span> <span class="text-warning">Chờ xử lý</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            var chart;
+            var dataSets = {
+              daily: { labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'], data: [500, 700, 600, 900, 1200, 800, 1000] },
+              monthly: { labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'], data: [15000, 17000, 16000, 19000, 22000, 18000] },
+              yearly: { labels: ['2020', '2021', '2022', '2023', '2024'], data: [200000, 250000, 270000, 300000, 320000] }
+            };
+
+            function renderChart(range) {
+              var options = {
+                chart: { type: 'line', height: 350 },
+                series: [{ name: 'Thu nhập', data: dataSets[range].data }],
+                xaxis: { categories: dataSets[range].labels }
+              };
+
+              if (chart) { chart.destroy(); }
+              chart = new ApexCharts(document.querySelector("#incomeChart"), options);
+              chart.render();
+            }
+
+            function updateChart() {
+              var range = document.getElementById("timeRange").value;
+              renderChart(range);
+            }
+
+            function exportReport() {
+              alert("Xuất báo cáo thu nhập thành công!");
+            }
+
+            renderChart("daily");
+          </script>
+          </body>
+          </html>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Core JS -->
+<!-- build:js assets/vendor/js/core.js -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+<script src="/static/assets/vendor/js/menu.js"></script>
+<!-- endbuild -->
+
+<!-- Vendors JS -->
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+
+<!-- Main JS -->
+<script src="/static/assets/js/main.js"></script>
+
+<!-- Page JS -->
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
