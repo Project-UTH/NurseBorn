@@ -48,6 +48,11 @@ public class HomeController {
     @GetMapping("/create-profile")
     public String createprofile() {return "nurse/create-profile";
     }
+
+    @GetMapping("/track-income")
+    public String trackincome() {return "nurse/track-income";
+    }
+
     @GetMapping("/nursepage")
     public String nursepage() {
         return "master/nursepage";
