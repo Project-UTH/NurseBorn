@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "FamilyProfiles")
+@Table(name = "family_profiles")
 public class FamilyProfile { // Đổi tên thành "FamilyProfile"
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

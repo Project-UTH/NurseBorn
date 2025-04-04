@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 public class User { // Đổi tên class thành "User" (số ít, chuẩn naming convention)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -4,7 +4,7 @@ import edu.uth.nurseborn.models.enums.ServiceStatus;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Services")
+@Table(name = "services")
 public class Service {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
