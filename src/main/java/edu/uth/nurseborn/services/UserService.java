@@ -1,92 +1,83 @@
 package edu.uth.nurseborn.services;
 
+import edu.uth.nurseborn.dtos.LoginRequestDTO;
+import edu.uth.nurseborn.dtos.LoginResponseDTO;
+import edu.uth.nurseborn.dtos.UserDTO;
+import edu.uth.nurseborn.exception.DuplicateEmailException;
+import edu.uth.nurseborn.exception.DuplicateUsernameException;
+import edu.uth.nurseborn.jwt.JwtService;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.Role;
 import edu.uth.nurseborn.repositories.UserRepository;
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     private UserRepository userRepository;
 
-    // Tạo user mới
-    public User createUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Tên người dùng đã tồn tại");
-        }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại");
-        }
-        return userRepository.save(user);
-    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    // Lấy user theo ID
-    public Optional<User> getUserById(Integer userId) {
-        return userRepository.findById(userId);
-    }
+    @Autowired
+    private JwtService jwtService;
 
-    // Lấy user theo username
-    public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
+    @Autowired
+    private ModelMapper modelMapper;
 
-    // Lấy tất cả user
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+    @Transactional
+    public void registerUser(UserDTO userDTO) {
+        logger.debug("Bắt đầu transaction để đăng ký người dùng: {}", userDTO);
 
-    // Lấy user theo role
-    public List<User> getUsersByRole(Role role) {
-        return userRepository.findByRole(role);
-    }
-
-    // Lấy user theo email
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    // Cập nhật user
-    public User updateUser(Integer userId, User updatedUser) {
-        Optional<User> existingUserOpt = userRepository.findById(userId);
-        if (existingUserOpt.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy người dùng");
-        }
-        User existingUser = existingUserOpt.get();
-
-        // Kiểm tra username và email duy nhất (nếu thay đổi)
-        if (!existingUser.getUsername().equals(updatedUser.getUsername()) &&
-                userRepository.existsByUsername(updatedUser.getUsername())) {
-            throw new IllegalArgumentException("Tên người dùng đã tồn tại");
-        }
-        if (!existingUser.getEmail().equals(updatedUser.getEmail()) &&
-                userRepository.existsByEmail(updatedUser.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại");
+        if(userRepository.findByUsername(userDTO.getUsername()).isPresent()) {
+            logger.warn("Username đã tồn tại");
+            throw new DuplicateUsernameException("Username " + userDTO.getUsername() + "đã được sử dụng");
         }
 
-        // Cập nhật các field
-        existingUser.setUsername(updatedUser.getUsername());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPasswordHash(updatedUser.getPasswordHash());
-        existingUser.setFullName(updatedUser.getFullName());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setAddress(updatedUser.getAddress());
-        existingUser.setRole(updatedUser.getRole());
-        existingUser.setVerified(updatedUser.getVerified());
+        // Kiểm tra xem email đã tồn tại chưa
+        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
+            logger.warn("Email đã tồn tại: {}", userDTO.getEmail());
+            throw new DuplicateEmailException("Email " + userDTO.getEmail() + " đã được sử dụng");
+        }
 
-        return userRepository.save(existingUser);
+        try {
+            User user = modelMapper.map(userDTO, User.class);
+            user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
+            user.setRole(Role.valueOf(userDTO.getRole()));
+            logger.debug("User entity trước khi lưu: {}", user);
+            User savedUser = userRepository.save(user);
+            userRepository.flush(); // Flush dữ liệu ngay lập tức
+            logger.info("Đã lưu người dùng thành công: {}", savedUser.getUsername());
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Lỗi khi lưu người dùng: {}", e.getMessage());
+            throw new DuplicateEmailException("Email " + userDTO.getEmail() + " đã được sử dụng");
+        } catch (Exception e) {
+            logger.error("Lỗi không mong muốn khi lưu người dùng: {}", e.getMessage(), e);
+            throw new RuntimeException("Lỗi khi lưu người dùng: " + e.getMessage());
+        }
+
+        logger.debug("Transaction đã được commit thành công");
     }
 
-    // Xóa user
-    public void deleteUser(Integer userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new IllegalArgumentException("User not found");
+    public LoginResponseDTO login(LoginRequestDTO loginRequest) {
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
+            String token = jwtService.taoToken(user.getUsername());
+            LoginResponseDTO response = modelMapper.map(user, LoginResponseDTO.class);
+            response.setToken(token);
+            return response;
         }
-        userRepository.deleteById(userId);
+        throw new RuntimeException("Sai mật khẩu");
     }
 }
