@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class UserDTO {
-    private Integer userId;
+    private Long userId;
     private String username;
     private String password; // Chỉ dùng khi đăng ký/đăng nhập
     private String email;

@@ -10,7 +10,7 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -55,7 +55,7 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     // Getters, setters
 
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
