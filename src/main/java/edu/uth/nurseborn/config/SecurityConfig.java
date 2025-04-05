@@ -55,6 +55,7 @@ public class SecurityConfig {
                     logger.debug("Cấu hình quyền truy cập");
                     auth
                             .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/**").permitAll()
                             .requestMatchers("/home").permitAll()
                             .requestMatchers("/api/family/**").hasRole("family")
                             .requestMatchers("/api/nurse/**").hasRole("nurse")

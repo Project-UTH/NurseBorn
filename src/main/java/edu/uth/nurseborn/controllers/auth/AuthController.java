@@ -2,6 +2,7 @@ package edu.uth.nurseborn.controllers.auth;
 
 import edu.uth.nurseborn.dtos.LoginRequestDTO;
 import edu.uth.nurseborn.dtos.LoginResponseDTO;
+import edu.uth.nurseborn.dtos.RegisterRequestDTO;
 import edu.uth.nurseborn.dtos.UserDTO;
 import edu.uth.nurseborn.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,8 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserDTO userDTO) {
-        userService.registerUser(userDTO);
+    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO requestDTO) {
+        UserDTO userDTO = userService.registerUser(requestDTO);
         return ResponseEntity.ok("Đăng ký thành công");
     }
 

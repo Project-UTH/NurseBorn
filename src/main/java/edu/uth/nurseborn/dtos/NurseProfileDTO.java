@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class NurseProfileDTO {
     private Integer nurseProfileId;
-    private Integer userId;
+    private Long userId;
     private String location;
     private String skills;
     private Integer experienceYears;
