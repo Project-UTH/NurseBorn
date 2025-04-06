@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 @Data
 public class BookingDTO {
     private Integer bookingId;
-    private Integer familyUserId;
-    private Integer nurseUserId;
+    private Long familyUserId;
+    private Long nurseUserId;
     private Integer serviceId;
     private String serviceType; // "hourly", "daily", "weekly"
     private LocalDateTime startTime;

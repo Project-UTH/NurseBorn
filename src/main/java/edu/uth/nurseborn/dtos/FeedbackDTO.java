@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 public class FeedbackDTO {
     private Integer feedbackId;
     private Integer bookingId;
-    private Integer familyUserId;
-    private Integer nurseUserId;
+    private Long familyUserId;
+    private Long nurseUserId;
     private Integer rating;
     private String comment;
     private String response;
