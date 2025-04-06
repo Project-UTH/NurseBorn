@@ -24,7 +24,7 @@ public class Booking {
 
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private NurseService nurseService;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "service_type", nullable = false)
@@ -65,8 +65,8 @@ public class Booking {
         return nurse;
     }
 
-    public Service getService() {
-        return service;
+    public NurseService getService() {
+        return nurseService;
     }
 
     public ServiceType getServiceType() {
@@ -101,8 +101,8 @@ public class Booking {
         this.nurse = nurse;
     }
 
-    public void setService(Service service) {
-        this.service = service;
+    public void setService(NurseService nurseService) {
+        this.nurseService = nurseService;
     }
 
     public void setServiceType(ServiceType serviceType) {
@@ -127,10 +127,10 @@ public class Booking {
 
     public Booking() {}
 
-    public Booking(User family, User nurse, Service service, ServiceType serviceType, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, Double totalCost) {
+    public Booking(User family, User nurse, NurseService service, ServiceType serviceType, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, Double totalCost) {
         this.family = family;
         this.nurse = nurse;
-        this.service = service;
+        this.nurseService = service;
         this.serviceType = serviceType;
         this.startTime = startTime;
         this.endTime = endTime;
