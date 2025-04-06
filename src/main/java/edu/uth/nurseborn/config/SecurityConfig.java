@@ -60,6 +60,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/family/**").hasRole("family")
                             .requestMatchers("/api/nurse/**").hasRole("nurse")
                             .requestMatchers("/api/admin/**").hasRole("admin")
+                            .requestMatchers("/api/feedbacks/**").permitAll()
+                            .requestMatchers("/api/reports/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
