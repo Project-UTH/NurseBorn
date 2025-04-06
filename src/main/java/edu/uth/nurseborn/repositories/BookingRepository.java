@@ -2,7 +2,7 @@ package edu.uth.nurseborn.repositories;
 
 import edu.uth.nurseborn.models.Booking;
 import edu.uth.nurseborn.models.FamilyProfile;
-import edu.uth.nurseborn.models.Service;
+import edu.uth.nurseborn.models.NurseService;
 import edu.uth.nurseborn.models.enums.ServiceType;
 import edu.uth.nurseborn.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,10 +21,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findByNurse(User nurse);
 
     // Tìm tất cả lịch đặt theo dịch vụ
-    List<Booking> findByService(Service service);
+    List<Booking> findByNurseService(NurseService nurseService); // Sửa từ findByService thành findByNurseService
 
     // Tìm tất cả lịch đặt theo loại dịch vụ
     List<Booking> findByServiceType(ServiceType serviceType);
+
     // Tìm tất cả lịch đặt trong khoảng thời gian
     List<Booking> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
 

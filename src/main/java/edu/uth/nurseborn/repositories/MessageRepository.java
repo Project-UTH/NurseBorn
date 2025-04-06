@@ -11,15 +11,15 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
 
     @Query("SELECT m FROM Message m WHERE (m.sender.userId = :senderId AND m.receiver.userId = :receiverId) " +
             "OR (m.sender.userId = :receiverId AND m.receiver.userId = :senderId) ORDER BY m.sentAt ASC")
-    List<Message> findConversationBetweenUsers(Integer senderId, Integer receiverId);
+    List<Message> findConversationBetweenUsers(Long senderId, Long receiverId);
 
     List<Message> findByBookingBookingId(Integer bookingId);
 
-    List<Message> findByReceiverUserIdAndIsReadFalse(Integer receiverId);
+    List<Message> findByReceiverUserIdAndIsReadFalse(Long receiverId);
 
-    List<Message> findBySenderUserId(Integer senderId);
+    List<Message> findBySenderUserId(Long senderId);
 
-    List<Message> findByReceiverUserId(Integer receiverId);
+    List<Message> findByReceiverUserId(Long receiverId);
 
     Optional<Message> findByMessageId(Integer messageId);
 }

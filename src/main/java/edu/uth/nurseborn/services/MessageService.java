@@ -66,8 +66,8 @@ public class MessageService {
             }
             booking = bookingOptional.get();
             // Kiểm tra sender và receiver có liên quan đến booking không (theo trigger trong database)
-            if (!(sender.getUserId().equals(booking.getFamilyUserId()) && receiver.getUserId().equals(booking.getNurseUserId())) &&
-                    !(sender.getUserId().equals(booking.getNurseUserId()) && receiver.getUserId().equals(booking.getFamilyUserId()))) {
+            if (!(sender.getUserId().equals(booking.getFamily().getUserId()) && receiver.getUserId().equals(booking.getNurse().getUserId())) &&
+                    !(sender.getUserId().equals(booking.getNurse().getUserId()) && receiver.getUserId().equals(booking.getFamily().getUserId()))) {
                 logger.warn("Sender và receiver không liên quan đến booking ID: {}", bookingId);
                 throw new IllegalArgumentException("Sender và receiver phải liên quan đến booking");
             }
