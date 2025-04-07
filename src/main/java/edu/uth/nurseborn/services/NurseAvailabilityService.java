@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,14 +24,11 @@ public class NurseAvailabilityService {
 
     private final NurseAvailabilityRepository nurseAvailabilityRepository;
     private final NurseProfileRepository nurseProfileRepository;
-    private final ModelMapper modelMapper;
 
     public NurseAvailabilityService(NurseAvailabilityRepository nurseAvailabilityRepository,
-                                    NurseProfileRepository nurseProfileRepository,
-                                    ModelMapper modelMapper) {
+                                    NurseProfileRepository nurseProfileRepository) {
         this.nurseAvailabilityRepository = nurseAvailabilityRepository;
         this.nurseProfileRepository = nurseProfileRepository;
-        this.modelMapper = modelMapper;
     }
 
     @Transactional
@@ -39,22 +37,20 @@ public class NurseAvailabilityService {
 
         validateAvailabilityDTO(nurseAvailabilityDTO);
 
-        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseAvailabilityDTO.getNurseProfileId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseAvailabilityDTO.getNurseProfileId()));
+        // Chuyển đổi nurseProfileId từ Integer sang Long để gọi repository
+        Long nurseProfileId = nurseAvailabilityDTO.getNurseProfileId().longValue();
+        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileId));
 
         DayOfWeek dayOfWeek = DayOfWeek.valueOf(nurseAvailabilityDTO.getDayOfWeek().toUpperCase());
-        LocalTime startTime = LocalTime.parse(nurseAvailabilityDTO.getStartTime());
-        LocalTime endTime = LocalTime.parse(nurseAvailabilityDTO.getEndTime());
+        LocalTime startTime = nurseAvailabilityDTO.getStartTime().toLocalTime();
+        LocalTime endTime = nurseAvailabilityDTO.getEndTime().toLocalTime();
 
         if (isTimeOverlapping(nurseProfile, dayOfWeek, startTime, endTime, null)) {
             throw new IllegalArgumentException("Thời gian này chồng lấp với lịch sẵn sàng khác trong " + dayOfWeek);
         }
 
-        NurseAvailability nurseAvailability = modelMapper.map(nurseAvailabilityDTO, NurseAvailability.class);
-        nurseAvailability.setNurseProfile(nurseProfile);
-        nurseAvailability.setDayOfWeek(dayOfWeek);
-        nurseAvailability.setStartTime(startTime);
-        nurseAvailability.setEndTime(endTime);
+        NurseAvailability nurseAvailability = mapToEntity(nurseAvailabilityDTO, nurseProfile);
 
         logger.debug("NurseAvailability entity trước khi lưu: {}", nurseAvailability);
 
@@ -62,7 +58,7 @@ public class NurseAvailabilityService {
         nurseAvailabilityRepository.flush();
         logger.info("Đã tạo lịch sẵn sàng thành công với ID: {}", savedAvailability.getAvailabilityId());
 
-        return modelMapper.map(savedAvailability, NurseAvailabilityDTO.class);
+        return mapToDTO(savedAvailability);
     }
 
     @Transactional
@@ -74,12 +70,13 @@ public class NurseAvailabilityService {
         NurseAvailability existingAvailability = nurseAvailabilityRepository.findById(availabilityId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch sẵn sàng với ID: " + availabilityId));
 
-        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseAvailabilityDTO.getNurseProfileId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseAvailabilityDTO.getNurseProfileId()));
+        Long nurseProfileId = nurseAvailabilityDTO.getNurseProfileId().longValue();
+        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileId));
 
         DayOfWeek dayOfWeek = DayOfWeek.valueOf(nurseAvailabilityDTO.getDayOfWeek().toUpperCase());
-        LocalTime startTime = LocalTime.parse(nurseAvailabilityDTO.getStartTime());
-        LocalTime endTime = LocalTime.parse(nurseAvailabilityDTO.getEndTime());
+        LocalTime startTime = nurseAvailabilityDTO.getStartTime().toLocalTime();
+        LocalTime endTime = nurseAvailabilityDTO.getEndTime().toLocalTime();
 
         if (isTimeOverlapping(nurseProfile, dayOfWeek, startTime, endTime, availabilityId)) {
             throw new IllegalArgumentException("Thời gian này chồng lấp với lịch sẵn sàng khác trong " + dayOfWeek);
@@ -95,18 +92,19 @@ public class NurseAvailabilityService {
         NurseAvailability updatedAvailability = nurseAvailabilityRepository.save(existingAvailability);
         logger.info("Đã cập nhật lịch sẵn sàng thành công với ID: {}", updatedAvailability.getAvailabilityId());
 
-        return modelMapper.map(updatedAvailability, NurseAvailabilityDTO.class);
+        return mapToDTO(updatedAvailability);
     }
 
-    public List<NurseAvailabilityDTO> getAvailabilitiesByNurseProfileId(Long nurseProfileId) {
+    public List<NurseAvailabilityDTO> getAvailabilitiesByNurseProfileId(Integer nurseProfileId) {
         logger.debug("Tìm lịch sẵn sàng với nurseProfileId: {}", nurseProfileId);
 
-        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileId));
+        Long nurseProfileIdLong = nurseProfileId.longValue();
+        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileIdLong)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileIdLong));
 
         List<NurseAvailability> availabilities = nurseAvailabilityRepository.findByNurseProfile(nurseProfile);
         return availabilities.stream()
-                .map(availability -> modelMapper.map(availability, NurseAvailabilityDTO.class))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -116,7 +114,7 @@ public class NurseAvailabilityService {
         NurseAvailability nurseAvailability = nurseAvailabilityRepository.findById(availabilityId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch sẵn sàng với ID: " + availabilityId));
 
-        return modelMapper.map(nurseAvailability, NurseAvailabilityDTO.class);
+        return mapToDTO(nurseAvailability);
     }
 
     @Transactional
@@ -130,17 +128,18 @@ public class NurseAvailabilityService {
         logger.info("Đã xóa lịch sẵn sàng với availabilityId: {}", availabilityId);
     }
 
-    public List<NurseAvailabilityDTO> getAvailabilitiesByDayOfWeek(Long nurseProfileId, String dayOfWeek) {
+    public List<NurseAvailabilityDTO> getAvailabilitiesByDayOfWeek(Integer nurseProfileId, String dayOfWeek) {
         logger.debug("Tìm lịch sẵn sàng với nurseProfileId: {} và dayOfWeek: {}", nurseProfileId, dayOfWeek);
 
-        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileId));
+        Long nurseProfileIdLong = nurseProfileId.longValue();
+        NurseProfile nurseProfile = nurseProfileRepository.findById(nurseProfileIdLong)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nurse profile với ID: " + nurseProfileIdLong));
 
         List<NurseAvailability> availabilities = nurseAvailabilityRepository.findByNurseProfileAndDayOfWeek(
                 nurseProfile, DayOfWeek.valueOf(dayOfWeek.toUpperCase()));
 
         return availabilities.stream()
-                .map(availability -> modelMapper.map(availability, NurseAvailabilityDTO.class))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -156,16 +155,36 @@ public class NurseAvailabilityService {
         }
         try {
             DayOfWeek.valueOf(dto.getDayOfWeek().toUpperCase());
-            LocalTime startTime = LocalTime.parse(dto.getStartTime());
-            LocalTime endTime = LocalTime.parse(dto.getEndTime());
+            LocalTime startTime = dto.getStartTime().toLocalTime();
+            LocalTime endTime = dto.getEndTime().toLocalTime();
             if (startTime.isAfter(endTime)) {
                 throw new IllegalArgumentException("Giờ bắt đầu phải trước giờ kết thúc");
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("DayOfWeek hoặc định dạng thời gian không hợp lệ: " + e.getMessage());
+            throw new IllegalArgumentException("DayOfWeek không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             throw new IllegalArgumentException("Định dạng thời gian không hợp lệ: " + e.getMessage());
         }
+    }
+
+    private NurseAvailability mapToEntity(NurseAvailabilityDTO dto, NurseProfile nurseProfile) {
+        NurseAvailability nurseAvailability = new NurseAvailability();
+        nurseAvailability.setNurseProfile(nurseProfile);
+        nurseAvailability.setDayOfWeek(DayOfWeek.valueOf(dto.getDayOfWeek().toUpperCase()));
+        nurseAvailability.setStartTime(dto.getStartTime().toLocalTime());
+        nurseAvailability.setEndTime(dto.getEndTime().toLocalTime());
+        return nurseAvailability;
+    }
+
+    private NurseAvailabilityDTO mapToDTO(NurseAvailability nurseAvailability) {
+        NurseAvailabilityDTO dto = new NurseAvailabilityDTO();
+        dto.setAvailabilityId(nurseAvailability.getAvailabilityId());
+        // Chuyển đổi Long thành Integer cho nurseProfileId
+        dto.setNurseProfileId(nurseAvailability.getNurseProfile().getNurseProfileId().intValue());
+        dto.setDayOfWeek(nurseAvailability.getDayOfWeek().name().toLowerCase());
+        dto.setStartTime(Time.valueOf(nurseAvailability.getStartTime()));
+        dto.setEndTime(Time.valueOf(nurseAvailability.getEndTime()));
+        return dto;
     }
 
     private boolean isTimeOverlapping(NurseProfile nurseProfile, DayOfWeek dayOfWeek,
