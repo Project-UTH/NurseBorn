@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod; // Import đúng cho HttpMethod
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -55,13 +56,19 @@ public class SecurityConfig {
                     logger.debug("Cấu hình quyền truy cập");
                     auth
                             .requestMatchers("/api/auth/**").permitAll()
-                            .requestMatchers("/api/**").permitAll()
                             .requestMatchers("/home").permitAll()
+                            .requestMatchers("/api/feedbacks/**").permitAll()
+                            .requestMatchers("/api/reports/**").permitAll()
+                            // Bảo vệ endpoint /api/nurse-availability/**
+                            .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("nurse")
+                            .requestMatchers(HttpMethod.PUT, "/api/nurse-availability/**").hasRole("nurse")
+                            .requestMatchers(HttpMethod.DELETE, "/api/nurse-availability/**").hasRole("nurse")
+                            .requestMatchers(HttpMethod.GET, "/api/nurse-availability/**").hasAnyRole("nurse", "family", "admin")
+                            // Các endpoint /api/** khác
                             .requestMatchers("/api/family/**").hasRole("family")
                             .requestMatchers("/api/nurse/**").hasRole("nurse")
                             .requestMatchers("/api/admin/**").hasRole("admin")
-                            .requestMatchers("/api/feedbacks/**").permitAll()
-                            .requestMatchers("/api/reports/**").permitAll()
+                            .requestMatchers("/api/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
