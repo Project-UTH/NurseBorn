@@ -8,9 +8,11 @@ import edu.uth.nurseborn.dtos.RegisterRequestDTO;
 import edu.uth.nurseborn.dtos.UserDTO;
 import edu.uth.nurseborn.exception.DuplicateEmailException;
 import edu.uth.nurseborn.exception.DuplicateUsernameException;
-import edu.uth.nurseborn.jwt.JwtService;
+import edu.uth.nurseborn.components.JwtTokenUtils;
+import edu.uth.nurseborn.models.Token;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.Role;
+import edu.uth.nurseborn.repositories.TokenRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -30,10 +32,13 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private TokenRepository tokenRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtTokenUtils jwtTokenUtil;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -59,7 +64,6 @@ public class UserService {
             throw new DuplicateUsernameException("Username " + userDTO.getUsername() + " đã được sử dụng");
         }
 
-        // Kiểm tra xem email đã tồn tại chưa
         if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
             logger.warn("Email đã tồn tại: {}", userDTO.getEmail());
             throw new DuplicateEmailException("Email " + userDTO.getEmail() + " đã được sử dụng");
@@ -68,14 +72,12 @@ public class UserService {
         try {
             User user = modelMapper.map(userDTO, User.class);
             user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
-            // Ánh xạ Role thủ công
             user.setRole(Role.valueOf(userDTO.getRole().toUpperCase()));
             logger.debug("User entity trước khi lưu: {}", user);
             User savedUser = userRepository.save(user);
-            userRepository.flush(); // Flush dữ liệu ngay lập tức
+            userRepository.flush();
             logger.info("Đã lưu người dùng thành công: {}", savedUser.getUsername());
 
-            // Tạo NurseProfile nếu role là "Nurse"
             if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
                 NurseProfileDTO nurseProfileDTO = requestDTO.getNurseProfile();
                 if (nurseProfileDTO == null) {
@@ -85,7 +87,6 @@ public class UserService {
                 nurseProfileDTO.setUserId(savedUser.getUserId());
                 nurseProfileService.createNurseProfile(savedUser.getUserId(), nurseProfileDTO);
             }
-            // Tạo FamilyProfile nếu role là "Family"
             else if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
                 FamilyProfileDTO familyProfileDTO = requestDTO.getFamilyProfile();
                 if (familyProfileDTO == null) {
@@ -96,7 +97,6 @@ public class UserService {
                 familyProfileService.createFamilyProfile(savedUser.getUserId(), familyProfileDTO);
             }
 
-            // Ánh xạ entity trở lại DTO để trả về
             UserDTO responseDTO = modelMapper.map(savedUser, UserDTO.class);
             responseDTO.setRole(savedUser.getRole().name().toLowerCase());
             return responseDTO;
@@ -116,12 +116,39 @@ public class UserService {
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         if (passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
-            String token = jwtService.taoToken(user.getUsername());
-            LoginResponseDTO response = modelMapper.map(user, LoginResponseDTO.class);
-            // Ánh xạ Role thủ công
-            response.setRole(user.getRole().name().toLowerCase());
-            response.setToken(token);
-            return response;
+            try {
+                String token = jwtTokenUtil.generateToken(user);
+                // Lưu token vào cơ sở dữ liệu
+                Token tokenEntity = new Token();
+                tokenEntity.setToken(token);
+                tokenEntity.setUser(user);
+                tokenEntity.setRevoked(false);
+                tokenRepository.save(tokenEntity);
+
+                LoginResponseDTO response = modelMapper.map(user, LoginResponseDTO.class);
+                response.setToken(token);
+                response.setRole(user.getRole().name().toLowerCase());
+
+                if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
+                    try {
+                        NurseProfileDTO nurseProfileDTO = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                        response.setNurseProfile(nurseProfileDTO);
+                    } catch (Exception e) {
+                        logger.warn("Không tìm thấy NurseProfile cho userId: {}", user.getUserId());
+                    }
+                } else if ("FAMILY".equalsIgnoreCase(user.getRole().name())) {
+                    try {
+                        FamilyProfileDTO familyProfileDTO = familyProfileService.getFamilyProfileByUserId(user.getUserId());
+                        response.setFamilyProfile(familyProfileDTO);
+                    } catch (Exception e) {
+                        logger.warn("Không tìm thấy FamilyProfile cho userId: {}", user.getUserId());
+                    }
+                }
+
+                return response;
+            } catch (Exception e) {
+                throw new RuntimeException("Cannot generate token: " + e.getMessage());
+            }
         }
         throw new RuntimeException("Sai mật khẩu");
     }
