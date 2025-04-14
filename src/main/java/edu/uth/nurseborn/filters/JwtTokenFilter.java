@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.path;
+
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -75,26 +77,48 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final List<Pair<String, String>> bypassTokens = Arrays.asList(
                 Pair.of(String.format("%s/auth/register", apiPrefix), "POST"),
                 Pair.of(String.format("%s/auth/login", apiPrefix), "POST"),
+                Pair.of("/home", "GET"),
+                Pair.of("/login-h", "GET"),
                 Pair.of("/api-docs", "GET"),
-                Pair.of("/api-docs/**", "GET"),
+                Pair.of("/api-docs/.*", "GET"),
                 Pair.of("/swagger-resources", "GET"),
-                Pair.of("/swagger-resources/**", "GET"),
+                Pair.of("/swagger-resources/.*", "GET"),
                 Pair.of("/configuration/ui", "GET"),
                 Pair.of("/configuration/security", "GET"),
-                Pair.of("/swagger-ui/**", "GET"),
+                Pair.of("/swagger-ui/.*", "GET"),
                 Pair.of("/swagger-ui.html", "GET"),
                 Pair.of("/swagger-ui/index.html", "GET")
-        );
-        String requestPath = request.getServletPath();
-        String requestMethod = request.getMethod();
+        ); // ✅ Đóng đúng danh sách
+
+        // ✅ Bỏ qua token cho các static files như js, css, fonts,...
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        if (method.equalsIgnoreCase("GET") && (
+                path.startsWith("/js/") ||
+                        path.startsWith("/libs/") ||
+                        path.startsWith("/assets/") ||
+                        path.startsWith("/scss/") ||
+                        path.startsWith("/fonts/") ||
+                        path.startsWith("/tasks/") ||
+                        path.startsWith("/css/") ||
+                        path.startsWith("/images/") ||
+                        path.startsWith("/swagger-ui/") ||
+                        path.startsWith("/api-docs")
+        )) {
+            return true;
+        }
+
         for (Pair<String, String> token : bypassTokens) {
-            String path = token.getFirst();
-            String method = token.getSecond();
-            if (requestPath.matches(path.replace("**", ".*"))
-                    && requestMethod.equalsIgnoreCase(method)) {
+            String bypassPath = token.getFirst();
+            String bypassMethod = token.getSecond();
+            if (path.matches(bypassPath) && method.equalsIgnoreCase(bypassMethod)) {
                 return true;
             }
         }
+
         return false;
     }
+
 }
+

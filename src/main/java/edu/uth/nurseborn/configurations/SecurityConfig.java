@@ -72,9 +72,14 @@ public class SecurityConfig {
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                             .requestMatchers("/api/**").permitAll()
+                            .requestMatchers("/login-h/**").permitAll()
+
+
 
                             .anyRequest().authenticated();
+
                 })
+
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         logger.info("SecurityFilterChain đã được cấu hình thành công");
