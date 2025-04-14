@@ -2,7 +2,12 @@ package edu.uth.nurseborn.models;
 
 import edu.uth.nurseborn.models.enums.Role;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Table(name = "users")
@@ -50,6 +55,10 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     @PrePersist // Thêm: tự động gán createdAt
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     // Getters, setters

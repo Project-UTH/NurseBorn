@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
+
     // Tìm tất cả Feedback theo booking
     List<Feedback> findByBooking(Booking booking);
 
@@ -41,5 +42,4 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
 
     // Tìm tất cả Feedback theo nurse_user_id
     List<Feedback> findByNurseUserId(Long nurseUserId);
-
 }

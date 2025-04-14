@@ -1,6 +1,7 @@
 package edu.uth.nurseborn.repositories;
 
 import edu.uth.nurseborn.models.Message;
+import edu.uth.nurseborn.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -22,4 +23,6 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
     List<Message> findByReceiverUserId(Long receiverId);
 
     Optional<Message> findByMessageId(Integer messageId);
+
+    List<Message> findBySenderOrReceiver(User sender, User receiver);
 }

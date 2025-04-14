@@ -6,25 +6,26 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "feedbacks")
 public class Feedback {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "feedback_id")
-    private Integer feedbackId;
+    private Long feedbackId;
 
-    @ManyToOne
-    @JoinColumn(name = "booking_id", nullable = false)
-    private Booking booking;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "family_user_id")
+    private User family; // Người gửi feedback (gia đình)
 
-    @ManyToOne
-    @JoinColumn(name = "family_user_id", nullable = false)
-    private User family;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nurse_user_id")
+    private User nurse; // Người nhận feedback (y tá)
 
-    @ManyToOne
-    @JoinColumn(name = "nurse_user_id", nullable = false)
-    private User nurse;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id")
+    private Booking booking; // Lịch đặt liên quan đến feedback
 
     @Column(name = "rating")
-    private Integer rating; // CHECK (rating >= 1 AND rating <= 5) sẽ xử lý trong service
+    private Integer rating;
 
     @Column(name = "comment")
     private String comment;
@@ -36,76 +37,72 @@ public class Feedback {
     private LocalDateTime createdAt;
 
     @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
-    // Getters, setters, constructors
-
-    public Integer getFeedbackId() {
+    // Getters and setters
+    public Long getFeedbackId() {
         return feedbackId;
     }
 
-    public Booking getBooking() {
-        return booking;
+    public void setFeedbackId(Long feedbackId) {
+        this.feedbackId = feedbackId;
     }
 
     public User getFamily() {
         return family;
     }
 
-    public User getNurse() {
-        return nurse;
-    }
-
-    public Integer getRating() {
-        return rating;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public String getResponse() {
-        return response;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setBooking(Booking booking) {
-        this.booking = booking;
-    }
-
     public void setFamily(User family) {
         this.family = family;
+    }
+
+    public User getNurse() {
+        return nurse;
     }
 
     public void setNurse(User nurse) {
         this.nurse = nurse;
     }
 
+    public Booking getBooking() {
+        return booking;
+    }
+
+    public void setBooking(Booking booking) {
+        this.booking = booking;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     public void setComment(String comment) {
         this.comment = comment;
     }
 
+    public String getResponse() {
+        return response;
+    }
+
     public void setResponse(String response) {
         this.response = response;
     }
 
-    public Feedback() {}
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
-    public Feedback(Booking booking, User family, User nurse, Integer rating, String comment, String response) {
-        this.booking = booking;
-        this.family = family;
-        this.nurse = nurse;
-        this.rating = rating;
-        this.comment = comment;
-        this.response = response;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

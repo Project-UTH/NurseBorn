@@ -199,4 +199,7 @@ public class MessageService {
                 .map(message -> modelMapper.map(message, MessageDTO.class))
                 .collect(Collectors.toList());
     }
+    public List<Message> getMessagesByUser(User user) {
+        return messageRepository.findBySenderOrReceiver(user, user);
+    }
 }

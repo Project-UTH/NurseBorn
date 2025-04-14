@@ -4,11 +4,14 @@ import edu.uth.nurseborn.dtos.AdminActionDTO;
 import edu.uth.nurseborn.models.AdminAction;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.ActionType;
+import edu.uth.nurseborn.models.enums.Role;
 import edu.uth.nurseborn.repositories.AdminActionRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
+import org.hibernate.stat.Statistics;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,9 @@ public class AdminActionService {
     private final AdminActionRepository adminActionRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+
+    @Autowired
+    private BookingService bookingService;
 
     // Constructor injection
     public AdminActionService(AdminActionRepository adminActionRepository, UserRepository userRepository, ModelMapper modelMapper) {
@@ -121,4 +127,5 @@ public class AdminActionService {
         dto.setActionDate(adminAction.getActionDate());
         return dto;
     }
+
 }

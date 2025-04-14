@@ -3,6 +3,8 @@ package edu.uth.nurseborn.filters;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.components.JwtTokenUtils;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -21,8 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.path;
-
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -34,43 +34,51 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtil;
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
-            throws IOException {
-        try {
-            if (isBypassToken(request)) {
-                filterChain.doFilter(request, response); // Bỏ qua kiểm tra token
-                return;
-            }
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        // Kiểm tra xem yêu cầu có nên bỏ qua token không
+        if (isBypassToken(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            final String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Authorization header is missing or does not start with Bearer");
-                return;
-            }
+        String token = null;
 
-            final String token = authHeader.substring(7);
-            final String username = jwtTokenUtil.extractUsername(token);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User userDetails = (User) userDetailsService.loadUserByUsername(username);
-                if (jwtTokenUtil.validateToken(token, (UserDetails) userDetails)) {
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    ((UserDetails) userDetails).getAuthorities()
-                            );
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        // Kiểm tra header Authorization
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else {
+            // Nếu không có header, kiểm tra cookie
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("token".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        break;
+                    }
                 }
             }
-            filterChain.doFilter(request, response); // Tiếp tục chuỗi filter
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid token: " + e.getMessage());
         }
+
+        // Nếu không tìm thấy token, cho phép yêu cầu tiếp tục
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String username = jwtTokenUtil.extractUsername(token);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (jwtTokenUtil.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
+
+        filterChain.doFilter(request, response);
     }
 
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
@@ -87,13 +95,26 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/configuration/security", "GET"),
                 Pair.of("/swagger-ui/.*", "GET"),
                 Pair.of("/swagger-ui.html", "GET"),
-                Pair.of("/swagger-ui/index.html", "GET")
-        ); // ✅ Đóng đúng danh sách
+                Pair.of("/swagger-ui/index.html", "GET"),
+                // Thêm các endpoint công khai từ SecurityConfig
+                Pair.of("/", "GET"),
+                Pair.of("/login", "GET"),
+                Pair.of("/register", "GET"),
+                Pair.of("/logout", "GET"),
+                Pair.of("/role-selection", "GET"),
+                Pair.of("/register/nurse", "GET"),
+                Pair.of("/register/family", "GET"),
+                Pair.of("/resources/**", "GET"),
+                Pair.of("/static/**", "GET"),
+                Pair.of("/css/**", "GET"),
+                Pair.of("/js/**", "GET"),
+                Pair.of("/images/**", "GET")
+        );
 
-        // ✅ Bỏ qua token cho các static files như js, css, fonts,...
         String path = request.getServletPath();
         String method = request.getMethod();
 
+        // Bỏ qua token cho các static files
         if (method.equalsIgnoreCase("GET") && (
                 path.startsWith("/js/") ||
                         path.startsWith("/libs/") ||
@@ -119,6 +140,4 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         return false;
     }
-
 }
-

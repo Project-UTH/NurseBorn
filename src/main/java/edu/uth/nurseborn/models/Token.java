@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "tokens")
 @Getter
@@ -26,10 +28,13 @@ public class Token {
     private boolean revoked;
 
     @Column(name = "created_at")
-    private java.time.LocalDateTime createdAt;
+    private LocalDateTime createdAt;
+
+    @Column(name = "expires_at") // Đảm bảo ánh xạ đúng với cột trong database
+    private LocalDateTime expiresAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = java.time.LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 }

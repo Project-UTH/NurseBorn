@@ -211,4 +211,10 @@ public class BookingService {
                 .map(booking -> modelMapper.map(booking, BookingDTO.class))
                 .collect(Collectors.toList());
     }
+
+    // Thêm phương thức countBookings
+    public long countBookings() {
+        logger.debug("Đếm tổng số Bookings");
+        return bookingRepository.count();
+    }
 }

@@ -3,6 +3,7 @@ package edu.uth.nurseborn.repositories;
 import edu.uth.nurseborn.models.Booking;
 import edu.uth.nurseborn.models.FamilyProfile;
 import edu.uth.nurseborn.models.NurseService;
+import edu.uth.nurseborn.models.enums.BookingStatus;
 import edu.uth.nurseborn.models.enums.ServiceType;
 import edu.uth.nurseborn.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,4 +35,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     // Thêm phương thức tìm Booking theo bookingId
     Optional<Booking> findByBookingId(Integer bookingId);
+
+    List<Booking> findByNurseAndStatus(User nurse, BookingStatus status);
 }

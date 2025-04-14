@@ -35,33 +35,28 @@ public class FeedbackService {
     @Autowired
     private ModelMapper modelMapper;
 
-    // Tạo mới một đánh giá
     @Transactional
     public FeedbackDTO createFeedback(FeedbackDTO danhGiaDTO) {
         logger.debug("Bắt đầu transaction để tạo đánh giá: {}", danhGiaDTO);
 
-        // Lấy Booking từ bookingId
         Booking booking = bookingRepository.findById(danhGiaDTO.getBookingId())
                 .orElseThrow(() -> {
                     logger.warn("Không tìm thấy lịch đặt với ID: {}", danhGiaDTO.getBookingId());
                     return new FeedbackNotFoundException("Lịch đặt không tồn tại với ID: " + danhGiaDTO.getBookingId());
                 });
 
-        // Lấy User (family) từ familyUserId
         User family = userRepository.findById(danhGiaDTO.getFamilyUserId())
                 .orElseThrow(() -> {
                     logger.warn("Không tìm thấy gia đình với ID: {}", danhGiaDTO.getFamilyUserId());
                     return new FeedbackNotFoundException("Gia đình không tồn tại với ID: " + danhGiaDTO.getFamilyUserId());
                 });
 
-        // Lấy User (nurse) từ nurseUserId
         User nurse = userRepository.findById(danhGiaDTO.getNurseUserId())
                 .orElseThrow(() -> {
                     logger.warn("Không tìm thấy y tá với ID: {}", danhGiaDTO.getNurseUserId());
                     return new FeedbackNotFoundException("Y tá không tồn tại với ID: " + danhGiaDTO.getNurseUserId());
                 });
 
-        // Kiểm tra điểm đánh giá hợp lệ (1-5)
         if (danhGiaDTO.getRating() < 1 || danhGiaDTO.getRating() > 5) {
             logger.warn("Điểm đánh giá không hợp lệ: {}", danhGiaDTO.getRating());
             throw new IllegalArgumentException("Điểm đánh giá phải từ 1 đến 5");
@@ -75,7 +70,6 @@ public class FeedbackService {
             danhGia.setRating(danhGiaDTO.getRating());
             danhGia.setComment(danhGiaDTO.getComment());
             danhGia.setResponse(danhGiaDTO.getResponse());
-            // createdAt sẽ được set tự động bởi @PrePersist trong entity
 
             logger.debug("Đánh giá entity trước khi lưu: {}", danhGia);
             Feedback danhGiaDaLuu = feedbackRepository.save(danhGia);
@@ -89,7 +83,6 @@ public class FeedbackService {
         }
     }
 
-    // Lấy đánh giá duy nhất theo bookingId
     public FeedbackDTO getFeedbackByBooking(Integer bookingId) {
         logger.debug("Tìm đánh giá cho lịch đặt ID: {}", bookingId);
         Booking booking = bookingRepository.findById(bookingId)
@@ -103,7 +96,6 @@ public class FeedbackService {
                 });
     }
 
-    // Lấy đánh giá duy nhất theo bookingId và nurseUserId
     public FeedbackDTO getFeedbackByBookingAndNurse(Integer bookingId, Long nurseUserId) {
         logger.debug("Tìm đánh giá cho lịch đặt ID: {} và y tá ID: {}", bookingId, nurseUserId);
         Booking booking = bookingRepository.findById(bookingId)
@@ -119,7 +111,6 @@ public class FeedbackService {
                 });
     }
 
-    // Lấy tất cả đánh giá theo nurseUserId
     public List<FeedbackDTO> getFeedbacksByNurse(Long nurseUserId) {
         logger.debug("Tìm tất cả đánh giá cho y tá ID: {}", nurseUserId);
         List<Feedback> danhGiaList = feedbackRepository.findByNurseUserId(nurseUserId);
@@ -128,7 +119,6 @@ public class FeedbackService {
                 .collect(Collectors.toList());
     }
 
-    // Lấy tất cả đánh giá theo familyUserId
     public List<FeedbackDTO> getFeedbacksByFamily(Long familyUserId) {
         logger.debug("Tìm tất cả đánh giá cho gia đình ID: {}", familyUserId);
         List<Feedback> danhGiaList = feedbackRepository.findByFamilyUserId(familyUserId);
@@ -137,7 +127,6 @@ public class FeedbackService {
                 .collect(Collectors.toList());
     }
 
-    // Lấy đánh giá theo feedbackId
     public FeedbackDTO getFeedbackById(Integer feedbackId) {
         logger.debug("Tìm đánh giá với ID: {}", feedbackId);
         return feedbackRepository.findByFeedbackId(feedbackId)
@@ -146,5 +135,15 @@ public class FeedbackService {
                     logger.warn("Không tìm thấy đánh giá với ID: {}", feedbackId);
                     return new FeedbackNotFoundException("Không tìm thấy đánh giá với ID: " + feedbackId);
                 });
+    }
+
+    public List<Feedback> getFeedbacksByUser(User user) {
+        if ("FAMILY".equalsIgnoreCase(user.getRole().name())) {
+            return feedbackRepository.findByFamily(user);
+        } else if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
+            return feedbackRepository.findByNurse(user);
+        } else {
+            throw new IllegalArgumentException("User role must be FAMILY or NURSE");
+        }
     }
 }

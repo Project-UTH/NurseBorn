@@ -36,18 +36,11 @@ public class EarningService {
     @Autowired
     private ModelMapper modelMapper;
 
-    /**
-     * Tạo một bản ghi thu nhập mới.
-     *
-     * @param earningDTO DTO chứa thông tin thu nhập
-     * @return EarningDTO đã được tạo
-     */
     @Transactional
     public EarningDTO createEarning(EarningDTO earningDTO) {
         logger.debug("Tạo thu nhập mới cho bookingId: {}, nurseUserId: {}",
                 earningDTO.getBookingId(), earningDTO.getNurseUserId());
 
-        // Kiểm tra user (nurse) tồn tại
         Optional<User> userOptional = userRepository.findById(Long.valueOf(earningDTO.getNurseUserId()));
         if (!userOptional.isPresent()) {
             logger.warn("Không tìm thấy user với ID: {}", earningDTO.getNurseUserId());
@@ -55,7 +48,6 @@ public class EarningService {
         }
         User nurse = userOptional.get();
 
-        // Kiểm tra booking tồn tại
         Optional<Booking> bookingOptional = bookingRepository.findById(earningDTO.getBookingId());
         if (!bookingOptional.isPresent()) {
             logger.warn("Không tìm thấy booking với ID: {}", earningDTO.getBookingId());
@@ -63,7 +55,6 @@ public class EarningService {
         }
         Booking booking = bookingOptional.get();
 
-        // Kiểm tra xem earning đã tồn tại cho booking này chưa
         Optional<Earning> existingEarning = earningRepository.findByBookingBookingId(earningDTO.getBookingId());
         if (existingEarning.isPresent()) {
             logger.warn("Thu nhập đã tồn tại cho bookingId: {}", earningDTO.getBookingId());
@@ -71,10 +62,9 @@ public class EarningService {
         }
 
         try {
-            // Ánh xạ DTO sang entity
             Earning earning = new Earning();
             earning.setBooking(booking);
-            earning.setNurse(nurse);
+            earning.setNurse(nurse); // Sửa thành setNurseUser
             earning.setAmount(earningDTO.getAmount());
             earning.setPlatformFee(earningDTO.getPlatformFee() != null ? earningDTO.getPlatformFee() : 0.0);
 
@@ -83,7 +73,6 @@ public class EarningService {
             earningRepository.flush();
             logger.info("Đã lưu thu nhập thành công cho bookingId: {}", savedEarning.getBooking().getBookingId());
 
-            // Ánh xạ entity trở lại DTO
             return modelMapper.map(savedEarning, EarningDTO.class);
         } catch (Exception ex) {
             logger.error("Lỗi khi lưu thu nhập: {}", ex.getMessage(), ex);
@@ -91,16 +80,9 @@ public class EarningService {
         }
     }
 
-    /**
-     * Lấy danh sách thu nhập của một y tá theo nurseUserId.
-     *
-     * @param nurseUserId ID của y tá
-     * @return Danh sách EarningDTO
-     */
     public List<EarningDTO> getEarningsByNurseUserId(Long nurseUserId) {
         logger.debug("Lấy danh sách thu nhập cho nurseUserId: {}", nurseUserId);
 
-        // Kiểm tra user tồn tại
         Optional<User> userOptional = userRepository.findById(nurseUserId);
         if (!userOptional.isPresent()) {
             logger.warn("Không tìm thấy user với ID: {}", nurseUserId);
@@ -113,12 +95,6 @@ public class EarningService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy thông tin thu nhập theo earningId.
-     *
-     * @param earningId ID của thu nhập
-     * @return EarningDTO
-     */
     public EarningDTO getEarningById(Integer earningId) {
         logger.debug("Lấy thu nhập với earningId: {}", earningId);
 
@@ -131,13 +107,6 @@ public class EarningService {
         return modelMapper.map(earningOptional.get(), EarningDTO.class);
     }
 
-    /**
-     * Cập nhật thông tin thu nhập.
-     *
-     * @param earningId ID của thu nhập
-     * @param earningDTO DTO chứa thông tin cập nhật
-     * @return EarningDTO đã được cập nhật
-     */
     @Transactional
     public EarningDTO updateEarning(Integer earningId, EarningDTO earningDTO) {
         logger.debug("Cập nhật thu nhập với earningId: {}", earningId);
@@ -151,7 +120,6 @@ public class EarningService {
         Earning earning = earningOptional.get();
 
         try {
-            // Cập nhật các trường cần thiết
             if (earningDTO.getAmount() != null) {
                 earning.setAmount(earningDTO.getAmount());
             }
@@ -171,11 +139,6 @@ public class EarningService {
         }
     }
 
-    /**
-     * Xóa thu nhập theo earningId.
-     *
-     * @param earningId ID của thu nhập
-     */
     @Transactional
     public void deleteEarning(Integer earningId) {
         logger.debug("Xóa thu nhập với earningId: {}", earningId);
@@ -194,5 +157,9 @@ public class EarningService {
             logger.error("Lỗi khi xóa thu nhập: {}", ex.getMessage(), ex);
             throw new RuntimeException("Lỗi khi xóa thu nhập: " + ex.getMessage());
         }
+    }
+
+    public List<Earning> getEarningsByNurse(User nurse) {
+        return earningRepository.findByNurseUserId(nurse.getUserId());
     }
 }

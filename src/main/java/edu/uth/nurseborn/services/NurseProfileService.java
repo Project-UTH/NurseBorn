@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NurseProfileService {
@@ -161,5 +163,12 @@ public class NurseProfileService {
             logger.error("Lỗi không mong muốn khi xóa NurseProfile: {}", ex.getMessage(), ex);
             throw new RuntimeException("Lỗi khi xóa NurseProfile: " + ex.getMessage());
         }
+    }
+    // Thêm phương thức getAllNurseProfiles
+    public List<NurseProfileDTO> getAllNurseProfiles() {
+        List<NurseProfile> nurseProfiles = nurseProfileRepository.findAll();
+        return nurseProfiles.stream()
+                .map(nurseProfile -> modelMapper.map(nurseProfile, NurseProfileDTO.class))
+                .collect(Collectors.toList());
     }
 }

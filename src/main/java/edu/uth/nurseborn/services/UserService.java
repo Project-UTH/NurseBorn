@@ -14,6 +14,7 @@ import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.Role;
 import edu.uth.nurseborn.repositories.TokenRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
+import io.jsonwebtoken.Claims;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 @Service
 public class UserService {
@@ -118,11 +124,16 @@ public class UserService {
         if (passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
             try {
                 String token = jwtTokenUtil.generateToken(user);
-                // Lưu token vào cơ sở dữ liệu
+                Date expirationDate = jwtTokenUtil.extractClaim(token, Claims::getExpiration);
+                LocalDateTime expiresAt = Instant.ofEpochMilli(expirationDate.getTime())
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime();
+
                 Token tokenEntity = new Token();
                 tokenEntity.setToken(token);
                 tokenEntity.setUser(user);
                 tokenEntity.setRevoked(false);
+                tokenEntity.setExpiresAt(expiresAt);
                 tokenRepository.save(tokenEntity);
 
                 LoginResponseDTO response = modelMapper.map(user, LoginResponseDTO.class);
