@@ -1,17 +1,25 @@
 package edu.uth.nurseborn.dtos;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class NurseProfileDTO {
+
     private Integer nurseProfileId;
-    private Long userId;
+    private Integer experienceYears;
+    private Double hourlyRate;
+    private Double dailyRate;
+    private Double weeklyRate;
+    private Boolean approved;
     private String location;
     private String skills;
-    private Integer experienceYears;
-    private String certifications;
-    private Double hourlyRate;
     private String bio;
     private String profileImage;
-    private boolean isApproved;
+    private LocalDateTime updatedAt;
+    private Long userId;
+    private List<CertificateDTO> certificates;
 }

@@ -82,7 +82,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .defaultSuccessUrl("/", true)
                         .failureHandler((request, response, exception) -> {
                             request.setAttribute("error", exception.getMessage());
                             response.sendRedirect("/login?error");

@@ -1,12 +1,17 @@
 package edu.uth.nurseborn.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "nurse_profiles")
+@Getter
+@Setter
 public class NurseProfile {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "nurse_profile_id")
@@ -25,11 +30,14 @@ public class NurseProfile {
     @Column(name = "experience_years", nullable = false)
     private Integer experienceYears;
 
-    @Column(name = "certifications")
-    private String certifications;
-
     @Column(name = "hourly_rate", nullable = false)
     private Double hourlyRate;
+
+    @Column(name = "daily_rate")
+    private Double dailyRate;
+
+    @Column(name = "weekly_rate")
+    private Double weeklyRate;
 
     @Column(name = "bio")
     private String bio;
@@ -46,13 +54,14 @@ public class NurseProfile {
     @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<NurseAvailability> nurseAvailabilities;
 
+    @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Certificate> certificates;
+
     @PrePersist
     @PreUpdate
     public void setUpdatedAt() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    // Getters, setters
 
     public Integer getNurseProfileId() {
         return nurseProfileId;
@@ -74,12 +83,16 @@ public class NurseProfile {
         return experienceYears;
     }
 
-    public String getCertifications() {
-        return certifications;
-    }
-
     public Double getHourlyRate() {
         return hourlyRate;
+    }
+
+    public Double getDailyRate() {
+        return dailyRate;
+    }
+
+    public Double getWeeklyRate() {
+        return weeklyRate;
     }
 
     public String getBio() {
@@ -102,6 +115,14 @@ public class NurseProfile {
         return nurseAvailabilities;
     }
 
+    public List<Certificate> getCertificates() {
+        return certificates;
+    }
+
+    public void setNurseProfileId(Integer nurseProfileId) {
+        this.nurseProfileId = nurseProfileId;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
@@ -118,12 +139,16 @@ public class NurseProfile {
         this.experienceYears = experienceYears;
     }
 
-    public void setCertifications(String certifications) {
-        this.certifications = certifications;
-    }
-
     public void setHourlyRate(Double hourlyRate) {
         this.hourlyRate = hourlyRate;
+    }
+
+    public void setDailyRate(Double dailyRate) {
+        this.dailyRate = dailyRate;
+    }
+
+    public void setWeeklyRate(Double weeklyRate) {
+        this.weeklyRate = weeklyRate;
     }
 
     public void setBio(String bio) {
@@ -138,22 +163,12 @@ public class NurseProfile {
         isApproved = approved;
     }
 
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public void setNurseAvailabilities(List<NurseAvailability> nurseAvailabilities) {
         this.nurseAvailabilities = nurseAvailabilities;
     }
 
-    public NurseProfile() {}
-
-    public NurseProfile(User user, String location, String skills, Integer experienceYears, String certifications, Double hourlyRate, String bio, String profileImage, Boolean isApproved, List<NurseAvailability> nurseAvailabilities) {
-        this.user = user;
-        this.location = location;
-        this.skills = skills;
-        this.experienceYears = experienceYears;
-        this.certifications = certifications;
-        this.hourlyRate = hourlyRate;
-        this.bio = bio;
-        this.profileImage = profileImage;
-        this.isApproved = isApproved;
-        this.nurseAvailabilities = nurseAvailabilities;
-    }
 }

@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -32,6 +33,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
     private final JwtTokenUtils jwtTokenUtil;
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -96,14 +99,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/swagger-ui/.*", "GET"),
                 Pair.of("/swagger-ui.html", "GET"),
                 Pair.of("/swagger-ui/index.html", "GET"),
-                // Thêm các endpoint công khai từ SecurityConfig
                 Pair.of("/", "GET"),
                 Pair.of("/login", "GET"),
+                Pair.of("/login", "POST"), // Thêm để bỏ qua POST /login
                 Pair.of("/register", "GET"),
+                Pair.of("/register", "POST"), // Thêm để bỏ qua POST /register
                 Pair.of("/logout", "GET"),
                 Pair.of("/role-selection", "GET"),
                 Pair.of("/register/nurse", "GET"),
+                Pair.of("/register/nurse", "POST"),
                 Pair.of("/register/family", "GET"),
+                Pair.of("/register/family", "POST"),
                 Pair.of("/resources/**", "GET"),
                 Pair.of("/static/**", "GET"),
                 Pair.of("/css/**", "GET"),
@@ -133,7 +139,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         for (Pair<String, String> token : bypassTokens) {
             String bypassPath = token.getFirst();
             String bypassMethod = token.getSecond();
-            if (path.matches(bypassPath) && method.equalsIgnoreCase(bypassMethod)) {
+            if (pathMatcher.match(bypassPath, path) && method.equalsIgnoreCase(bypassMethod)) {
                 return true;
             }
         }

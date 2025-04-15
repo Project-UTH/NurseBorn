@@ -24,42 +24,46 @@
               <h4 class="mb-2">Tạo tài khoản gia đình</h4>
               <p class="mb-4">Điền thông tin bên dưới để bắt đầu</p>
 
-              <form id="formFamilyRegistration" class="mb-3" action="register-family" method="POST">
+              <form id="formFamilyRegistration" class="mb-3" th:action="@{/register}" th:object="${registerRequest}" method="POST">
                 <div class="mb-3">
                   <label for="full_name" class="form-label">Họ và Tên</label>
-                  <input type="text" class="form-control" id="full_name" name="full_name" required />
+                  <input type="text" class="form-control" id="full_name" th:field="*{user.fullName}" required />
                 </div>
                 <div class="mb-3">
                   <label for="username" class="form-label">Tên đăng nhập</label>
-                  <input type="text" class="form-control" id="username" name="username" required />
+                  <input type="text" class="form-control" id="username" th:field="*{user.username}" required />
                 </div>
                 <div class="mb-3">
                   <label for="email" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="email" name="email" required />
+                  <input type="email" class="form-control" id="email" th:field="*{user.email}" required />
                 </div>
                 <div class="mb-3">
                   <label for="password" class="form-label">Mật khẩu</label>
-                  <input type="password" class="form-control" id="password" name="password" required />
+                  <input type="password" class="form-control" id="password" th:field="*{user.password}" required />
                 </div>
                 <div class="mb-3">
                   <label for="phone_number" class="form-label">Số điện thoại</label>
-                  <input type="text" class="form-control" id="phone_number" name="phone_number" />
+                  <input type="text" class="form-control" id="phone_number" th:field="*{user.phoneNumber}" />
                 </div>
                 <div class="mb-3">
                   <label for="address" class="form-label">Địa chỉ</label>
-                  <textarea class="form-control" id="address" name="address"></textarea>
+                  <textarea class="form-control" id="address" th:field="*{user.address}"></textarea>
                 </div>
                 <div class="mb-3">
                   <label for="family_size" class="form-label">Quy mô gia đình</label>
-                  <input type="number" class="form-control" id="family_size" name="family_size" min="1" />
+                  <input type="number" class="form-control" id="family_size" th:field="*{familyProfile.familySize}" min="1" />
                 </div>
                 <div class="mb-3">
                   <label for="specific_needs" class="form-label">Nhu cầu cụ thể</label>
-                  <textarea class="form-control" id="specific_needs" name="specific_needs"></textarea>
+                  <textarea class="form-control" id="specific_needs" th:field="*{familyProfile.specificNeeds}"></textarea>
                 </div>
                 <div class="mb-3">
                   <label for="preferred_location" class="form-label">Vị trí ưu tiên</label>
-                  <input type="text" class="form-control" id="preferred_location" name="preferred_location" />
+                  <input type="text" class="form-control" id="preferred_location" th:field="*{familyProfile.preferredLocation}" />
+                </div>
+                <input type="hidden" th:field="*{user.role}" value="FAMILY" />
+                <div class="mb-3" th:if="${error}">
+                  <p th:text="${error}" style="color: red;"></p>
                 </div>
                 <button class="btn btn-primary d-grid w-100">Đăng ký</button>
               </form>

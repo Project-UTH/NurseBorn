@@ -1,11 +1,6 @@
 package edu.uth.nurseborn.controllers.res;
 
-import edu.uth.nurseborn.dtos.BookingDTO;
-import edu.uth.nurseborn.dtos.LoginRequestDTO;
-import edu.uth.nurseborn.dtos.NurseProfileDTO;
-import edu.uth.nurseborn.dtos.FamilyProfileDTO;
-import edu.uth.nurseborn.dtos.RegisterRequestDTO;
-import edu.uth.nurseborn.dtos.UserDTO;
+import edu.uth.nurseborn.dtos.*;
 import edu.uth.nurseborn.models.*;
 import edu.uth.nurseborn.repositories.UserRepository;
 import edu.uth.nurseborn.services.*;
@@ -13,22 +8,27 @@ import edu.uth.nurseborn.components.JwtTokenUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.hibernate.stat.Statistics;
+import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 public class WebController {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
 
     @Autowired
     private UserService userService;
@@ -46,7 +46,7 @@ public class WebController {
     private FamilyProfileService familyProfileService;
 
     @Autowired
-    private BookingService bookingService; // Thay JobRequestService và HiredNurseService bằng BookingService
+    private BookingService bookingService;
 
     @Autowired
     private FeedbackService feedbackService;
@@ -58,86 +58,26 @@ public class WebController {
     private EarningService earningService;
 
     @Autowired
-    private AdminActionService adminActionService;
-
-    @Autowired
     private TokenCleanupService tokenCleanupService;
 
     @GetMapping("/")
-    public String home() {
-        return "master/home";
-    }
+    public String home(Model model) {
+        logger.debug("Hiển thị trang home");
 
-    @GetMapping("/login")
-    public String login(Model model) {
-        model.addAttribute("loginRequest", new LoginRequestDTO());
-        return "master/auth-login-basic";
-    }
-
-    @PostMapping("/login")
-    public String login(@ModelAttribute("loginRequest") LoginRequestDTO loginRequest, Model model, HttpServletResponse response) {
-        try {
-            var loginResponse = userService.login(loginRequest);
-            Cookie cookie = new Cookie("token", loginResponse.getToken());
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            response.addCookie(cookie);
-            return "redirect:/dashboard";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "master/auth-login-basic";
-        }
-    }
-
-    @GetMapping("/role-selection")
-    public String roleSelection(Model model) {
-        return "master/role-selection";
-    }
-
-    @GetMapping("/register/nurse")
-    public String registerNurse(Model model) {
-        model.addAttribute("registerRequest", new RegisterRequestDTO());
-        model.addAttribute("userDTO", new UserDTO());
-        model.addAttribute("nurseProfileDTO", new NurseProfileDTO());
-        return "master/auth-register-basic-nurse";
-    }
-
-    @GetMapping("/register/family")
-    public String registerFamily(Model model) {
-        model.addAttribute("registerRequest", new RegisterRequestDTO());
-        model.addAttribute("userDTO", new UserDTO());
-        model.addAttribute("familyProfileDTO", new FamilyProfileDTO());
-        return "master/auth-register-basic-family";
-    }
-
-    @PostMapping("/register")
-    public String register(@ModelAttribute("registerRequest") RegisterRequestDTO registerRequest, Model model) {
-        try {
-            userService.registerUser(registerRequest);
-            return "redirect:/login";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            String role = registerRequest.getUser().getRole();
-            return "master/auth-register-basic-" + role.toLowerCase();
-        }
-    }
-
-    @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
+        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.debug("Người dùng chưa đăng nhập, hiển thị trang home mặc định");
+            return "master/home";
         }
 
         try {
-            String username = jwtTokenUtil.extractUsername(token);
+            String username = authentication.getName();
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
             model.addAttribute("user", user);
+
             if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
                 NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
                 model.addAttribute("nurseProfile", nurseProfile);
@@ -145,276 +85,247 @@ public class WebController {
                 FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
                 model.addAttribute("familyProfile", familyProfile);
             }
-            return "master/masterpage";
+
+            logger.info("Hiển thị trang home cho user: {}", username);
+            return "master/home";
         } catch (Exception e) {
-            return "redirect:/login";
+            logger.error("Lỗi khi hiển thị trang home: {}", e.getMessage(), e);
+            return "master/home";
         }
     }
 
-    @GetMapping("/create-profile")
-    public String createProfile(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
+    @GetMapping("/login")
+    public String login(Model model) {
+        logger.debug("Hiển thị form đăng nhập");
+        model.addAttribute("loginRequest", new LoginRequestDTO());
+        return "master/auth-login-basic";
+    }
 
+    @PostMapping("/login")
+    public String login(@ModelAttribute("loginRequest") LoginRequestDTO loginRequest, Model model, HttpServletResponse response) {
         try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            model.addAttribute("user", user);
-            return "master/create-profile";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/manage-services")
-    public String manageServices(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            model.addAttribute("user", user);
-            return "master/manage-services";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/hired-nurses")
-    public String hiredNurses(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user) || !"FAMILY".equalsIgnoreCase(user.getRole().name())) {
-                return "redirect:/login";
-            }
-
-            // Lấy danh sách booking của family user
-            List<BookingDTO> bookings = bookingService.getBookingsByFamilyUserId(user.getUserId().intValue());
-            // Lọc các booking có trạng thái "ACCEPTED" hoặc "COMPLETED" để xem như "hired nurses"
-            List<BookingDTO> hiredNurses = bookings.stream()
-                    .filter(booking -> "ACCEPTED".equalsIgnoreCase(booking.getStatus().toString()) || "COMPLETED".equalsIgnoreCase(booking.getStatus().toString()))
-                    .collect(Collectors.toList());
-            model.addAttribute("user", user);
-            model.addAttribute("hiredNurses", hiredNurses);
-            return "master/hired-nurses";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/job-requests")
-    public String jobRequests(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user) || !"NURSE".equalsIgnoreCase(user.getRole().name())) {
-                return "redirect:/login";
-            }
-
-            // Lấy danh sách booking liên quan đến nurse user
-            List<BookingDTO> bookings = bookingService.getBookingsByNurseUserId(user.getUserId().intValue());
-            // Lọc các booking có trạng thái "PENDING" để xem như "job requests"
-            List<BookingDTO> jobRequests = bookings.stream()
-                    .filter(booking -> "PENDING".equalsIgnoreCase(booking.getStatus().toString()))
-                    .collect(Collectors.toList());
-            model.addAttribute("user", user);
-            model.addAttribute("jobRequests", jobRequests);
-            return "master/job-requests";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/nursepage")
-    public String nursePage(Model model, HttpServletRequest request, Pageable pageable) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            List<NurseProfileDTO> nurseProfiles = nurseProfileService.getAllNurseProfiles();
-            model.addAttribute("user", user);
-            model.addAttribute("nurseProfiles", nurseProfiles);
-            return "master/nursepage";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/nursing-service")
-    public String nursingService(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            model.addAttribute("user", user);
-            return "master/nursing-service";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/review-nurse-profile")
-    public String reviewNurseProfile(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            model.addAttribute("user", user);
-            return "master/review-nurse-profile";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/feedbacks")
-    public String feedbacks(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            List<Feedback> feedbacks = feedbackService.getFeedbacksByUser(user);
-            model.addAttribute("user", user);
-            model.addAttribute("feedbacks", feedbacks);
-            return "master/feedbacks";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @GetMapping("/messages")
-    public String messages(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user)) {
-                return "redirect:/login";
-            }
-
-            List<Message> messages = messageService.getMessagesByUser(user);
-            model.addAttribute("user", user);
-            model.addAttribute("messages", messages);
-            return "master/messages";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-
-    @GetMapping("/track-income")
-    public String trackIncome(Model model, HttpServletRequest request) {
-        String token = getTokenFromCookies(request);
-        if (token == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            String username = jwtTokenUtil.extractUsername(token);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            if (!jwtTokenUtil.validateToken(token, (UserDetails) user) || !"NURSE".equalsIgnoreCase(user.getRole().name())) {
-                return "redirect:/login";
-            }
-
-            List<Earning> earnings = earningService.getEarningsByNurse(user);
-            model.addAttribute("user", user);
-            model.addAttribute("earnings", earnings);
-            return "master/track-income";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-    @PostMapping("/logout")
-    public String logout(HttpServletRequest request, HttpServletResponse response) {
-        String token = getTokenFromCookies(request);
-        if (token != null) {
-            tokenCleanupService.cleanupToken(token);
-            Cookie cookie = new Cookie("token", null);
-            cookie.setMaxAge(0);
+            logger.debug("Xử lý yêu cầu đăng nhập với username: {}", loginRequest.getUsername());
+            LoginResponseDTO loginResponse = userService.login(loginRequest);
+            Cookie cookie = new Cookie("token", loginResponse.getToken());
+            cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
+            logger.info("Đăng nhập thành công cho username: {}", loginRequest.getUsername());
+
+            // Chuyển hướng đến trang home cho tất cả người dùng
+            return "redirect:/";
+        } catch (Exception e) {
+            logger.error("Lỗi khi đăng nhập: {}", e.getMessage(), e);
+            model.addAttribute("error", e.getMessage());
+            return "master/auth-login-basic";
         }
-        return "redirect:/login?logout";
     }
 
-    private String getTokenFromCookies(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
+    @GetMapping("/role-selection")
+    public String roleSelection(Model model) {
+        logger.debug("Hiển thị modal chọn vai trò");
+        return "master/role-selection";
+    }
+
+    @GetMapping("/register/nurse")
+    public String registerNurse(Model model) {
+        logger.debug("Hiển thị form đăng ký tài khoản y tá");
+        RegisterRequestDTO registerRequest = new RegisterRequestDTO();
+        UserDTO userDTO = new UserDTO();
+        userDTO.setRole("NURSE");
+        registerRequest.setUser(userDTO);
+        model.addAttribute("registerRequest", registerRequest);
+        model.addAttribute("userDTO", userDTO);
+        model.addAttribute("nurseProfileDTO", new NurseProfileDTO());
+        return "master/auth-register-basic-nurse";
+    }
+
+    @GetMapping("/register/family")
+    public String registerFamily(Model model) {
+        logger.debug("Hiển thị form đăng ký tài khoản gia đình");
+        RegisterRequestDTO registerRequest = new RegisterRequestDTO();
+        UserDTO userDTO = new UserDTO();
+        userDTO.setRole("FAMILY");
+        registerRequest.setUser(userDTO);
+        model.addAttribute("registerRequest", registerRequest);
+        model.addAttribute("userDTO", userDTO);
+        model.addAttribute("familyProfileDTO", new FamilyProfileDTO());
+        return "master/auth-register-basic-family";
+    }
+
+    @PostMapping("/register")
+    public String register(
+            @ModelAttribute("registerRequest") RegisterRequestDTO registerRequest,
+            @RequestParam(value = "certificates", required = false) List<MultipartFile> certificates,
+            @RequestParam(value = "experienceYears", required = false) Integer experienceYears,
+            @RequestParam(value = "hourlyRate", required = false) Double hourlyRate,
+            @RequestParam(value = "dailyRate", required = false) Double dailyRate,
+            @RequestParam(value = "weeklyRate", required = false) Double weeklyRate,
+            @RequestParam(value = "skills", required = false) String skills,
+            @RequestParam(value = "bio", required = false) String bio,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+            Model model,
+            HttpSession session) {
+        try {
+            logger.debug("Nhận yêu cầu POST /register với dữ liệu: {}", registerRequest);
+            logger.debug("Certificates: {}, Skills: {}, ExperienceYears: {}, Bio: {}, ProfileImage: {}",
+                    certificates, skills, experienceYears, bio, profileImage != null ? profileImage.getOriginalFilename() : "null");
+
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUsername(registerRequest.getUser().getUsername());
+            userDTO.setPassword(registerRequest.getUser().getPassword());
+            userDTO.setEmail(registerRequest.getUser().getEmail());
+            userDTO.setRole(registerRequest.getUser().getRole());
+            userDTO.setFullName(registerRequest.getUser().getFullName());
+            userDTO.setPhoneNumber(registerRequest.getUser().getPhoneNumber());
+            userDTO.setAddress(registerRequest.getUser().getAddress());
+            registerRequest.setUser(userDTO);
+
+            String role = userDTO.getRole();
+            if (role == null || role.trim().isEmpty()) {
+                logger.error("Vai trò không được cung cấp hoặc rỗng");
+                model.addAttribute("error", "Vai trò không được để trống");
+                return "master/auth-register-basic-nurse";
             }
+
+            if ("NURSE".equalsIgnoreCase(role)) {
+                logger.debug("Tạo NurseProfile với skills: {}, experienceYears: {}", skills, experienceYears);
+                NurseProfileDTO nurseProfileDTO = new NurseProfileDTO();
+                nurseProfileDTO.setLocation(userDTO.getAddress());
+                nurseProfileDTO.setSkills(skills);
+                nurseProfileDTO.setExperienceYears(experienceYears);
+                nurseProfileDTO.setHourlyRate(hourlyRate);
+                nurseProfileDTO.setDailyRate(dailyRate);
+                nurseProfileDTO.setWeeklyRate(weeklyRate);
+                nurseProfileDTO.setBio(bio);
+                nurseProfileDTO.setApproved(false);
+
+                // Xử lý ảnh đại diện nếu có
+                if (profileImage != null && !profileImage.isEmpty()) {
+                    try {
+                        String uploadDir = "uploads/profile_images/";
+                        File dir = new File(uploadDir);
+                        if (!dir.exists()) {
+                            dir.mkdirs();
+                        }
+                        String fileName = System.currentTimeMillis() + "_" + profileImage.getOriginalFilename();
+                        Path filePath = Paths.get(uploadDir, fileName);
+                        Files.write(filePath, profileImage.getBytes());
+                        nurseProfileDTO.setProfileImage(filePath.toString());
+                    } catch (Exception e) {
+                        logger.error("Lỗi khi lưu ảnh đại diện: {}", e.getMessage(), e);
+                        model.addAttribute("error", "Lỗi khi lưu ảnh đại diện: " + e.getMessage());
+                        return "master/auth-register-basic-nurse";
+                    }
+                }
+
+                registerRequest.setNurseProfile(nurseProfileDTO);
+                registerRequest.setCertificates(certificates);
+            } else if ("FAMILY".equalsIgnoreCase(role)) {
+                logger.debug("Tạo FamilyProfile với familySize: {}, specificNeeds: {}",
+                        registerRequest.getFamilyProfile().getFamilySize(),
+                        registerRequest.getFamilyProfile().getSpecificNeeds());
+                FamilyProfileDTO familyProfileDTO = new FamilyProfileDTO();
+                familyProfileDTO.setFamilySize(registerRequest.getFamilyProfile().getFamilySize());
+                familyProfileDTO.setSpecificNeeds(registerRequest.getFamilyProfile().getSpecificNeeds());
+                familyProfileDTO.setPreferredLocation(registerRequest.getFamilyProfile().getPreferredLocation());
+                registerRequest.setFamilyProfile(familyProfileDTO);
+            } else {
+                logger.error("Vai trò không hợp lệ: {}", role);
+                model.addAttribute("error", "Vai trò không hợp lệ: " + role);
+                return "master/auth-register-basic-nurse";
+            }
+
+            userService.registerUser(registerRequest);
+            session.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
+            logger.info("Đăng ký thành công cho username: {}", userDTO.getUsername());
+            return "redirect:/login";
+        } catch (Exception e) {
+            logger.error("Lỗi khi đăng ký: {}", e.getMessage(), e);
+            model.addAttribute("error", e.getMessage());
+            String role = registerRequest.getUser() != null && registerRequest.getUser().getRole() != null
+                    ? registerRequest.getUser().getRole().toLowerCase()
+                    : "nurse";
+            return "master/auth-register-basic-" + role;
         }
-        return null;
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpServletRequest request) {
+        logger.debug("Hiển thị dashboard");
+
+        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            model.addAttribute("user", user);
+
+            if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
+                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                model.addAttribute("nurseProfile", nurseProfile);
+            } else if ("FAMILY".equalsIgnoreCase(user.getRole().name())) {
+                FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
+                model.addAttribute("familyProfile", familyProfile);
+            } else if ("ADMIN".equalsIgnoreCase(user.getRole().name())) {
+                return "redirect:/admin-dashboard";
+            }
+
+            logger.info("Hiển thị dashboard cho user: {}", username);
+            return "master/dashboard";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị dashboard: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+
+    @GetMapping("/admin-dashboard")
+    public String adminDashboard(Model model, HttpServletRequest request) {
+        logger.debug("Hiển thị admin dashboard");
+
+        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            if (!"ADMIN".equalsIgnoreCase(user.getRole().name())) {
+                logger.warn("User {} không có quyền truy cập admin dashboard", username);
+                return "redirect:/dashboard";
+            }
+
+            model.addAttribute("user", user);
+            logger.info("Hiển thị admin dashboard cho user: {}", username);
+            return "master/admin-dashboard";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị admin dashboard: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) {
+        logger.debug("Xử lý yêu cầu đăng xuất");
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        SecurityContextHolder.clearContext(); // Xóa thông tin xác thực
+        logger.info("Đăng xuất thành công");
+        return "redirect:/login?logout";
     }
 }
