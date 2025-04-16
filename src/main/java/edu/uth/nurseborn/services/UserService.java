@@ -87,6 +87,10 @@ public class UserService {
             User user = modelMapper.map(userDTO, User.class);
             user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
             user.setRole(Role.valueOf(userDTO.getRole().toUpperCase()));
+            // Đặt isVerified dựa trên vai trò
+            if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+                user.setVerified(true); //true cho vai trò Family
+            }
             logger.debug("User entity trước khi lưu: {}", user);
             User savedUser = userRepository.save(user);
             userRepository.flush();

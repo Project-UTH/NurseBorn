@@ -98,7 +98,7 @@ public class WebController {
     public String login(Model model) {
         logger.debug("Hiển thị form đăng nhập");
         model.addAttribute("loginRequest", new LoginRequestDTO());
-        return "master/auth-login-basic";
+        return "auth/auth-login-basic";
     }
 
     @PostMapping("/login")
@@ -117,14 +117,14 @@ public class WebController {
         } catch (Exception e) {
             logger.error("Lỗi khi đăng nhập: {}", e.getMessage(), e);
             model.addAttribute("error", e.getMessage());
-            return "master/auth-login-basic";
+            return "auth/auth-login-basic";
         }
     }
 
     @GetMapping("/role-selection")
     public String roleSelection(Model model) {
         logger.debug("Hiển thị modal chọn vai trò");
-        return "master/role-selection";
+        return "auth/role-selection";
     }
 
     @GetMapping("/register/nurse")
@@ -137,7 +137,7 @@ public class WebController {
         model.addAttribute("registerRequest", registerRequest);
         model.addAttribute("userDTO", userDTO);
         model.addAttribute("nurseProfileDTO", new NurseProfileDTO());
-        return "master/auth-register-basic-nurse";
+        return "auth/auth-register-basic-nurse";
     }
 
     @GetMapping("/register/family")
@@ -150,7 +150,7 @@ public class WebController {
         model.addAttribute("registerRequest", registerRequest);
         model.addAttribute("userDTO", userDTO);
         model.addAttribute("familyProfileDTO", new FamilyProfileDTO());
-        return "master/auth-register-basic-family";
+        return "auth/auth-register-basic-family";
     }
 
     @PostMapping("/register")
@@ -185,7 +185,7 @@ public class WebController {
             if (role == null || role.trim().isEmpty()) {
                 logger.error("Vai trò không được cung cấp hoặc rỗng");
                 model.addAttribute("error", "Vai trò không được để trống");
-                return "master/auth-register-basic-nurse";
+                return "auth/auth-register-basic-nurse";
             }
 
             if ("NURSE".equalsIgnoreCase(role)) {
@@ -200,7 +200,6 @@ public class WebController {
                 nurseProfileDTO.setBio(bio);
                 nurseProfileDTO.setApproved(false);
 
-                // Xử lý ảnh đại diện nếu có
                 if (profileImage != null && !profileImage.isEmpty()) {
                     try {
                         String uploadDir = "uploads/profile_images/";
@@ -215,25 +214,24 @@ public class WebController {
                     } catch (Exception e) {
                         logger.error("Lỗi khi lưu ảnh đại diện: {}", e.getMessage(), e);
                         model.addAttribute("error", "Lỗi khi lưu ảnh đại diện: " + e.getMessage());
-                        return "master/auth-register-basic-nurse";
+                        return "auth/auth-register-basic-nurse";
                     }
                 }
 
                 registerRequest.setNurseProfile(nurseProfileDTO);
                 registerRequest.setCertificates(certificates);
             } else if ("FAMILY".equalsIgnoreCase(role)) {
-                logger.debug("Tạo FamilyProfile với familySize: {}, specificNeeds: {}",
-                        registerRequest.getFamilyProfile().getFamilySize(),
-                        registerRequest.getFamilyProfile().getSpecificNeeds());
-                FamilyProfileDTO familyProfileDTO = new FamilyProfileDTO();
-                familyProfileDTO.setFamilySize(registerRequest.getFamilyProfile().getFamilySize());
-                familyProfileDTO.setSpecificNeeds(registerRequest.getFamilyProfile().getSpecificNeeds());
-                familyProfileDTO.setPreferredLocation(registerRequest.getFamilyProfile().getPreferredLocation());
+                logger.debug("Tạo FamilyProfile với specificNeeds: {}", registerRequest.getFamilyProfile().getSpecificNeeds());
+                FamilyProfileDTO familyProfileDTO = registerRequest.getFamilyProfile(); // Sử dụng dữ liệu từ form
+                if (familyProfileDTO == null) {
+                    familyProfileDTO = new FamilyProfileDTO();
+                }
+                // Không cần gán thủ công childName và childAge vì đã được bind từ form
                 registerRequest.setFamilyProfile(familyProfileDTO);
             } else {
                 logger.error("Vai trò không hợp lệ: {}", role);
                 model.addAttribute("error", "Vai trò không hợp lệ: " + role);
-                return "master/auth-register-basic-nurse";
+                return "auth/auth-register-basic-nurse";
             }
 
             userService.registerUser(registerRequest);
@@ -246,43 +244,7 @@ public class WebController {
             String role = registerRequest.getUser() != null && registerRequest.getUser().getRole() != null
                     ? registerRequest.getUser().getRole().toLowerCase()
                     : "nurse";
-            return "master/auth-register-basic-" + role;
-        }
-    }
-
-    @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpServletRequest request) {
-        logger.debug("Hiển thị dashboard");
-
-        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
-            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
-            return "redirect:/login";
-        }
-
-        try {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-
-            model.addAttribute("user", user);
-
-            if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
-                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
-                model.addAttribute("nurseProfile", nurseProfile);
-            } else if ("FAMILY".equalsIgnoreCase(user.getRole().name())) {
-                FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
-                model.addAttribute("familyProfile", familyProfile);
-            } else if ("ADMIN".equalsIgnoreCase(user.getRole().name())) {
-                return "redirect:/admin-dashboard";
-            }
-
-            logger.info("Hiển thị dashboard cho user: {}", username);
-            return "master/dashboard";
-        } catch (Exception e) {
-            logger.error("Lỗi khi hiển thị dashboard: {}", e.getMessage(), e);
-            return "redirect:/login";
+            return "auth/auth-register-basic-" + role;
         }
     }
 
@@ -304,7 +266,7 @@ public class WebController {
 
             if (!"ADMIN".equalsIgnoreCase(user.getRole().name())) {
                 logger.warn("User {} không có quyền truy cập admin dashboard", username);
-                return "redirect:/dashboard";
+                return "redirect:/";
             }
 
             model.addAttribute("user", user);

@@ -15,8 +15,11 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(name = "family_size")
-    private Integer familySize;
+    @Column(name="child_name")
+    private String childName;
+
+    @Column(name="child_age")
+    private String childAge;
 
     @Column(name = "specific_needs")
     private String specificNeeds;
@@ -43,9 +46,6 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
         return user;
     }
 
-    public Integer getFamilySize() {
-        return familySize;
-    }
 
     public String getSpecificNeeds() {
         return specificNeeds;
@@ -55,17 +55,34 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
         return preferredLocation;
     }
 
+    public String getChildAge() {
+        return childAge;
+    }
+
+    public String getChildName() {
+        return childName;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setFamilyProfileId(Integer familyProfileId) {
+        this.familyProfileId = familyProfileId;
+    }
+
+    public void setChildName(String childName) {
+        this.childName = childName;
+    }
+
+    public void setChildAge(String childAge) {
+        this.childAge = childAge;
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    public void setFamilySize(Integer familySize) {
-        this.familySize = familySize;
-    }
 
     public void setSpecificNeeds(String specificNeeds) {
         this.specificNeeds = specificNeeds;
@@ -77,10 +94,11 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
 
     public FamilyProfile() {}
 
-    public FamilyProfile(User user, Integer familySize, String specificNeeds, String preferredLocation) {
+    public FamilyProfile(User user, String specificNeeds, String preferredLocation, String childAge, String childName ) {
         this.user = user;
-        this.familySize = familySize;
-        this.specificNeeds = specificNeeds;
         this.preferredLocation = preferredLocation;
+        this.specificNeeds = specificNeeds;
+        this.childName = childName;
+        this.childAge = childAge;
     }
 }

@@ -17,7 +17,7 @@
           <div class="card">
             <div class="card-body">
               <div class="app-brand justify-content-center">
-                <a href="home.html" class="app-brand-link gap-2">
+                <a href="../master/home.html" class="app-brand-link gap-2">
                   <span class="app-brand-text demo text-body fw-bolder text-uppercase ms-4">Đăng ký</span>
                 </a>
               </div>
@@ -50,8 +50,12 @@
                   <textarea class="form-control" id="address" th:field="*{user.address}"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="family_size" class="form-label">Quy mô gia đình</label>
-                  <input type="number" class="form-control" id="family_size" th:field="*{familyProfile.familySize}" min="1" />
+                  <label for="child_name" class="form-label">Tên trẻ</label>
+                  <input type="text" class="form-control" id="child_name" th:field="*{familyProfile.childName}" />
+                </div>
+                <div class="mb-3">
+                  <label for="child_age" class="form-label">Tuổi của trẻ</label>
+                  <input type="text" class="form-control" id="child_age" th:field="*{familyProfile.childAge}" />
                 </div>
                 <div class="mb-3">
                   <label for="specific_needs" class="form-label">Nhu cầu cụ thể</label>
