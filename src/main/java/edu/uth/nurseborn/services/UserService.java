@@ -16,18 +16,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class UserService {
@@ -41,10 +34,10 @@ public class UserService {
     private TokenRepository tokenRepository;
 
     @Autowired
-    private CertificateRepository certificateRepository;
+    private NurseProfileRepository nurseProfileRepository;
 
     @Autowired
-    private NurseProfileRepository nurseProfileRepository;
+    private CertificateRepository certificateRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -87,9 +80,8 @@ public class UserService {
             User user = modelMapper.map(userDTO, User.class);
             user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
             user.setRole(Role.valueOf(userDTO.getRole().toUpperCase()));
-            // Đặt isVerified dựa trên vai trò
             if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
-                user.setVerified(true); //true cho vai trò Family
+                user.setVerified(true);
             }
             logger.debug("User entity trước khi lưu: {}", user);
             User savedUser = userRepository.save(user);
@@ -105,48 +97,6 @@ public class UserService {
                 logger.debug("Tạo NurseProfile cho userId: {}", savedUser.getUserId());
                 nurseProfileDTO.setUserId(savedUser.getUserId());
                 nurseProfileService.createNurseProfile(savedUser.getUserId(), nurseProfileDTO);
-
-                List<MultipartFile> certificates = requestDTO.getCertificates();
-                if (certificates != null && !certificates.isEmpty()) {
-                    try {
-                        String uploadDir = "uploads/certificates/";
-                        File dir = new File(uploadDir);
-                        if (!dir.exists()) {
-                            dir.mkdirs();
-                        }
-
-                        NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(savedUser.getUserId())
-                                .orElseThrow(() -> new RuntimeException("NurseProfile not found for userId: " + savedUser.getUserId()));
-
-                        List<Certificate> certificateList = new ArrayList<>();
-                        for (MultipartFile file : certificates) {
-                            if (!file.isEmpty()) {
-                                String contentType = file.getContentType();
-                                if (!contentType.equals("application/pdf") && !contentType.startsWith("image/")) {
-                                    throw new RuntimeException("Chỉ hỗ trợ file PDF hoặc hình ảnh");
-                                }
-
-                                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                                Path filePath = Paths.get(uploadDir, fileName);
-                                Files.write(filePath, file.getBytes());
-
-                                Certificate certificate = new Certificate();
-                                certificate.setNurseProfile(nurseProfile);
-                                certificate.setFileName(file.getOriginalFilename());
-                                certificate.setFilePath(filePath.toString());
-                                certificateList.add(certificate);
-                            }
-                        }
-                        logger.debug("Lưu {} chứng chỉ cho userId: {}", certificateList.size(), savedUser.getUserId());
-                        certificateRepository.saveAll(certificateList);
-                        certificateRepository.flush();
-                    } catch (Exception e) {
-                        logger.error("Lỗi khi lưu chứng chỉ: {}", e.getMessage(), e);
-                        throw new RuntimeException("Lỗi khi lưu chứng chỉ: " + e.getMessage());
-                    }
-                } else {
-                    logger.warn("Không có chứng chỉ nào được tải lên cho userId: {}", savedUser.getUserId());
-                }
             } else if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
                 FamilyProfileDTO familyProfileDTO = requestDTO.getFamilyProfile();
                 if (familyProfileDTO == null) {
@@ -159,7 +109,9 @@ public class UserService {
             }
 
             UserDTO responseDTO = modelMapper.map(savedUser, UserDTO.class);
-            responseDTO.setRole(savedUser.getRole().name().toLowerCase());
+            // Sửa role để loại bỏ "ROLE_" và không chuyển thành lowercase
+            String role = savedUser.getRole().name();
+            responseDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role); // Loại bỏ "ROLE_"
             logger.info("Đăng ký thành công cho user: {}", savedUser.getUsername());
             return responseDTO;
         } catch (DataIntegrityViolationException e) {
@@ -194,8 +146,10 @@ public class UserService {
                 tokenRepository.save(tokenEntity);
 
                 LoginResponseDTO response = modelMapper.map(user, LoginResponseDTO.class);
+                // Sửa role để loại bỏ "ROLE_" và không chuyển thành lowercase
+                String role = user.getRole().name();
+                response.setRole(role.startsWith("ROLE_") ? role.substring(5) : role); // Loại bỏ "ROLE_"
                 response.setToken(token);
-                response.setRole(user.getRole().name().toLowerCase());
 
                 if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
                     try {
@@ -212,9 +166,8 @@ public class UserService {
                         logger.warn("Không tìm thấy FamilyProfile cho userId: {}", user.getUserId());
                     }
                 } else if ("ADMIN".equalsIgnoreCase(user.getRole().name())) {
-                logger.info("Đăng nhập tài khoản admin với username: {}", user.getUsername());
-                // Không cần thêm dữ liệu profile cho admin, hoặc thêm logic nếu cần
-            }
+                    logger.info("Đăng nhập tài khoản admin với username: {}", user.getUsername());
+                }
 
                 logger.info("Đăng nhập thành công cho user: {}", user.getUsername());
                 return response;

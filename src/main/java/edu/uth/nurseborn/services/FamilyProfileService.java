@@ -100,8 +100,10 @@ public class FamilyProfileService {
 
         Optional<FamilyProfile> familyProfileOptional = familyProfileRepository.findByUserUserId(userId);
         if (!familyProfileOptional.isPresent()) {
-            logger.warn("Không tìm thấy FamilyProfile cho userId: {}", userId);
-            throw new RuntimeException("Không tìm thấy FamilyProfile cho user với ID: " + userId);
+            logger.warn("Không tìm thấy FamilyProfile cho userId: {}. Trả về DTO rỗng.", userId);
+            FamilyProfileDTO emptyProfile = new FamilyProfileDTO();
+            emptyProfile.setUserId(userId);
+            return emptyProfile;
         }
 
         FamilyProfile familyProfile = familyProfileOptional.get();

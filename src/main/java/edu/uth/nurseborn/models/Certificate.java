@@ -15,11 +15,19 @@ public class Certificate {
     @JoinColumn(name = "nurse_profile_id")
     private NurseProfile nurseProfile;
 
-    @Column(name = "file_path")
+    @Column(name = "file_path", nullable = false)
     private String filePath;
 
-    @Column(name = "file_name")
-    private String fileName;
+    @Column(name = "certificate_name")
+    private String certificateName;
+
+    public String getCertificateName() {
+        return certificateName;
+    }
+
+    public void setCertificateName(String certificateName) {
+        this.certificateName = certificateName;
+    }
 
     // Getters and setters
     public Long getCertificateId() {
@@ -46,11 +54,4 @@ public class Certificate {
         this.filePath = filePath;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
 }

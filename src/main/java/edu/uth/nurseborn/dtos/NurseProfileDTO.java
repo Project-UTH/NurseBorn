@@ -2,6 +2,7 @@ package edu.uth.nurseborn.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,5 +22,5 @@ public class NurseProfileDTO {
     private String profileImage;
     private LocalDateTime updatedAt;
     private Long userId;
-    private List<CertificateDTO> certificates;
+    private List<CertificateDTO> certificates; // Danh sách chứng chỉ
 }

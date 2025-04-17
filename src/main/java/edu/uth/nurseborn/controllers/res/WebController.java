@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -60,11 +62,13 @@ public class WebController {
     @Autowired
     private TokenCleanupService tokenCleanupService;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @GetMapping("/")
     public String home(Model model) {
         logger.debug("Hiển thị trang home");
 
-        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
             logger.debug("Người dùng chưa đăng nhập, hiển thị trang home mặc định");
@@ -76,14 +80,21 @@ public class WebController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-            model.addAttribute("user", user);
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+            model.addAttribute("user", userDTO);
 
-            if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
-                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
-                model.addAttribute("nurseProfile", nurseProfile);
-            } else if ("FAMILY".equalsIgnoreCase(user.getRole().name())) {
+            if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
                 FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
-                model.addAttribute("familyProfile", familyProfile);
+                logger.debug("FamilyProfile cho userId {}: {}", user.getUserId(), familyProfile);
+                model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
+            } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
+                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
             }
 
             logger.info("Hiển thị trang home cho user: {}", username);
@@ -112,7 +123,6 @@ public class WebController {
             response.addCookie(cookie);
             logger.info("Đăng nhập thành công cho username: {}", loginRequest.getUsername());
 
-            // Chuyển hướng đến trang home cho tất cả người dùng
             return "redirect:/";
         } catch (Exception e) {
             logger.error("Lỗi khi đăng nhập: {}", e.getMessage(), e);
@@ -157,31 +167,16 @@ public class WebController {
     public String register(
             @ModelAttribute("registerRequest") RegisterRequestDTO registerRequest,
             @RequestParam(value = "certificates", required = false) List<MultipartFile> certificates,
-            @RequestParam(value = "experienceYears", required = false) Integer experienceYears,
-            @RequestParam(value = "hourlyRate", required = false) Double hourlyRate,
-            @RequestParam(value = "dailyRate", required = false) Double dailyRate,
-            @RequestParam(value = "weeklyRate", required = false) Double weeklyRate,
-            @RequestParam(value = "skills", required = false) String skills,
-            @RequestParam(value = "bio", required = false) String bio,
+            @RequestParam(value = "certificateNames", required = false) List<String> certificateNames,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
             Model model,
             HttpSession session) {
         try {
             logger.debug("Nhận yêu cầu POST /register với dữ liệu: {}", registerRequest);
-            logger.debug("Certificates: {}, Skills: {}, ExperienceYears: {}, Bio: {}, ProfileImage: {}",
-                    certificates, skills, experienceYears, bio, profileImage != null ? profileImage.getOriginalFilename() : "null");
+            logger.debug("Certificates: {}, CertificateNames: {}, ProfileImage: {}",
+                    certificates != null ? certificates.size() : "null", certificateNames != null ? certificateNames.size() : "null", profileImage != null ? profileImage.getOriginalFilename() : "null");
 
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUsername(registerRequest.getUser().getUsername());
-            userDTO.setPassword(registerRequest.getUser().getPassword());
-            userDTO.setEmail(registerRequest.getUser().getEmail());
-            userDTO.setRole(registerRequest.getUser().getRole());
-            userDTO.setFullName(registerRequest.getUser().getFullName());
-            userDTO.setPhoneNumber(registerRequest.getUser().getPhoneNumber());
-            userDTO.setAddress(registerRequest.getUser().getAddress());
-            registerRequest.setUser(userDTO);
-
-            String role = userDTO.getRole();
+            String role = registerRequest.getUser().getRole();
             if (role == null || role.trim().isEmpty()) {
                 logger.error("Vai trò không được cung cấp hoặc rỗng");
                 model.addAttribute("error", "Vai trò không được để trống");
@@ -189,20 +184,14 @@ public class WebController {
             }
 
             if ("NURSE".equalsIgnoreCase(role)) {
-                logger.debug("Tạo NurseProfile với skills: {}, experienceYears: {}", skills, experienceYears);
-                NurseProfileDTO nurseProfileDTO = new NurseProfileDTO();
-                nurseProfileDTO.setLocation(userDTO.getAddress());
-                nurseProfileDTO.setSkills(skills);
-                nurseProfileDTO.setExperienceYears(experienceYears);
-                nurseProfileDTO.setHourlyRate(hourlyRate);
-                nurseProfileDTO.setDailyRate(dailyRate);
-                nurseProfileDTO.setWeeklyRate(weeklyRate);
-                nurseProfileDTO.setBio(bio);
+                logger.debug("Tạo NurseProfile với skills: {}, experienceYears: {}", registerRequest.getNurseProfile().getSkills(), registerRequest.getNurseProfile().getExperienceYears());
+                NurseProfileDTO nurseProfileDTO = registerRequest.getNurseProfile() != null ? registerRequest.getNurseProfile() : new NurseProfileDTO();
+                nurseProfileDTO.setLocation(registerRequest.getUser().getAddress());
                 nurseProfileDTO.setApproved(false);
 
                 if (profileImage != null && !profileImage.isEmpty()) {
                     try {
-                        String uploadDir = "uploads/profile_images/";
+                        String uploadDir = "src/main/resources/static/uploads/profile_images/";
                         File dir = new File(uploadDir);
                         if (!dir.exists()) {
                             dir.mkdirs();
@@ -210,7 +199,7 @@ public class WebController {
                         String fileName = System.currentTimeMillis() + "_" + profileImage.getOriginalFilename();
                         Path filePath = Paths.get(uploadDir, fileName);
                         Files.write(filePath, profileImage.getBytes());
-                        nurseProfileDTO.setProfileImage(filePath.toString());
+                        nurseProfileDTO.setProfileImage("/uploads/profile_images/" + fileName);
                     } catch (Exception e) {
                         logger.error("Lỗi khi lưu ảnh đại diện: {}", e.getMessage(), e);
                         model.addAttribute("error", "Lỗi khi lưu ảnh đại diện: " + e.getMessage());
@@ -218,15 +207,44 @@ public class WebController {
                     }
                 }
 
-                registerRequest.setNurseProfile(nurseProfileDTO);
-                registerRequest.setCertificates(certificates);
-            } else if ("FAMILY".equalsIgnoreCase(role)) {
-                logger.debug("Tạo FamilyProfile với specificNeeds: {}", registerRequest.getFamilyProfile().getSpecificNeeds());
-                FamilyProfileDTO familyProfileDTO = registerRequest.getFamilyProfile(); // Sử dụng dữ liệu từ form
-                if (familyProfileDTO == null) {
-                    familyProfileDTO = new FamilyProfileDTO();
+                if (certificates != null && !certificates.isEmpty()) {
+                    try {
+                        String uploadDir = "src/main/resources/static/uploads/certificates/";
+                        File dir = new File(uploadDir);
+                        if (!dir.exists()) {
+                            dir.mkdirs();
+                        }
+                        List<CertificateDTO> certificateDTOs = new ArrayList<>();
+                        for (int i = 0; i < certificates.size(); i++) {
+                            MultipartFile file = certificates.get(i);
+                            if (!file.isEmpty()) {
+                                String contentType = file.getContentType();
+                                if (!contentType.equals("application/pdf") && !contentType.startsWith("image/")) {
+                                    throw new RuntimeException("Chỉ hỗ trợ file PDF hoặc hình ảnh");
+                                }
+                                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                                Path filePath = Paths.get(uploadDir, fileName);
+                                Files.write(filePath, file.getBytes());
+
+                                CertificateDTO certificateDTO = new CertificateDTO();
+                                String certificateName = (certificateNames != null && i < certificateNames.size()) ? certificateNames.get(i) : file.getOriginalFilename();
+                                certificateDTO.setCertificateName(certificateName);
+                                certificateDTO.setFilePath("/uploads/certificates/" + fileName);
+                                certificateDTOs.add(certificateDTO);
+                            }
+                        }
+                        nurseProfileDTO.setCertificates(certificateDTOs);
+                    } catch (Exception e) {
+                        logger.error("Lỗi khi lưu chứng chỉ: {}", e.getMessage(), e);
+                        model.addAttribute("error", "Lỗi khi lưu chứng chỉ: " + e.getMessage());
+                        return "auth/auth-register-basic-nurse";
+                    }
                 }
-                // Không cần gán thủ công childName và childAge vì đã được bind từ form
+
+                registerRequest.setNurseProfile(nurseProfileDTO);
+            } else if ("FAMILY".equalsIgnoreCase(role)) {
+                logger.debug("Tạo FamilyProfile với specificNeeds: {}", registerRequest.getFamilyProfile() != null ? registerRequest.getFamilyProfile().getSpecificNeeds() : "null");
+                FamilyProfileDTO familyProfileDTO = registerRequest.getFamilyProfile() != null ? registerRequest.getFamilyProfile() : new FamilyProfileDTO();
                 registerRequest.setFamilyProfile(familyProfileDTO);
             } else {
                 logger.error("Vai trò không hợp lệ: {}", role);
@@ -236,7 +254,7 @@ public class WebController {
 
             userService.registerUser(registerRequest);
             session.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
-            logger.info("Đăng ký thành công cho username: {}", userDTO.getUsername());
+            logger.info("Đăng ký thành công cho username: {}", registerRequest.getUser().getUsername());
             return "redirect:/login";
         } catch (Exception e) {
             logger.error("Lỗi khi đăng ký: {}", e.getMessage(), e);
@@ -248,11 +266,63 @@ public class WebController {
         }
     }
 
+    @GetMapping("/user-profile")
+    public String userProfile(Model model) {
+        logger.debug("Hiển thị trang hồ sơ người dùng");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.debug("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+            model.addAttribute("user", userDTO);
+
+            // Log chi tiết để kiểm tra trạng thái của user
+            logger.debug("UserDTO details: username={}, role={}, createdAt={}",
+                    userDTO.getUsername(), userDTO.getRole(), userDTO.getCreatedAt());
+
+            if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+                FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
+                logger.debug("FamilyProfile cho userId {}: {}", user.getUserId(), familyProfile);
+                if (familyProfile != null) {
+                    logger.debug("FamilyProfile details: childName={}, childAge={}, specificNeeds={}, preferredLocation={}",
+                            familyProfile.getChildName(), familyProfile.getChildAge(),
+                            familyProfile.getSpecificNeeds(), familyProfile.getPreferredLocation());
+                }
+                model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
+            } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
+                if (nurseProfile != null) {
+                    logger.debug("NurseProfile details: bio={}, skills={}, experienceYears={}",
+                            nurseProfile.getBio(), nurseProfile.getSkills(), nurseProfile.getExperienceYears());
+                }
+                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+            }
+
+            logger.info("Hiển thị trang hồ sơ cho user: {}", username);
+            return "profile/user-profile";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang hồ sơ: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+
     @GetMapping("/admin-dashboard")
     public String adminDashboard(Model model, HttpServletRequest request) {
         logger.debug("Hiển thị admin dashboard");
 
-        // Kiểm tra trạng thái đăng nhập bằng SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
             logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
@@ -264,14 +334,20 @@ public class WebController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-            if (!"ADMIN".equalsIgnoreCase(user.getRole().name())) {
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+
+            if (!"ADMIN".equalsIgnoreCase(userDTO.getRole())) {
                 logger.warn("User {} không có quyền truy cập admin dashboard", username);
                 return "redirect:/";
             }
 
-            model.addAttribute("user", user);
+            model.addAttribute("user", userDTO);
             logger.info("Hiển thị admin dashboard cho user: {}", username);
-            return "master/admin-dashboard";
+            return "auth/admin-dashboard";
         } catch (Exception e) {
             logger.error("Lỗi khi hiển thị admin dashboard: {}", e.getMessage(), e);
             return "redirect:/login";
@@ -286,7 +362,7 @@ public class WebController {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
-        SecurityContextHolder.clearContext(); // Xóa thông tin xác thực
+        SecurityContextHolder.clearContext();
         logger.info("Đăng xuất thành công");
         return "redirect:/login?logout";
     }

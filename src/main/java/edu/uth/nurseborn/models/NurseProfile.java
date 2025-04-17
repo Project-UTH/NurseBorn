@@ -57,6 +57,7 @@ public class NurseProfile {
     @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Certificate> certificates;
 
+
     @PrePersist
     @PreUpdate
     public void setUpdatedAt() {

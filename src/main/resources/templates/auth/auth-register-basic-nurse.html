@@ -6,6 +6,7 @@
         data-theme="theme-default"
         data-assets-path="../assets/"
         data-template="vertical-menu-template-free"
+        xmlns:th="http://www.thymeleaf.org"
 >
 <head>
   <div th:replace="~{master/head::head}"></div>
@@ -55,7 +56,7 @@
             </div>
             <div class="mb-3">
               <label for="bio" class="form-label">Tiểu sử (Bio)</label>
-              <textarea class="form-control" id="bio" name="bio"></textarea>
+              <textarea class="form-control" id="bio" th:field="*{nurseProfile.bio}"></textarea>
             </div>
             <div class="mb-3">
               <label for="profileImage" class="form-label">Ảnh đại diện</label>
@@ -63,28 +64,29 @@
             </div>
             <div class="mb-3">
               <label for="skills" class="form-label">Kỹ năng chuyên môn</label>
-              <textarea class="form-control" id="skills" name="skills" required></textarea>
+              <textarea class="form-control" id="skills" th:field="*{nurseProfile.skills}" required></textarea>
             </div>
             <div class="mb-3">
               <label for="experienceYears" class="form-label">Số năm kinh nghiệm</label>
-              <input type="number" class="form-control" id="experienceYears" name="experienceYears" required />
+              <input type="number" class="form-control" id="experienceYears" th:field="*{nurseProfile.experienceYears}" required />
             </div>
             <div class="mb-3">
               <label for="hourlyRate" class="form-label">Mức giá theo giờ (VNĐ)</label>
-              <input type="number" class="form-control" id="hourlyRate" name="hourlyRate" required />
+              <input type="number" class="form-control" id="hourlyRate" th:field="*{nurseProfile.hourlyRate}" required />
             </div>
             <div class="mb-3">
               <label for="dailyRate" class="form-label">Mức giá theo ngày (VNĐ)</label>
-              <input type="number" class="form-control" id="dailyRate" name="dailyRate" required />
+              <input type="number" class="form-control" id="dailyRate" th:field="*{nurseProfile.dailyRate}" required />
             </div>
             <div class="mb-3">
               <label for="weeklyRate" class="form-label">Mức giá theo tuần (VNĐ)</label>
-              <input type="number" class="form-control" id="weeklyRate" name="weeklyRate" required />
+              <input type="number" class="form-control" id="weeklyRate" th:field="*{nurseProfile.weeklyRate}" required />
             </div>
             <div class="mb-3">
               <label class="form-label">Chứng chỉ và bằng cấp</label>
               <div id="certificates-section">
                 <div class="certificate-item mb-2">
+                  <input type="text" class="form-control mb-1" name="certificateNames" placeholder="Tên chứng chỉ" />
                   <input type="file" class="form-control" name="certificates" accept=".pdf,.jpg,.jpeg,.png" />
                   <button type="button" class="btn btn-danger remove-certificate mt-1">Xóa</button>
                 </div>
@@ -120,9 +122,10 @@
           let newItem = document.createElement("div");
           newItem.classList.add("certificate-item", "mb-2");
           newItem.innerHTML = `
-                            <input type="file" class="form-control" name="certificates" accept=".pdf,.jpg,.jpeg,.png" />
-                            <button type="button" class="btn btn-danger remove-certificate mt-1">Xóa</button>
-                        `;
+                        <input type="text" class="form-control mb-1" name="certificateNames" placeholder="Tên chứng chỉ" />
+                        <input type="file" class="form-control" name="certificates" accept=".pdf,.jpg,.jpeg,.png" />
+                        <button type="button" class="btn btn-danger remove-certificate mt-1">Xóa</button>
+                    `;
           container.appendChild(newItem);
         } else {
           console.error("Không tìm thấy certificates-section");
