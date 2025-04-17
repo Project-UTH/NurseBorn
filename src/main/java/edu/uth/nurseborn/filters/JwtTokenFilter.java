@@ -113,7 +113,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/static/**", "GET"),
                 Pair.of("/css/**", "GET"),
                 Pair.of("/js/**", "GET"),
-                Pair.of("/images/**", "GET")
+                Pair.of("/images/**", "GET"),
+                Pair.of("/user-profile", "GET"),
+                Pair.of("/nurse-profile", "GET")
         );
 
         String path = request.getServletPath();

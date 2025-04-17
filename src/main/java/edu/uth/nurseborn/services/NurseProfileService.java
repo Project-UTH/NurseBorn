@@ -62,24 +62,48 @@ public class NurseProfileService {
         }
 
         try {
-            NurseProfile nurseProfile = modelMapper.map(nurseProfileDTO, NurseProfile.class);
+            // Ánh xạ NurseProfileDTO sang NurseProfile, nhưng không ánh xạ certificates
+            NurseProfile nurseProfile = new NurseProfile();
             nurseProfile.setUser(user);
+            nurseProfile.setLocation(nurseProfileDTO.getLocation());
+            nurseProfile.setSkills(nurseProfileDTO.getSkills());
+            nurseProfile.setExperienceYears(nurseProfileDTO.getExperienceYears());
+            nurseProfile.setHourlyRate(nurseProfileDTO.getHourlyRate());
+            nurseProfile.setDailyRate(nurseProfileDTO.getDailyRate());
+            nurseProfile.setWeeklyRate(nurseProfileDTO.getWeeklyRate());
+            nurseProfile.setBio(nurseProfileDTO.getBio());
+            nurseProfile.setProfileImage(nurseProfileDTO.getProfileImage());
+            nurseProfile.setApproved(nurseProfileDTO.getApproved());
 
+            // Lưu NurseProfile trước để có ID
             logger.debug("NurseProfile entity trước khi lưu: {}", nurseProfile);
             NurseProfile savedProfile = nurseProfileRepository.save(nurseProfile);
             nurseProfileRepository.flush();
+
+            // Tạo danh sách Certificate và gán vào savedProfile
+            if (nurseProfileDTO.getCertificates() != null && !nurseProfileDTO.getCertificates().isEmpty()) {
+                List<Certificate> certificateEntities = nurseProfileDTO.getCertificates().stream()
+                        .map(dto -> {
+                            Certificate certificate = new Certificate();
+                            certificate.setNurseProfile(savedProfile);
+                            certificate.setCertificateName(dto.getCertificateName());
+                            certificate.setFilePath(dto.getFilePath());
+                            return certificate;
+                        })
+                        .collect(Collectors.toList());
+                savedProfile.setCertificates(certificateEntities);
+
+                // Lưu lại NurseProfile để cascade lưu Certificates
+                nurseProfileRepository.save(savedProfile);
+            }
+
             logger.info("Đã lưu NurseProfile thành công cho user: {}", savedProfile.getUser().getUsername());
 
             NurseProfileDTO responseDTO = modelMapper.map(savedProfile, NurseProfileDTO.class);
-            List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
-            List<CertificateDTO> certificateDTOs = certificates.stream()
-                    .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
-                    .collect(Collectors.toList());
-            responseDTO.setCertificates(certificateDTOs); // Gán List<CertificateDTO>
             return responseDTO;
         } catch (Exception ex) {
             logger.error("Lỗi không mong muốn khi lưu NurseProfile: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi lưu NurseProfile: " + ex.getMessage());
+            throw new RuntimeException("Lỗi khi lưu NurseProfile: " + ex.getMessage(), ex);
         }
     }
 
@@ -98,21 +122,35 @@ public class NurseProfileService {
         try {
             modelMapper.map(nurseProfileDTO, nurseProfile);
 
+            // Cập nhật chứng chỉ nếu có
+            if (nurseProfileDTO.getCertificates() != null) {
+                List<Certificate> existingCertificates = certificateRepository.findByNurseProfileUserUserId(userId);
+                for (Certificate certificate : existingCertificates) {
+                    new File(certificate.getFilePath()).delete();
+                }
+                certificateRepository.deleteAll(existingCertificates);
+
+                List<Certificate> newCertificates = nurseProfileDTO.getCertificates().stream()
+                        .map(dto -> {
+                            Certificate certificate = new Certificate();
+                            certificate.setNurseProfile(nurseProfile);
+                            certificate.setCertificateName(dto.getCertificateName());
+                            certificate.setFilePath(dto.getFilePath());
+                            return certificate;
+                        })
+                        .collect(Collectors.toList());
+                nurseProfile.setCertificates(newCertificates);
+            }
+
             logger.debug("NurseProfile entity trước khi cập nhật: {}", nurseProfile);
             NurseProfile updatedProfile = nurseProfileRepository.save(nurseProfile);
             nurseProfileRepository.flush();
             logger.info("Đã cập nhật NurseProfile thành công cho userId: {}", userId);
 
-            NurseProfileDTO responseDTO = modelMapper.map(updatedProfile, NurseProfileDTO.class);
-            List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
-            List<CertificateDTO> certificateDTOs = certificates.stream()
-                    .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
-                    .collect(Collectors.toList());
-            responseDTO.setCertificates(certificateDTOs); // Gán List<CertificateDTO>
-            return responseDTO;
+            return modelMapper.map(updatedProfile, NurseProfileDTO.class);
         } catch (Exception ex) {
             logger.error("Lỗi không mong muốn khi cập nhật NurseProfile: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi cập nhật NurseProfile: " + ex.getMessage());
+            throw new RuntimeException("Lỗi khi cập nhật NurseProfile: " + ex.getMessage(), ex);
         }
     }
 
@@ -126,13 +164,7 @@ public class NurseProfileService {
         }
 
         NurseProfile nurseProfile = nurseProfileOptional.get();
-        NurseProfileDTO responseDTO = modelMapper.map(nurseProfile, NurseProfileDTO.class);
-        List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
-        List<CertificateDTO> certificateDTOs = certificates.stream()
-                .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
-                .collect(Collectors.toList());
-        responseDTO.setCertificates(certificateDTOs); // Gán List<CertificateDTO>
-        return responseDTO;
+        return modelMapper.map(nurseProfile, NurseProfileDTO.class);
     }
 
     @Transactional
@@ -146,33 +178,26 @@ public class NurseProfileService {
         }
 
         try {
+            NurseProfile nurseProfile = nurseProfileOptional.get();
             List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
             for (Certificate certificate : certificates) {
                 new File(certificate.getFilePath()).delete();
             }
             certificateRepository.deleteAll(certificates);
 
-            nurseProfileRepository.delete(nurseProfileOptional.get());
+            nurseProfileRepository.delete(nurseProfile);
             nurseProfileRepository.flush();
             logger.info("Đã xóa NurseProfile và chứng chỉ thành công cho userId: {}", userId);
         } catch (Exception ex) {
             logger.error("Lỗi không mong muốn khi xóa NurseProfile: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi xóa NurseProfile: " + ex.getMessage());
+            throw new RuntimeException("Lỗi khi xóa NurseProfile: " + ex.getMessage(), ex);
         }
     }
 
     public List<NurseProfileDTO> getAllNurseProfiles() {
         List<NurseProfile> nurseProfiles = nurseProfileRepository.findAll();
         return nurseProfiles.stream()
-                .map(nurseProfile -> {
-                    NurseProfileDTO dto = modelMapper.map(nurseProfile, NurseProfileDTO.class);
-                    List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(nurseProfile.getUser().getUserId());
-                    List<CertificateDTO> certificateDTOs = certificates.stream()
-                            .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
-                            .collect(Collectors.toList());
-                    dto.setCertificates(certificateDTOs); // Gán List<CertificateDTO>
-                    return dto;
-                })
+                .map(nurseProfile -> modelMapper.map(nurseProfile, NurseProfileDTO.class))
                 .collect(Collectors.toList());
     }
 }

@@ -8,8 +8,6 @@ public class RegisterRequestDTO {
     private UserDTO user;
     private NurseProfileDTO nurseProfile;
     private FamilyProfileDTO familyProfile;
-    private List<MultipartFile> certificates; // Danh sách file chứng chỉ
-
     // Getters and setters
     public UserDTO getUser() {
         return user;
@@ -35,11 +33,4 @@ public class RegisterRequestDTO {
         this.familyProfile = familyProfile;
     }
 
-    public List<MultipartFile> getCertificates() {
-        return certificates;
-    }
-
-    public void setCertificates(List<MultipartFile> certificates) {
-        this.certificates = certificates;
-    }
 }

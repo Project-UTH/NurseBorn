@@ -8,7 +8,6 @@ import lombok.Setter;
 public class CertificateDTO {
 
     private Long certificateId;
-    private String fileName;
-    private String filePath;
-    private Integer nurseProfileId;
+    private String certificateName; // Tên chứng chỉ
+    private String filePath; // Đường dẫn file
 }
