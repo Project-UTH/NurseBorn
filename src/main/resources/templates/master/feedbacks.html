@@ -44,17 +44,12 @@
                                 color: white;
                                 border-radius: 10px 10px 0 0 !important;
                             }
-                            /* Loại bỏ dấu gạch dưới cho tất cả các liên kết */
                             a {
                                 text-decoration: none;
                             }
-
-                            /* Nếu muốn loại bỏ hiệu ứng hover */
                             a:hover {
                                 text-decoration: none;
                             }
-
-                            /* Nếu muốn giữ màu gốc của liên kết */
                             a, a:hover {
                                 color: inherit;
                             }
@@ -75,11 +70,15 @@
                                                 <label for="booking_id" class="form-label">Mã đặt lịch</label>
                                                 <select class="form-select" id="booking_id" name="booking_id" required>
                                                     <option value="" selected disabled>--Chọn mã đặt lịch--</option>
+                                                    <option th:each="booking : ${bookings}"
+                                                            th:value="${booking.bookingId}"
+                                                            th:text="${booking.bookingId + ' - ' + booking.service.serviceName + ' (' + booking.startTime + ')'}">
+                                                    </option>
                                                 </select>
                                             </div>
 
                                             <!-- Hidden fields for user IDs -->
-                                            <input type="hidden" id="family_user_id" name="family_user_id">
+                                            <input type="hidden" id="family_user_id" name="family_user_id" th:value="${familyUserId}">
                                             <input type="hidden" id="nurse_user_id" name="nurse_user_id">
 
                                             <!-- Thông tin điều dưỡng -->
@@ -87,7 +86,7 @@
                                                 <label class="form-label">Điều Dưỡng</label>
                                                 <div class="d-flex align-items-center p-3 bg-light rounded">
                                                     <div class="avatar me-3">
-                                                        <img src="/api/placeholder/60/60" alt="Nurse Avatar" class="rounded-circle" width="60">
+                                                        <img id="nurse_avatar" src="/static/assets/default_profile.jpg" alt="Nurse Avatar" class="rounded-circle" width="60">
                                                     </div>
                                                     <div>
                                                         <h5 id="nurse_name" class="mb-0">Tên Điều Dưỡng</h5>
@@ -148,12 +147,13 @@
                     </div>
 
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                     <script>
                         // Initialize tooltips
-                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                            return new bootstrap.Tooltip(tooltipTriggerEl)
-                        })
+                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
 
                         // Validate file upload
                         document.getElementById('evidence').addEventListener('change', function(e) {
@@ -162,58 +162,18 @@
                             const maxFileSize = 5 * 1024 * 1024; // 5MB
 
                             if (files.length > maxFiles) {
-                                alert(`You can upload a maximum of ${maxFiles} files`);
-                                e.target.value = ''; // Clear the file input
+                                alert(`Bạn chỉ có thể tải lên tối đa ${maxFiles} tệp`);
+                                e.target.value = '';
                                 return;
                             }
 
                             for (let file of files) {
                                 if (file.size > maxFileSize) {
-                                    alert('File size should not exceed 5MB');
-                                    e.target.value = ''; // Clear the file input
+                                    alert('Kích thước tệp không được vượt quá 5MB');
+                                    e.target.value = '';
                                     return;
                                 }
                             }
-                        });
-
-                        // Set current datetime when form is submitted
-                        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-                            e.preventDefault();
-
-                            // Format current date time for MySQL DATETIME format
-                            const now = new Date();
-                            const formattedDate = now.getFullYear() + '-' +
-                                String(now.getMonth() + 1).padStart(2, '0') + '-' +
-                                String(now.getDate()).padStart(2, '0') + ' ' +
-                                String(now.getHours()).padStart(2, '0') + ':' +
-                                String(now.getMinutes()).padStart(2, '0') + ':' +
-                                String(now.getSeconds()).padStart(2, '0');
-
-                            document.getElementById('created_at').value = formattedDate;
-
-                            // Form validation
-                            let rating = document.querySelector('input[name="rating"]:checked');
-                            if (!rating) {
-                                alert('Please rate with stars');
-                                return;
-                            }
-
-                            // Here you would typically submit the form via AJAX or FormData
-                            const formData = new FormData(this);
-
-                            console.log('Form submitted!', {
-                                booking_id: formData.get('booking_id'),
-                                family_user_id: formData.get('family_user_id'),
-                                nurse_user_id: formData.get('nurse_user_id'),
-                                rating: rating.value,
-                                comment: formData.get('comment'),
-                                created_at: formattedDate,
-                                evidence: formData.getAll('evidence')
-                            });
-
-                            alert('Thank you for your feedback!');
-                            // Reset form
-                            this.reset();
                         });
 
                         // Event listener for booking selection
@@ -221,11 +181,107 @@
                             const bookingId = e.target.value;
 
                             if (bookingId) {
-                                // Simulating data fetch
-                                document.getElementById('family_user_id').value = '12345';
-                                document.getElementById('nurse_user_id').value = '67890';
-                                document.getElementById('nurse_name').textContent = 'Nguyen Thien T';
-                                document.getElementById('service_details').textContent = 'Home Care Service - 12/03/2025';
+                                // Fetch booking details via AJAX
+                                $.ajax({
+                                    url: `/api/bookings/${bookingId}`,
+                                    method: 'GET',
+                                    success: function(data) {
+                                        document.getElementById('nurse_user_id').value = data.nurseUserId;
+                                        document.getElementById('nurse_name').textContent = data.nurse.fullName;
+
+                                        // Fetch service details if needed
+                                        const serviceName = data.service.serviceName;
+                                        const startTime = new Date(data.startTime).toLocaleString();
+                                        document.getElementById('service_details').textContent = `${serviceName} - ${startTime}`;
+
+                                        // Fetch nurse profile for avatar
+                                        $.ajax({
+                                            url: `/api/nurse-profile/user/${data.nurseUserId}`,
+                                            method: 'GET',
+                                            success: function(profileData) {
+                                                const avatarUrl = profileData.profileImage ? `/static/assets/${profileData.profileImage}` : '/static/assets/default_profile.jpg';
+                                                document.getElementById('nurse_avatar').src = avatarUrl;
+                                            },
+                                            error: function() {
+                                                document.getElementById('nurse_avatar').src = '/static/assets/default_profile.jpg';
+                                            }
+                                        });
+                                    },
+                                    error: function() {
+                                        alert('Không thể tải thông tin đặt lịch');
+                                    }
+                                });
+                            }
+                        });
+
+                        // Handle form submission
+                        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+                            e.preventDefault();
+
+                            // Form validation
+                            let rating = document.querySelector('input[name="rating"]:checked');
+                            if (!rating) {
+                                alert('Vui lòng đánh giá bằng sao');
+                                return;
+                            }
+
+                            const formData = new FormData(this);
+                            const evidenceFiles = formData.getAll('evidence');
+
+                            // Function to submit feedback
+                            const submitFeedback = (evidenceUrls) => {
+                                const feedbackData = {
+                                    bookingId: parseInt(formData.get('booking_id')),
+                                    familyUserId: parseInt(formData.get('family_user_id')),
+                                    nurseUserId: parseInt(formData.get('nurse_user_id')),
+                                    rating: parseInt(rating.value),
+                                    comment: formData.get('comment'),
+                                    createdAt: new Date().toISOString(),
+                                    evidenceUrls: evidenceUrls || []
+                                };
+
+                                // Submit feedback via AJAX
+                                $.ajax({
+                                    url: '/api/feedbacks',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(feedbackData),
+                                    success: function(response) {
+                                        alert('Cảm ơn bạn đã gửi đánh giá!');
+                                        document.getElementById('feedbackForm').reset();
+                                        document.getElementById('nurse_name').textContent = 'Tên Điều Dưỡng';
+                                        document.getElementById('service_details').textContent = 'Chi tiết dịch vụ';
+                                        document.getElementById('nurse_avatar').src = '/static/assets/default_profile.jpg';
+                                    },
+                                    error: function(xhr) {
+                                        alert('Có lỗi xảy ra khi gửi đánh giá: ' + (xhr.responseJSON?.message || 'Lỗi không xác định'));
+                                    }
+                                });
+                            };
+
+                            // Upload evidence files if any
+                            if (evidenceFiles && evidenceFiles.length > 0 && evidenceFiles[0].size > 0) {
+                                const uploadFormData = new FormData();
+                                evidenceFiles.forEach(file => {
+                                    uploadFormData.append('files', file);
+                                });
+
+                                $.ajax({
+                                    url: '/api/feedbacks/upload-evidence',
+                                    method: 'POST',
+                                    data: uploadFormData,
+                                    contentType: false,
+                                    processData: false,
+                                    success: function(fileUrls) {
+                                        submitFeedback(fileUrls);
+                                    },
+                                    error: function() {
+                                        alert('Không thể tải lên minh chứng. Bạn có muốn tiếp tục gửi đánh giá mà không có minh chứng?');
+                                        submitFeedback([]);
+                                    }
+                                });
+                            } else {
+                                submitFeedback([]);
                             }
                         });
                     </script>
@@ -236,25 +292,18 @@
     </div>
 </div>
 <!-- Core JS -->
-<!-- build:js assets/vendor/js/core.js -->
 <script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
 <script src="/static/assets/vendor/libs/popper/popper.js"></script>
 <script src="/static/assets/vendor/js/bootstrap.js"></script>
 <script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
 <script src="/static/assets/vendor/js/menu.js"></script>
-<!-- endbuild -->
-
 <!-- Vendors JS -->
 <script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-
 <!-- Main JS -->
 <script src="/static/assets/js/main.js"></script>
-
 <!-- Page JS -->
 <script src="/static/assets/js/dashboards-analytics.js"></script>
-
-<!-- Place this tag in your head or just before your close body tag. -->
+<!-- GitHub Buttons -->
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>
