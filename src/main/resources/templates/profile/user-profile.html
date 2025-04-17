@@ -2,6 +2,122 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <div th:replace="~{master/head::head}"></div>
+    <style>
+        /* Custom CSS cho trang user-profile */
+
+        /* Container chính */
+        .container-p-y {
+            padding: 2rem;
+            background-color: #f8f9fa; /* Màu nền sáng */
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Hiệu ứng bóng nhẹ */
+        }
+
+        /* Tiêu đề chính "Hồ sơ người dùng" */
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1a3c34; /* Màu xanh đậm giống giao diện hiện tại */
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0; /* Đường viền dưới */
+            padding-bottom: 0.5rem;
+        }
+
+        /* Tiêu đề phụ "Thông tin gia đình" */
+        h5 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #2e4b5b; /* Màu xanh đậm nhạt hơn */
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Định dạng các mục thông tin (Họ và tên, Tên trẻ, v.v.) */
+        p {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            color: #333; /* Màu chữ tối */
+            display: flex;
+            align-items: center;
+        }
+
+        /* Định dạng nhãn (label) như "Họ và tên:", "Tên trẻ:" */
+        p strong {
+            font-weight: 600;
+            color: #1a3c34; /* Màu xanh đậm */
+            width: 150px; /* Đặt chiều rộng cố định cho nhãn */
+            display: inline-block;
+        }
+
+        /* Định dạng giá trị (value) */
+        p span {
+            color: #555; /* Màu chữ nhạt hơn */
+            display: inline-block;
+        }
+
+        /* Thông báo thành công (nếu có) */
+        p[style="color: green;"] {
+            background-color: #e7f4e4; /* Màu nền xanh nhạt */
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        /* Nút "Quay lại trang chủ" và "Đăng xuất" */
+        .btn {
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Nút "Quay lại trang chủ" (btn-primary) */
+        .btn-primary {
+            background-color: #007bff; /* Màu xanh giống giao diện hiện tại */
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Màu xanh đậm hơn khi hover */
+            border-color: #0056b3;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Nút "Đăng xuất" (btn-danger) */
+        .btn-danger {
+            background-color: #dc3545; /* Màu đỏ giống giao diện hiện tại */
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background-color: #b02a37; /* Màu đỏ đậm hơn khi hover */
+            border-color: #b02a37;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Định dạng khi chưa đăng nhập */
+        h2 + p {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* Link "đăng nhập" */
+        h2 + p a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        h2 + p a:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 <div class="layout-wrapper layout-content-navbar">
@@ -26,7 +142,7 @@
                         <div th:if="${user.role == 'FAMILY'}">
                             <h5>Thông tin gia đình</h5>
                             <p><strong>Tên trẻ:</strong> <span th:text="${familyProfile != null && familyProfile.childName != null ? familyProfile.childName : 'Không có thông tin'}"></span></p>
-                            <p><strong>Tuổi trẻ:</strong> <span th:text="${familyProfile != null && familyProfile.childAge != null ? familyProfile.childAge + ' tháng' : 'Không có thông tin'}"></span></p>
+                            <p><strong>Tuổi trẻ:</strong> <span th:text="${familyProfile != null && familyProfile.childAge != null ? familyProfile.childAge : 'Không có thông tin'}"></span></p>
                             <p><strong>Nhu cầu cụ thể:</strong> <span th:text="${familyProfile != null && familyProfile.specificNeeds != null ? familyProfile.specificNeeds : 'Không có thông tin'}"></span></p>
                             <p><strong>Vị trí ưu tiên:</strong> <span th:text="${familyProfile != null && familyProfile.preferredLocation != null ? familyProfile.preferredLocation : 'Không có thông tin'}"></span></p>
                         </div>
