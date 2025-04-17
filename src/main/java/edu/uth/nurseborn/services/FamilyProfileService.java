@@ -1,3 +1,4 @@
+
 package edu.uth.nurseborn.services;
 
 import edu.uth.nurseborn.dtos.FamilyProfileDTO;
@@ -81,7 +82,11 @@ public class FamilyProfileService {
         FamilyProfile familyProfile = familyProfileOptional.get();
 
         try {
-            modelMapper.map(familyProfileDTO, familyProfile);
+            // Manually update fields to avoid overwriting familyProfileId
+            familyProfile.setChildName(familyProfileDTO.getChildName());
+            familyProfile.setChildAge(familyProfileDTO.getChildAge());
+            familyProfile.setSpecificNeeds(familyProfileDTO.getSpecificNeeds());
+            familyProfile.setPreferredLocation(familyProfileDTO.getPreferredLocation());
 
             logger.debug("FamilyProfile entity trước khi cập nhật: {}", familyProfile);
             FamilyProfile updatedProfile = familyProfileRepository.save(familyProfile);

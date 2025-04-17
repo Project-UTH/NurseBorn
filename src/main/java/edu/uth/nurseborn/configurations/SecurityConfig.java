@@ -73,6 +73,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/**").permitAll()
                             .requestMatchers("/user-profile").hasAnyRole("FAMILY", "ADMIN")
                             .requestMatchers("/nurse-profile").hasRole("NURSE")
+                            .requestMatchers("/update-user").hasRole("FAMILY")
 
                             // Web endpoints
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/nursepage", "/nursing-service", "/review-nurse-profile", "/feedbacks", "/messages").authenticated()

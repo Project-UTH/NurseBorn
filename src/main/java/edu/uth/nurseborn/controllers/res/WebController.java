@@ -366,4 +366,76 @@ public class WebController {
         logger.info("Đăng xuất thành công");
         return "redirect:/login?logout";
     }
+    @GetMapping("/update-user")
+    public String updateUserProfile(Model model) {
+        logger.debug("Hiển thị trang cập nhật hồ sơ người dùng");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.debug("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            model.addAttribute("user", userDTO);
+            if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+                FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
+                model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
+            } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+            }
+            logger.info("Hiển thị trang cập nhật hồ sơ cho user: {}", username);
+            return "profile/update-user";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang cập nhật hồ sơ: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+    @PostMapping("/update-user")
+    public String updateUserProfile(
+            @ModelAttribute("user") UserDTO userDTO,
+            @ModelAttribute("familyProfile") FamilyProfileDTO familyProfileDTO,
+            Model model, HttpSession session) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Kiểm tra vai trò FAMILY
+            String role = user.getRole().name().startsWith("ROLE_") ?
+                    user.getRole().name().substring(5) : user.getRole().name();
+            if (!"FAMILY".equalsIgnoreCase(role)) {
+                logger.warn("User {} không có quyền cập nhật hồ sơ gia đình", username);
+                model.addAttribute("error", "Chỉ người dùng có vai trò FAMILY mới có thể cập nhật hồ sơ gia đình");
+                return "profile/update-user";
+            }
+
+            // Cập nhật thông tin người dùng
+            user.setFullName(userDTO.getFullName());
+            user.setEmail(userDTO.getEmail());
+            user.setPhoneNumber(userDTO.getPhoneNumber());
+            user.setAddress(userDTO.getAddress());
+            userRepository.save(user);
+            logger.debug("Đã cập nhật thông tin người dùng cho user: {}", username);
+
+            // Cập nhật hồ sơ gia đình
+            familyProfileDTO.setUserId(user.getUserId());
+            FamilyProfileDTO updatedProfile = familyProfileService.updateFamilyProfile(user.getUserId(), familyProfileDTO);
+            logger.debug("Đã cập nhật hồ sơ gia đình cho userId: {}", user.getUserId());
+
+            session.setAttribute("success", "Cập nhật hồ sơ thành công!");
+            logger.info("Cập nhật hồ sơ thành công cho user: {}", username);
+            return "redirect:/user-profile";
+        } catch (Exception e) {
+            logger.error("Lỗi khi cập nhật hồ sơ: {}", e.getMessage(), e);
+            model.addAttribute("error", "Lỗi khi cập nhật hồ sơ: " + e.getMessage());
+            return "profile/update-user";
+        }
+    }
 }
