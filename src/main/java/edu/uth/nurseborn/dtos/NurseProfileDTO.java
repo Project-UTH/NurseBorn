@@ -2,6 +2,7 @@ package edu.uth.nurseborn.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,12 +15,16 @@ public class NurseProfileDTO {
     private Double dailyRate;
     private Double weeklyRate;
     private Boolean approved;
+    private Boolean isVerified; // Thêm trường này
     private String location;
     private String skills;
     private String bio;
     private String profileImage;
     private LocalDateTime updatedAt;
     private Long userId;
-    private String fullName; // Thêm trường này
+    private String fullName;
+    private String certificateNames; // Thêm trường này
     private List<CertificateDTO> certificates;
+
+    // Getter và Setter đã được tạo tự động bởi @Getter và @Setter của Lombok
 }

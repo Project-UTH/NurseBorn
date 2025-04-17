@@ -1,11 +1,13 @@
 package edu.uth.nurseborn.services;
 
+import edu.uth.nurseborn.dtos.AdminActionDTO;
 import edu.uth.nurseborn.dtos.CertificateDTO;
 import edu.uth.nurseborn.dtos.NurseProfileDTO;
 import edu.uth.nurseborn.exception.UserNotFoundException;
 import edu.uth.nurseborn.models.Certificate;
 import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.models.enums.ActionType;
 import edu.uth.nurseborn.repositories.CertificateRepository;
 import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
@@ -34,6 +36,9 @@ public class NurseProfileService {
 
     @Autowired
     private CertificateRepository certificateRepository;
+
+    @Autowired
+    private AdminActionService adminActionService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -124,12 +129,17 @@ public class NurseProfileService {
 
         NurseProfile nurseProfile = nurseProfileOptional.get();
         NurseProfileDTO responseDTO = modelMapper.map(nurseProfile, NurseProfileDTO.class);
-        responseDTO.setFullName(nurseProfile.getUser().getFullName()); // Thêm fullName
+        responseDTO.setFullName(nurseProfile.getUser().getFullName());
+        responseDTO.setIsVerified(nurseProfile.getUser().getVerified());
         List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
         List<CertificateDTO> certificateDTOs = certificates.stream()
                 .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
                 .collect(Collectors.toList());
         responseDTO.setCertificates(certificateDTOs);
+        String certificateNames = certificates.stream()
+                .map(Certificate::getCertificateName)
+                .collect(Collectors.joining(", "));
+        responseDTO.setCertificateNames(certificateNames.isEmpty() ? "Chưa có" : certificateNames);
         return responseDTO;
     }
 
@@ -158,33 +168,85 @@ public class NurseProfileService {
         }
     }
 
-    public List<NurseProfileDTO> getAllNurseProfiles() {
-        List<NurseProfile> nurseProfiles = nurseProfileRepository.findAll();
-        return nurseProfiles.stream()
-                .map(nurseProfile -> {
-                    NurseProfileDTO dto = modelMapper.map(nurseProfile, NurseProfileDTO.class);
-                    dto.setFullName(nurseProfile.getUser().getFullName()); // Thêm fullName
-                    List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(nurseProfile.getUser().getUserId());
-                    List<CertificateDTO> certificateDTOs = certificates.stream()
-                            .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
-                            .collect(Collectors.toList());
-                    dto.setCertificates(certificateDTOs);
-                    return dto;
-                })
-                .collect(Collectors.toList());
-    }
-
     @Transactional
-    public void updateApprovalStatus(Long userId, Boolean isApproved) {
+    public void updateApprovalStatus(Long userId, Boolean isApproved, User admin) {
         logger.debug("Cập nhật trạng thái phê duyệt cho userId: {} thành {}", userId, isApproved);
         Optional<NurseProfile> nurseProfileOptional = nurseProfileRepository.findByUserUserId(userId);
         if (!nurseProfileOptional.isPresent()) {
             logger.warn("Không tìm thấy NurseProfile cho userId: {}", userId);
             throw new RuntimeException("Không tìm thấy hồ sơ y tá cho user với ID: " + userId);
         }
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (!userOptional.isPresent()) {
+            logger.warn("Không tìm thấy User với userId: {}", userId);
+            throw new UserNotFoundException("Không tìm thấy user với ID: " + userId);
+        }
+
         NurseProfile nurseProfile = nurseProfileOptional.get();
-        nurseProfile.setApproved(isApproved);
-        nurseProfileRepository.save(nurseProfile);
-        logger.info("Đã cập nhật trạng thái phê duyệt thành công cho userId: {}", userId);
+        User user = userOptional.get();
+
+        if (isApproved) {
+            // Phê duyệt: Cập nhật trạng thái
+            nurseProfile.setApproved(true);
+            user.setVerified(true);
+            nurseProfileRepository.save(nurseProfile);
+            userRepository.save(user);
+
+            // Lưu hành động APPROVE_USER
+            AdminActionDTO adminActionDTO = new AdminActionDTO();
+            adminActionDTO.setActionId(null);
+            adminActionDTO.setAdminUserId(admin.getUserId().intValue());
+            adminActionDTO.setActionType(ActionType.APPROVE_USER.name().toLowerCase());
+            adminActionDTO.setTargetUserId(user.getUserId().intValue());
+            adminActionDTO.setDescription("Phê duyệt hồ sơ y tá cho userId: " + userId);
+            adminActionDTO.setActionDate(null);
+
+            adminActionService.createAdminAction(adminActionDTO);
+            logger.info("Đã phê duyệt hồ sơ y tá thành công cho userId: {}", userId);
+        } else {
+            // Từ chối: Xóa user và nurse profile
+            try {
+                // Xóa file vật lý của chứng chỉ
+                List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
+                for (Certificate certificate : certificates) {
+                    new File(certificate.getFilePath()).delete();
+                }
+
+                // Xóa NurseProfile (tự động xóa certificates do cascade)
+                nurseProfileRepository.delete(nurseProfile);
+                // Xóa User
+                userRepository.delete(user);
+                logger.info("Đã từ chối và xóa hồ sơ y tá cùng user thành công cho userId: {}", userId);
+            } catch (Exception ex) {
+                logger.error("Lỗi khi từ chối và xóa hồ sơ y tá: {}", ex.getMessage(), ex);
+                throw new RuntimeException("Lỗi khi từ chối và xóa hồ sơ y tá: " + ex.getMessage());
+            }
+        }
+    }
+
+    public List<NurseProfileDTO> getAllNurseProfiles() {
+        // Chỉ lấy các hồ sơ chưa được phê duyệt (isApproved = false)
+        List<NurseProfile> nurseProfiles = nurseProfileRepository.findAll().stream()
+                .filter(nurseProfile -> !nurseProfile.getApproved())
+                .collect(Collectors.toList());
+
+        return nurseProfiles.stream()
+                .map(nurseProfile -> {
+                    NurseProfileDTO dto = modelMapper.map(nurseProfile, NurseProfileDTO.class);
+                    dto.setFullName(nurseProfile.getUser().getFullName());
+                    dto.setIsVerified(nurseProfile.getUser().getVerified());
+                    List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(nurseProfile.getUser().getUserId());
+                    List<CertificateDTO> certificateDTOs = certificates.stream()
+                            .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
+                            .collect(Collectors.toList());
+                    dto.setCertificates(certificateDTOs);
+                    String certificateNames = certificates.stream()
+                            .map(Certificate::getCertificateName)
+                            .collect(Collectors.joining(", "));
+                    dto.setCertificateNames(certificateNames.isEmpty() ? "Chưa có" : certificateNames);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }

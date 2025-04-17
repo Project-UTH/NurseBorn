@@ -87,7 +87,10 @@ public class WebController {
             logger.debug("UserDTO role: {}", userDTO.getRole());
             model.addAttribute("user", userDTO);
 
-            if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+            if ("ADMIN".equalsIgnoreCase(userDTO.getRole())) {
+                logger.info("Admin đăng nhập, điều hướng đến trang home-admin");
+                return "redirect:/admin/home";
+            } else if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
                 FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
                 logger.debug("FamilyProfile cho userId {}: {}", user.getUserId(), familyProfile);
                 model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
@@ -102,6 +105,41 @@ public class WebController {
         } catch (Exception e) {
             logger.error("Lỗi khi hiển thị trang home: {}", e.getMessage(), e);
             return "master/home";
+        }
+    }
+
+    @GetMapping("/admin/home")
+    public String adminHome(Model model) {
+        logger.debug("Hiển thị trang home-admin");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+
+            if (!"ADMIN".equalsIgnoreCase(userDTO.getRole())) {
+                logger.warn("User {} không có quyền truy cập trang home-admin", username);
+                return "redirect:/";
+            }
+
+            model.addAttribute("user", userDTO);
+            logger.info("Hiển thị trang home-admin cho user: {}", username);
+            return "admin/home-admin";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang home-admin: {}", e.getMessage(), e);
+            return "redirect:/login";
         }
     }
 

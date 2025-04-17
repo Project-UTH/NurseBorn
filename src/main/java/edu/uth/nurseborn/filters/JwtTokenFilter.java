@@ -91,6 +91,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/home", "GET"),
                 Pair.of("/login-h", "GET"),
                 Pair.of("/review-nurse-profile", "POST"),
+                Pair.of("/home-admin","GET"),
                 Pair.of("/api-docs", "GET"),
                 Pair.of("/api-docs/.*", "GET"),
                 Pair.of("/swagger-resources", "GET"),

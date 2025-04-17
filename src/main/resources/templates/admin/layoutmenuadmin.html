@@ -1,0 +1,68 @@
+<aside th:fragment="menu" id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+  <div class="app-brand demo">
+    <a href="/admin/home" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        <!-- Sửa đường dẫn logo -->
+        <img src="/static/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
+      </span>
+      <span class="app-brand-text demo text-body fw-bolder text-uppercase">NURSEBORN</span>
+    </a>
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+      <i class="bx bx-chevron-left bx-sm align-middle"></i>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+    <!-- Dashboard -->
+    <li class="menu-item active">
+      <a href="/admin/home" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-home-circle"></i>
+        <div data-i18n="Analytics">Dashboard</div>
+      </a>
+    </li>
+
+    <!-- Admin Management -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Quản lý Admin</span>
+    </li>
+    <li class="menu-item">
+      <a href="/review-nurse-profile" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-check-circle"></i>
+        <div data-i18n="ReviewNurse">Duyệt y tá</div>
+      </a>
+    </li>
+
+    <!-- Account Settings -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Tài khoản</span>
+    </li>
+    <li class="menu-item">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-dock-top"></i>
+        <div data-i18n="Account Settings">Cài đặt tài khoản</div>
+      </a>
+      <ul class="menu-sub">
+        <li class="menu-item">
+          <a href="/pages-account-settings-account.html" class="menu-link">
+            <div data-i18n="Account">Tài khoản</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/pages-account-settings-notifications.html" class="menu-link">
+            <div data-i18n="Notifications">Thông báo</div>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Logout -->
+    <li class="menu-item">
+      <a href="/logout" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-log-out"></i>
+        <div data-i18n="Logout">Đăng xuất</div>
+      </a>
+    </li>
+  </ul>
+</aside>

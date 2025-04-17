@@ -62,6 +62,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/feedbacks/**", "/api/reports/**").permitAll()
                             .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
+                            .requestMatchers("/admin/**", "/review-nurse-profile", "/nurse/approve/**", "/nurse/reject/**").hasRole("ADMIN")
+
                             // API endpoints with role-based access
                             .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("NURSE")
                             .requestMatchers(HttpMethod.PUT, "/api/nurse-availability/**").hasRole("NURSE")
@@ -76,7 +78,7 @@ public class SecurityConfig {
                             .requestMatchers("/update-user").hasRole("FAMILY")
 
                             // Web endpoints
-                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/nursepage", "/nursing-service", "/review-nurse-profile", "/feedbacks", "/messages").authenticated()
+                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/nursepage", "/nursing-service", "/feedbacks", "/messages").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
                             .requestMatchers("/nursepage/**").permitAll()
