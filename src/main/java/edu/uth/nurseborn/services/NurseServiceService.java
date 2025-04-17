@@ -2,16 +2,19 @@ package edu.uth.nurseborn.services;
 
 import edu.uth.nurseborn.dtos.ServiceDTO;
 import edu.uth.nurseborn.exception.UserNotFoundException;
+import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.NurseService;
 import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.models.enums.Role;
 import edu.uth.nurseborn.models.enums.ServiceStatus;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.ServiceRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.*;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -30,13 +33,39 @@ public class NurseServiceService {
     private UserRepository userRepository;
 
     @Autowired
+    private NurseProfileRepository nurseProfileRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
+    // Phương thức mới: Lấy danh sách y tá thỏa mãn điều kiện
+    public List<NurseProfile> getApprovedNurses() {
+        logger.debug("Lấy danh sách y tá với role = NURSE, is_verified = true, và is_approved = true");
+
+        // Bước 1: Lấy danh sách User có role = NURSE và is_verified = true
+        List<User> nurses = userRepository.findByRoleAndIsVerified(Role.NURSE, true);
+        if (nurses.isEmpty()) {
+            logger.info("Không tìm thấy y tá nào với role = NURSE và is_verified = true");
+            return List.of();
+        }
+
+        // Bước 2: Lấy danh sách user_id từ các User đã lọc
+        List<Long> nurseUserIds = nurses.stream()
+                .map(User::getUserId)
+                .collect(Collectors.toList());
+
+        // Bước 3: Lấy danh sách NurseProfile có user_id thuộc danh sách trên và is_approved = true
+        List<NurseProfile> approvedNurseProfiles = nurseProfileRepository.findByUserUserIdInAndIsApproved(nurseUserIds, true);
+        logger.info("Tìm thấy {} y tá thỏa mãn điều kiện", approvedNurseProfiles.size());
+
+        return approvedNurseProfiles;
+    }
+
+    // Các phương thức hiện có của NurseServiceService
     @Transactional
     public ServiceDTO createService(String nurseUsername, ServiceDTO serviceDTO) {
         logger.debug("Tạo dịch vụ cho nurse: {}", nurseUsername);
 
-        // Kiểm tra nurse
         Optional<User> nurseOptional = userRepository.findByUsername(nurseUsername);
         if (!nurseOptional.isPresent()) {
             logger.warn("Không tìm thấy nurse với username: {}", nurseUsername);
@@ -44,13 +73,11 @@ public class NurseServiceService {
         }
         User nurse = nurseOptional.get();
 
-        // Kiểm tra role của nurse (theo trigger trong database)
-        if (!"nurse".equalsIgnoreCase(nurse.getRole().toString())) {
-            logger.warn("User với username: {} không có role 'nurse', role hiện tại: {}", nurseUsername, nurse.getRole());
-            throw new IllegalArgumentException("User phải có role 'nurse' để tạo dịch vụ");
+        if (!"NURSE".equalsIgnoreCase(nurse.getRole().toString())) {
+            logger.warn("User với username: {} không có role 'NURSE', role hiện tại: {}", nurseUsername, nurse.getRole());
+            throw new IllegalArgumentException("User phải có role 'NURSE' để tạo dịch vụ");
         }
 
-        // Kiểm tra các trường bắt buộc
         if (serviceDTO.getServiceName() == null || serviceDTO.getServiceName().trim().isEmpty()) {
             logger.warn("Tên dịch vụ không được rỗng");
             throw new IllegalArgumentException("Tên dịch vụ không được rỗng");
@@ -67,11 +94,10 @@ public class NurseServiceService {
         try {
             NurseService service = modelMapper.map(serviceDTO, NurseService.class);
             service.setNurse(nurse);
-            // Chuyển đổi status từ String sang ServiceStatus
             if (serviceDTO.getStatus() != null) {
                 service.setStatus(ServiceStatus.valueOf(serviceDTO.getStatus().toUpperCase()));
             } else {
-                service.setStatus(ServiceStatus.ACTIVE); // Mặc định là ACTIVE
+                service.setStatus(ServiceStatus.ACTIVE);
             }
 
             logger.debug("NurseService entity trước khi lưu: {}", service);
@@ -80,7 +106,7 @@ public class NurseServiceService {
             logger.info("Đã tạo dịch vụ thành công cho nurse: {}", nurseUsername);
 
             ServiceDTO savedServiceDTO = modelMapper.map(savedService, ServiceDTO.class);
-            savedServiceDTO.setStatus(savedService.getStatus().name()); // Chuyển ServiceStatus thành String
+            savedServiceDTO.setStatus(savedService.getStatus().name());
             return savedServiceDTO;
         } catch (Exception ex) {
             logger.error("Lỗi khi tạo dịch vụ: {}", ex.getMessage(), ex);
@@ -100,7 +126,6 @@ public class NurseServiceService {
 
         NurseService service = serviceOptional.get();
 
-        // Kiểm tra các trường bắt buộc
         if (serviceDTO.getServiceName() == null || serviceDTO.getServiceName().trim().isEmpty()) {
             logger.warn("Tên dịch vụ không được rỗng");
             throw new IllegalArgumentException("Tên dịch vụ không được rỗng");
@@ -115,9 +140,7 @@ public class NurseServiceService {
         }
 
         try {
-            // Cập nhật các trường, giữ nguyên nurse
             modelMapper.map(serviceDTO, service);
-            // Chuyển đổi status từ String sang ServiceStatus
             if (serviceDTO.getStatus() != null) {
                 service.setStatus(ServiceStatus.valueOf(serviceDTO.getStatus().toUpperCase()));
             }
@@ -128,7 +151,7 @@ public class NurseServiceService {
             logger.info("Đã cập nhật dịch vụ thành công với serviceId: {}", serviceId);
 
             ServiceDTO updatedServiceDTO = modelMapper.map(updatedService, ServiceDTO.class);
-            updatedServiceDTO.setStatus(updatedService.getStatus().name()); // Chuyển ServiceStatus thành String
+            updatedServiceDTO.setStatus(updatedService.getStatus().name());
             return updatedServiceDTO;
         } catch (Exception ex) {
             logger.error("Lỗi khi cập nhật dịch vụ: {}", ex.getMessage(), ex);
@@ -147,7 +170,7 @@ public class NurseServiceService {
 
         NurseService service = serviceOptional.get();
         ServiceDTO serviceDTO = modelMapper.map(service, ServiceDTO.class);
-        serviceDTO.setStatus(service.getStatus().name()); // Chuyển ServiceStatus thành String
+        serviceDTO.setStatus(service.getStatus().name());
         return serviceDTO;
     }
 
@@ -164,7 +187,7 @@ public class NurseServiceService {
         return services.stream()
                 .map(service -> {
                     ServiceDTO dto = modelMapper.map(service, ServiceDTO.class);
-                    dto.setStatus(service.getStatus().name()); // Chuyển ServiceStatus thành String
+                    dto.setStatus(service.getStatus().name());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -184,7 +207,7 @@ public class NurseServiceService {
         return services.stream()
                 .map(service -> {
                     ServiceDTO dto = modelMapper.map(service, ServiceDTO.class);
-                    dto.setStatus(service.getStatus().name()); // Chuyển ServiceStatus thành String
+                    dto.setStatus(service.getStatus().name());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -197,7 +220,7 @@ public class NurseServiceService {
         return services.stream()
                 .map(service -> {
                     ServiceDTO dto = modelMapper.map(service, ServiceDTO.class);
-                    dto.setStatus(service.getStatus().name()); // Chuyển ServiceStatus thành String
+                    dto.setStatus(service.getStatus().name());
                     return dto;
                 })
                 .collect(Collectors.toList());

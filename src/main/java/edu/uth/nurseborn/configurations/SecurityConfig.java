@@ -76,6 +76,8 @@ public class SecurityConfig {
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/nursepage", "/nursing-service", "/review-nurse-profile", "/feedbacks", "/messages").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
+                            .requestMatchers("/nursepage/**").permitAll()
+                            .requestMatchers("/nurse_review/**").permitAll()
 
                             .anyRequest().authenticated();
                 })

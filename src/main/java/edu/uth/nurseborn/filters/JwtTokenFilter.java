@@ -113,6 +113,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/static/**", "GET"),
                 Pair.of("/css/**", "GET"),
                 Pair.of("/js/**", "GET"),
+                Pair.of("/nursepage","GET"),
+                Pair.of("/nurse_review","GET"),
                 Pair.of("/images/**", "GET")
         );
 
