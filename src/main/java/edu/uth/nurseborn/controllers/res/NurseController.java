@@ -35,9 +35,6 @@ public class NurseController {
 
         return "master/nursepage";
     }
-    @GetMapping("/nurse_review")
-    public String nurse_review() {
-        return "master/nurse_review";
-    }
+
 
 }
