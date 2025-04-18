@@ -8,7 +8,7 @@
   <div class="layout-container">
     <div th:replace="~{master/layoutmenu::menu}"></div>
     <div class="layout-page">
-      <div th:replace="~{master/navbar}"></div>
+      <div th:replace="~{profile/navbar-nurse::navbar}"></div>
       <div class="content-wrapper">
         <div class="content-xxl flex-grow-1 container-p-y">
 
@@ -50,9 +50,11 @@
               </div>
             </div>
 
-            <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
-            <a th:href="@{/update-user}" class="btn btn-success">Cập nhật hồ sơ</a>
-            <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
+            <div class="mt-3">
+              <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
+              <a th:href="@{/update-nurse}" class="btn btn-success" id="update-nurse-btn">Cập nhật hồ sơ</a>
+              <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
+            </div>
           </div>
 
           <!-- Thông báo nếu chưa đăng nhập -->

@@ -1,3 +1,4 @@
+
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.*;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -200,7 +202,6 @@ public class WebController {
             cookie.setPath("/");
             response.addCookie(cookie);
             logger.info("Đăng nhập thành công cho username: {}", loginRequest.getUsername());
-
             return "redirect:/";
         } catch (Exception e) {
             logger.error("Lỗi khi đăng nhập: {}", e.getMessage(), e);
@@ -252,7 +253,9 @@ public class WebController {
         try {
             logger.debug("Nhận yêu cầu POST /register với dữ liệu: {}", registerRequest);
             logger.debug("Certificates: {}, CertificateNames: {}, ProfileImage: {}",
-                    certificates != null ? certificates.size() : "null", certificateNames != null ? certificateNames.size() : "null", profileImage != null ? profileImage.getOriginalFilename() : "null");
+                    certificates != null ? certificates.size() : "null",
+                    certificateNames != null ? certificateNames.size() : "null",
+                    profileImage != null ? profileImage.getOriginalFilename() : "null");
 
             String role = registerRequest.getUser().getRole();
             if (role == null || role.trim().isEmpty()) {
@@ -366,6 +369,12 @@ public class WebController {
             logger.debug("UserDTO role: {}", userDTO.getRole());
             model.addAttribute("user", userDTO);
 
+            // Chuyển hướng ROLE_NURSE đến nurse-profile
+            if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                logger.debug("Người dùng là NURSE, chuyển hướng đến nurse-profile");
+                return "redirect:/nurse-profile";
+            }
+
             // Log chi tiết để kiểm tra trạng thái của user
             logger.debug("UserDTO details: username={}, role={}, createdAt={}",
                     userDTO.getUsername(), userDTO.getRole(), userDTO.getCreatedAt());
@@ -379,20 +388,57 @@ public class WebController {
                             familyProfile.getSpecificNeeds(), familyProfile.getPreferredLocation());
                 }
                 model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
-            } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
-                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
-                logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
-                if (nurseProfile != null) {
-                    logger.debug("NurseProfile details: bio={}, skills={}, experienceYears={}",
-                            nurseProfile.getBio(), nurseProfile.getSkills(), nurseProfile.getExperienceYears());
-                }
-                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+            } else if ("ADMIN".equalsIgnoreCase(userDTO.getRole())) {
+                // Không cần thêm dữ liệu đặc biệt cho ADMIN
             }
 
             logger.info("Hiển thị trang hồ sơ cho user: {}", username);
             return "profile/user-profile";
         } catch (Exception e) {
             logger.error("Lỗi khi hiển thị trang hồ sơ: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+
+    @GetMapping("/nurse-profile")
+    public String nurseProfile(Model model) {
+        logger.debug("Hiển thị trang hồ sơ y tá");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.debug("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+            model.addAttribute("user", userDTO);
+
+            if (!"NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                logger.warn("User {} không có quyền truy cập trang hồ sơ y tá", username);
+                return "redirect:/user-profile";
+            }
+
+            NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+            logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
+            if (nurseProfile != null) {
+                logger.debug("NurseProfile details: bio={}, skills={}, experienceYears={}",
+                        nurseProfile.getBio(), nurseProfile.getSkills(), nurseProfile.getExperienceYears());
+            }
+            model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+
+            logger.info("Hiển thị trang hồ sơ y tá cho user: {}", username);
+            return "profile/nurse-profile";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang hồ sơ y tá: {}", e.getMessage(), e);
             return "redirect:/login";
         }
     }
@@ -464,9 +510,9 @@ public class WebController {
             if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
                 FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
                 model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
-            } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
-                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
-                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+            } else {
+                logger.warn("User {} không có quyền cập nhật hồ sơ gia đình", username);
+                return "redirect:/user-profile";
             }
             logger.info("Hiển thị trang cập nhật hồ sơ cho user: {}", username);
             return "profile/update-user";
@@ -517,5 +563,146 @@ public class WebController {
             model.addAttribute("error", "Lỗi khi cập nhật hồ sơ: " + e.getMessage());
             return "profile/update-user";
         }
+    }
+
+    @GetMapping("/update-nurse")
+    public String updateNurseProfile(Model model, HttpSession session) {
+        logger.debug("Hiển thị trang cập nhật hồ sơ y tá");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.debug("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("Vai trò user: {}", userDTO.getRole());
+
+            // Xóa session.success để tránh thông báo sai
+            session.removeAttribute("success");
+
+            model.addAttribute("user", userDTO);
+            if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
+                model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+            } else {
+                logger.warn("User {} không có quyền cập nhật hồ sơ y tá", username);
+                return "redirect:/nurse-profile";
+            }
+
+            logger.info("Hiển thị trang cập nhật hồ sơ y tá cho user: {}", username);
+            return "profile/update-nurse";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang cập nhật hồ sơ y tá: {}", e.getMessage(), e);
+            model.addAttribute("error", "Lỗi khi tải trang cập nhật: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @PostMapping("/update-nurse")
+    public String updateNurseProfile(
+            @ModelAttribute("nurseProfile") NurseProfileDTO nurseProfileDTO,
+            @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+            @RequestParam(value = "certificateFiles", required = false) List<MultipartFile> certificateFiles,
+            @RequestParam(value = "certificateNames", required = false) String certificateNames,
+            Model model, HttpSession session) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Kiểm tra vai trò NURSE
+            String role = user.getRole().name().startsWith("ROLE_") ?
+                    user.getRole().name().substring(5) : user.getRole().name();
+            if (!"NURSE".equalsIgnoreCase(role)) {
+                logger.warn("User {} không có quyền cập nhật hồ sơ y tá", username);
+                model.addAttribute("error", "Chỉ người dùng có vai trò NURSE mới có thể cập nhật hồ sơ y tá");
+                return "profile/update-nurse";
+            }
+
+            // Log dữ liệu nhận được từ biểu mẫu
+            logger.debug("NurseProfileDTO từ biểu mẫu: location={}, skills={}, experienceYears={}, hourlyRate={}",
+                    nurseProfileDTO.getLocation(), nurseProfileDTO.getSkills(),
+                    nurseProfileDTO.getExperienceYears(), nurseProfileDTO.getHourlyRate());
+
+            // Xử lý ảnh đại diện
+            if (profileImageFile != null && !profileImageFile.isEmpty()) {
+                try {
+                    String uploadDir = "src/main/resources/static/uploads/profile_images/";
+                    File dir = new File(uploadDir);
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+                    String fileName = System.currentTimeMillis() + "_" + profileImageFile.getOriginalFilename();
+                    Path filePath = Paths.get(uploadDir, fileName);
+                    Files.write(filePath, profileImageFile.getBytes());
+                    nurseProfileDTO.setProfileImage("/uploads/profile_images/" + fileName);
+                    logger.debug("Đã lưu ảnh đại diện: {}", nurseProfileDTO.getProfileImage());
+                } catch (Exception e) {
+                    logger.error("Lỗi khi lưu ảnh đại diện: {}", e.getMessage(), e);
+                    model.addAttribute("error", "Lỗi khi lưu ảnh đại diện: " + e.getMessage());
+                    return "profile/update-nurse";
+                }
+            }
+
+            // Xử lý chứng chỉ
+            if (certificateFiles != null && !certificateFiles.isEmpty()) {
+                try {
+                    String uploadDir = "src/main/resources/static/uploads/certificates/";
+                    File dir = new File(uploadDir);
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+                    List<CertificateDTO> certificateDTOs = new ArrayList<>();
+                    List<String> certNames = certificateNames != null && !certificateNames.isEmpty() ?
+                            Arrays.asList(certificateNames.split(",")) : new ArrayList<>();
+                    for (int i = 0; i < certificateFiles.size(); i++) {
+                        MultipartFile file = certificateFiles.get(i);
+                        if (!file.isEmpty()) {
+                            String contentType = file.getContentType();
+                            if (!contentType.equals("application/pdf") && !contentType.startsWith("image/")) {
+                                throw new RuntimeException("Chỉ hỗ trợ file PDF hoặc hình ảnh");
+                            }
+                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                            Path filePath = Paths.get(uploadDir, fileName);
+                            Files.write(filePath, file.getBytes());
+
+                            CertificateDTO certificateDTO = new CertificateDTO();
+                            String certName = (i < certNames.size() && !certNames.get(i).trim().isEmpty()) ?
+                                    certNames.get(i).trim() : file.getOriginalFilename();
+                            certificateDTO.setCertificateName(certName);
+                            certificateDTO.setFilePath("/uploads/certificates/" + fileName);
+                            certificateDTOs.add(certificateDTO);
+                        }
+                    }
+                    nurseProfileDTO.setCertificates(certificateDTOs);
+                    logger.debug("Đã xử lý {} chứng chỉ", certificateDTOs.size());
+                } catch (Exception e) {
+                    logger.error("Lỗi khi lưu chứng chỉ: {}", e.getMessage(), e);
+                    model.addAttribute("error", "Lỗi khi lưu chứng chỉ: " + e.getMessage());
+                    return "profile/update-nurse";
+                }
+            }
+
+            // Cập nhật hồ sơ y tá
+            nurseProfileDTO.setUserId(user.getUserId());
+            NurseProfileDTO updatedProfile = nurseProfileService.updateNurseProfile(user.getUserId(), nurseProfileDTO);
+            logger.debug("Đã cập nhật hồ sơ y tá cho userId: {}", user.getUserId());
+
+            session.setAttribute("success", "Cập nhật hồ sơ y tá thành công!");
+            logger.info("Cập nhật hồ sơ y tá thành công cho user: {}", username);
+            return "redirect:/nurse-profile";
+        } catch (Exception e) {
+            logger.error("Lỗi khi cập nhật hồ sơ y tá: {}", e.getMessage(), e);
+            model.addAttribute("error", "Lỗi khi cập nhật hồ sơ y tá: " + e.getMessage());
+            return "profile/update-nurse";
+        }
+        
     }
 }

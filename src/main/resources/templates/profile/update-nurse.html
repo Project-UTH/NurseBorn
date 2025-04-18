@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <div th:replace="~{master/head::head}"></div>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div th:replace="~{master/layoutmenu::menu}"></div>
+        <div class="layout-page">
+            <div th:replace="~{profile/navbar-nurse::navbar}"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+
+                    <!-- Thông báo nếu chưa đăng nhập -->
+                    <div th:unless="${user}">
+                        <h2>Bạn chưa đăng nhập</h2>
+                        <p>Vui lòng <a th:href="@{/login}">đăng nhập</a> để cập nhật hồ sơ của bạn.</p>
+                    </div>
+
+                    <!-- Form cập nhật thông tin y tá -->
+                    <div th:if="${user}">
+                        <h2>Cập nhật hồ sơ y tá</h2>
+                        <!-- Hiển thị thông báo lỗi hoặc thành công -->
+                        <div th:if="${error}" class="alert alert-danger" role="alert">
+                            <span th:text="${error}"></span>
+                        </div>
+                        <div th:if="${session.success}" class="alert alert-success" role="alert">
+                            <span th:text="${session.success}"></span>
+                            <th:block th:remove="${session.success}"></th:block>
+                        </div>
+
+                        <form th:action="@{/update-nurse}" method="post" enctype="multipart/form-data">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin y tá</h5>
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Vị trí</label>
+                                        <input type="text" class="form-control" id="location" name="location" th:value="${nurseProfile?.location ?: ''}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="skills" class="form-label">Kỹ năng</label>
+                                        <input type="text" class="form-control" id="skills" name="skills" th:value="${nurseProfile?.skills ?: ''}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="experienceYears" class="form-label">Số năm kinh nghiệm</label>
+                                        <input type="number" class="form-control" id="experienceYears" name="experienceYears" th:value="${nurseProfile?.experienceYears ?: 0}" required min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="hourlyRate" class="form-label">Lương giờ (VNĐ)</label>
+                                        <input type="number" step="0.01" class="form-control" id="hourlyRate" name="hourlyRate" th:value="${nurseProfile?.hourlyRate ?: 0}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dailyRate" class="form-label">Lương ngày (VNĐ)</label>
+                                        <input type="number" step="0.01" class="form-control" id="dailyRate" name="dailyRate" th:value="${nurseProfile?.dailyRate ?: ''}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="weeklyRate" class="form-label">Lương tuần (VNĐ)</label>
+                                        <input type="number" step="0.01" class="form-control" id="weeklyRate" name="weeklyRate" th:value="${nurseProfile?.weeklyRate ?: ''}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="bio" class="form-label">Tiểu sử</label>
+                                        <textarea class="form-control" id="bio" name="bio" rows="4" th:text="${nurseProfile?.bio ?: ''}"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="profileImageFile" class="form-label">Ảnh đại diện</label>
+                                        <input type="file" class="form-control" id="profileImageFile" name="profileImageFile" accept="image/*">
+                                        <small class="form-text text-muted">Để nguyên nếu không muốn thay đổi ảnh.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="certificateFiles" class="form-label">Chứng chỉ</label>
+                                        <input type="file" class="form-control" id="certificateFiles" name="certificateFiles" multiple accept="image/*,application/pdf">
+                                        <small class="form-text text-muted">Chọn nhiều file PDF hoặc hình ảnh.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="certificateNames" class="form-label">Tên chứng chỉ (tùy chọn, nhập tên cho từng file)</label>
+                                        <textarea class="form-control" id="certificateNames" name="certificateNames" rows="4" placeholder="Nhập tên chứng chỉ, cách nhau bằng dấu phẩy"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nút hành động -->
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                <a th:href="@{/nurse-profile}" class="btn btn-secondary">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>

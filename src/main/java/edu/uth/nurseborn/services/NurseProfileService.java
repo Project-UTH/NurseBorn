@@ -75,7 +75,6 @@ public class NurseProfileService {
             if (nurseProfileDTO.getCertificates() != null && !nurseProfileDTO.getCertificates().isEmpty()) {
                 for (CertificateDTO certificateDTO : nurseProfileDTO.getCertificates()) {
                     Certificate certificate = modelMapper.map(certificateDTO, Certificate.class);
-                    // Thiết lập mối quan hệ với NurseProfile
                     certificate.setNurseProfile(nurseProfile);
                     certificates.add(certificate);
                 }
@@ -112,8 +111,51 @@ public class NurseProfileService {
         NurseProfile nurseProfile = nurseProfileOptional.get();
 
         try {
-            // Ánh xạ dữ liệu từ DTO sang entity, trừ certificates
-            modelMapper.map(nurseProfileDTO, nurseProfile);
+            // Log dữ liệu nhận được từ DTO
+            logger.debug("NurseProfileDTO nhận được: location={}, skills={}, experienceYears={}, hourlyRate={}",
+                    nurseProfileDTO.getLocation(), nurseProfileDTO.getSkills(),
+                    nurseProfileDTO.getExperienceYears(), nurseProfileDTO.getHourlyRate());
+
+            // Cập nhật từng trường, giữ giá trị hiện có nếu DTO null
+            String location = nurseProfileDTO.getLocation() != null && !nurseProfileDTO.getLocation().trim().isEmpty() ?
+                    nurseProfileDTO.getLocation() : nurseProfile.getLocation();
+            if (location == null || location.trim().isEmpty()) {
+                location = "Unknown"; // Giá trị mặc định để thỏa mãn @NotNull
+            }
+            nurseProfile.setLocation(location);
+
+            String skills = nurseProfileDTO.getSkills() != null && !nurseProfileDTO.getSkills().trim().isEmpty() ?
+                    nurseProfileDTO.getSkills() : nurseProfile.getSkills();
+            if (skills == null || skills.trim().isEmpty()) {
+                skills = "None"; // Giá trị mặc định để thỏa mãn @NotNull
+            }
+            nurseProfile.setSkills(skills);
+
+            Integer experienceYears = nurseProfileDTO.getExperienceYears() != null ?
+                    nurseProfileDTO.getExperienceYears() : nurseProfile.getExperienceYears();
+            if (experienceYears == null) {
+                experienceYears = 0; // Giá trị mặc định để thỏa mãn @NotNull
+            }
+            nurseProfile.setExperienceYears(experienceYears);
+
+            Double hourlyRate = nurseProfileDTO.getHourlyRate() != null ?
+                    nurseProfileDTO.getHourlyRate() : nurseProfile.getHourlyRate();
+            if (hourlyRate == null) {
+                hourlyRate = 0.0; // Giá trị mặc định để thỏa mãn @NotNull
+            }
+            nurseProfile.setHourlyRate(hourlyRate);
+
+            nurseProfile.setDailyRate(nurseProfileDTO.getDailyRate() != null ?
+                    nurseProfileDTO.getDailyRate() : nurseProfile.getDailyRate());
+            nurseProfile.setWeeklyRate(nurseProfileDTO.getWeeklyRate() != null ?
+                    nurseProfileDTO.getWeeklyRate() : nurseProfile.getWeeklyRate());
+            nurseProfile.setBio(nurseProfileDTO.getBio() != null ?
+                    nurseProfileDTO.getBio() : nurseProfile.getBio());
+            if (nurseProfileDTO.getProfileImage() != null) {
+                nurseProfile.setProfileImage(nurseProfileDTO.getProfileImage());
+            }
+            nurseProfile.setApproved(nurseProfileDTO.getApproved() != null ?
+                    nurseProfileDTO.getApproved() : nurseProfile.getApproved());
 
             // Xử lý danh sách certificates
             nurseProfile.getCertificates().clear(); // Xóa các certificate cũ
@@ -121,17 +163,25 @@ public class NurseProfileService {
             if (nurseProfileDTO.getCertificates() != null && !nurseProfileDTO.getCertificates().isEmpty()) {
                 for (CertificateDTO certificateDTO : nurseProfileDTO.getCertificates()) {
                     Certificate certificate = modelMapper.map(certificateDTO, Certificate.class);
-                    // Thiết lập mối quan hệ với NurseProfile
                     certificate.setNurseProfile(nurseProfile);
                     certificates.add(certificate);
                 }
             }
             nurseProfile.setCertificates(certificates);
 
-            logger.debug("NurseProfile entity trước khi cập nhật: {}", nurseProfile);
+            // Log trạng thái trước khi lưu
+            logger.debug("NurseProfile trước khi lưu: location={}, skills={}, experienceYears={}, hourlyRate={}",
+                    nurseProfile.getLocation(), nurseProfile.getSkills(),
+                    nurseProfile.getExperienceYears(), nurseProfile.getHourlyRate());
+
             NurseProfile updatedProfile = nurseProfileRepository.save(nurseProfile);
             nurseProfileRepository.flush();
             logger.info("Đã cập nhật NurseProfile thành công cho userId: {}", userId);
+
+            // Log trạng thái sau khi lưu
+            logger.debug("NurseProfile sau khi lưu: location={}, skills={}, experienceYears={}, hourlyRate={}",
+                    updatedProfile.getLocation(), updatedProfile.getSkills(),
+                    updatedProfile.getExperienceYears(), updatedProfile.getHourlyRate());
 
             NurseProfileDTO responseDTO = modelMapper.map(updatedProfile, NurseProfileDTO.class);
             List<Certificate> savedCertificates = certificateRepository.findByNurseProfileUserUserId(userId);
@@ -169,6 +219,7 @@ public class NurseProfileService {
         responseDTO.setCertificateNames(certificateNames.isEmpty() ? "Chưa có" : certificateNames);
         return responseDTO;
     }
+
     @Transactional
     public void deleteNurseProfile(Long userId) {
         logger.debug("Xóa NurseProfile cho userId: {}", userId);
@@ -213,13 +264,11 @@ public class NurseProfileService {
         User user = userOptional.get();
 
         if (isApproved) {
-            // Phê duyệt: Cập nhật trạng thái
             nurseProfile.setApproved(true);
             user.setVerified(true);
             nurseProfileRepository.save(nurseProfile);
             userRepository.save(user);
 
-            // Lưu hành động APPROVE_USER
             AdminActionDTO adminActionDTO = new AdminActionDTO();
             adminActionDTO.setActionId(null);
             adminActionDTO.setAdminUserId(admin.getUserId().intValue());
@@ -231,17 +280,12 @@ public class NurseProfileService {
             adminActionService.createAdminAction(adminActionDTO);
             logger.info("Đã phê duyệt hồ sơ y tá thành công cho userId: {}", userId);
         } else {
-            // Từ chối: Xóa user và nurse profile
             try {
-                // Xóa file vật lý của chứng chỉ
                 List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
                 for (Certificate certificate : certificates) {
                     new File(certificate.getFilePath()).delete();
                 }
-
-                // Xóa NurseProfile (tự động xóa certificates do cascade)
                 nurseProfileRepository.delete(nurseProfile);
-                // Xóa User
                 userRepository.delete(user);
                 logger.info("Đã từ chối và xóa hồ sơ y tá cùng user thành công cho userId: {}", userId);
             } catch (Exception ex) {
@@ -252,7 +296,6 @@ public class NurseProfileService {
     }
 
     public List<NurseProfileDTO> getAllNurseProfiles() {
-        // Chỉ lấy các hồ sơ chưa được phê duyệt (isApproved = false)
         List<NurseProfile> nurseProfiles = nurseProfileRepository.findAll().stream()
                 .filter(nurseProfile -> !nurseProfile.getApproved())
                 .collect(Collectors.toList());

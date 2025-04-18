@@ -75,10 +75,11 @@ public class SecurityConfig {
                             .requestMatchers("/api/family-profiles/**").hasRole("FAMILY")
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/**").permitAll()
-                            .requestMatchers("/user-profile").hasAnyRole("FAMILY", "ADMIN")
+                            .requestMatchers("/user-profile").hasAnyRole("FAMILY","NURSE","ADMIN")
                             .requestMatchers("/nurse-profile").hasRole("NURSE")
-                            .requestMatchers("/update-user").hasRole("FAMILY")
+                            .requestMatchers("/update-user").hasAnyRole("FAMILY","NURSE","ADMIN")
                             .requestMatchers("/nurse-service/**").hasAnyRole("NURSE", "FAMILY")
+                            .requestMatchers("/nurse-profile", "/update-nurse").hasRole("NURSE")
 
                             // Web endpoints
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks", "/messages").authenticated()
