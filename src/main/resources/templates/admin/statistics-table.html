@@ -66,12 +66,11 @@
     </style>
 </head>
 <body>
-<div th:replace="master/head::head"></div>
 <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
-        <div th:replace="master/layoutmenu::menu"></div>
+        <div th:replace="~{admin/layoutmenuadmin::menu}"></div>
         <div class="layout-page">
-            <div th:replace="master/navbar"></div>
+            <div th:replace="~{master/navbar::navbar}"></div>
             <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
                     <div class="container-fluid p-4">
@@ -110,7 +109,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

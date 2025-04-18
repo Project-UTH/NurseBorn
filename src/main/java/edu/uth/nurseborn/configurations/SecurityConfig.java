@@ -63,6 +63,7 @@ public class SecurityConfig {
                             .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                             .requestMatchers("/admin/**", "/review-nurse-profile", "/nurse/approve/**", "/nurse/reject/**").hasRole("ADMIN")
+                            .requestMatchers("/statistics-table/**", "/statistics/**").hasRole("ADMIN")
 
                             // API endpoints with role-based access
                             .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("NURSE")
