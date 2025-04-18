@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,14 +70,26 @@ public class NurseProfileService {
             NurseProfile nurseProfile = modelMapper.map(nurseProfileDTO, NurseProfile.class);
             nurseProfile.setUser(user);
 
+            // Xử lý danh sách certificates
+            List<Certificate> certificates = new ArrayList<>();
+            if (nurseProfileDTO.getCertificates() != null && !nurseProfileDTO.getCertificates().isEmpty()) {
+                for (CertificateDTO certificateDTO : nurseProfileDTO.getCertificates()) {
+                    Certificate certificate = modelMapper.map(certificateDTO, Certificate.class);
+                    // Thiết lập mối quan hệ với NurseProfile
+                    certificate.setNurseProfile(nurseProfile);
+                    certificates.add(certificate);
+                }
+            }
+            nurseProfile.setCertificates(certificates);
+
             logger.debug("NurseProfile entity trước khi lưu: {}", nurseProfile);
             NurseProfile savedProfile = nurseProfileRepository.save(nurseProfile);
             nurseProfileRepository.flush();
             logger.info("Đã lưu NurseProfile thành công cho user: {}", savedProfile.getUser().getUsername());
 
             NurseProfileDTO responseDTO = modelMapper.map(savedProfile, NurseProfileDTO.class);
-            List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
-            List<CertificateDTO> certificateDTOs = certificates.stream()
+            List<Certificate> savedCertificates = certificateRepository.findByNurseProfileUserUserId(userId);
+            List<CertificateDTO> certificateDTOs = savedCertificates.stream()
                     .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
                     .collect(Collectors.toList());
             responseDTO.setCertificates(certificateDTOs);
@@ -99,7 +112,21 @@ public class NurseProfileService {
         NurseProfile nurseProfile = nurseProfileOptional.get();
 
         try {
+            // Ánh xạ dữ liệu từ DTO sang entity, trừ certificates
             modelMapper.map(nurseProfileDTO, nurseProfile);
+
+            // Xử lý danh sách certificates
+            nurseProfile.getCertificates().clear(); // Xóa các certificate cũ
+            List<Certificate> certificates = new ArrayList<>();
+            if (nurseProfileDTO.getCertificates() != null && !nurseProfileDTO.getCertificates().isEmpty()) {
+                for (CertificateDTO certificateDTO : nurseProfileDTO.getCertificates()) {
+                    Certificate certificate = modelMapper.map(certificateDTO, Certificate.class);
+                    // Thiết lập mối quan hệ với NurseProfile
+                    certificate.setNurseProfile(nurseProfile);
+                    certificates.add(certificate);
+                }
+            }
+            nurseProfile.setCertificates(certificates);
 
             logger.debug("NurseProfile entity trước khi cập nhật: {}", nurseProfile);
             NurseProfile updatedProfile = nurseProfileRepository.save(nurseProfile);
@@ -107,8 +134,8 @@ public class NurseProfileService {
             logger.info("Đã cập nhật NurseProfile thành công cho userId: {}", userId);
 
             NurseProfileDTO responseDTO = modelMapper.map(updatedProfile, NurseProfileDTO.class);
-            List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(userId);
-            List<CertificateDTO> certificateDTOs = certificates.stream()
+            List<Certificate> savedCertificates = certificateRepository.findByNurseProfileUserUserId(userId);
+            List<CertificateDTO> certificateDTOs = savedCertificates.stream()
                     .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))
                     .collect(Collectors.toList());
             responseDTO.setCertificates(certificateDTOs);
@@ -142,7 +169,6 @@ public class NurseProfileService {
         responseDTO.setCertificateNames(certificateNames.isEmpty() ? "Chưa có" : certificateNames);
         return responseDTO;
     }
-
     @Transactional
     public void deleteNurseProfile(Long userId) {
         logger.debug("Xóa NurseProfile cho userId: {}", userId);

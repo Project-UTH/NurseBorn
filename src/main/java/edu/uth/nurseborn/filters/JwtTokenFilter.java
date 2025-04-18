@@ -123,7 +123,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/user-profile", "GET"),
                 Pair.of("/update-user", "GET"),
                 Pair.of("/update-user", "POST"),
-                Pair.of("/nurse-profile", "GET")
+                Pair.of("/nurse-profile", "GET"),
+                Pair.of("/nurse-service/create","GET"),
+                Pair.of("/nurse-service/create", "POST")
         );
 
         String path = request.getServletPath();
