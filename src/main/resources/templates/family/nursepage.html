@@ -179,22 +179,13 @@
                     <p class="card-text">
                       <strong>Lịch khám:</strong>
                       <span th:if="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                        <th:block th:each="availability : ${nurse.nurseAvailabilities}">
-                          <span th:switch="${availability.dayOfWeek != null ? availability.dayOfWeek.name : 'UNKNOWN'}">
-                            <span th:case="'MONDAY'" th:utext="'Thứ Hai' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'TUESDAY'" th:utext="'Thứ Ba' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'WEDNESDAY'" th:utext="'Thứ Tư' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'THURSDAY'" th:utext="'Thứ Năm' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'FRIDAY'" th:utext="'Thứ Sáu' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'SATURDAY'" th:utext="'Thứ Bảy' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="'SUNDAY'" th:utext="'Chủ Nhật' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                            <span th:case="*" th:utext="'Ngày không xác định' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                          </span>
-                        </th:block>
-                      </span>
+    <th:block th:each="availability : ${nurse.nurseAvailabilities}">
+      <span th:text="${availability.dayOfWeek != null ? availability.dayOfWeek : 'UNKNOWN'} + (${availabilityStat.last ? '' : ', '})"></span>
+    </th:block>
+  </span>
                       <span th:unless="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                        Chưa có lịch
-                      </span>
+    Chưa có lịch
+  </span>
                     </p>
                     <p class="card-text"><strong>Giá khám theo giờ:</strong>
                       <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span>

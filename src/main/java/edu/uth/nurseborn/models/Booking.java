@@ -3,139 +3,61 @@ package edu.uth.nurseborn.models;
 import edu.uth.nurseborn.models.enums.BookingStatus;
 import edu.uth.nurseborn.models.enums.ServiceType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "bookings")
+@Getter
+@Setter
 public class Booking {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "booking_id")
-    private Integer bookingId;
+    private Long bookingId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "family_user_id", nullable = false)
-    private User family;
+    private User familyUser;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nurse_user_id", nullable = false)
-    private User nurse;
-
-    @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
-    private NurseService nurseService;
+    private User nurseUser;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "service_type", nullable = false)
-    private ServiceType serviceType;
+    private ServiceType serviceType; // HOURLY, DAILY, WEEKLY
 
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
+    @Column(name = "booking_date", nullable = false)
+    private LocalDate bookingDate;
 
-    @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
+    @Column(name = "start_time")
+    private LocalTime startTime;
+
+    @Column(name = "end_time")
+    private LocalTime endTime;
+
+    @Column(name = "price", nullable = false)
+    private Double price;
+
+    @Column(name = "notes")
+    private String notes;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private BookingStatus status = BookingStatus.PENDING;
+    @Column(name = "status", nullable = false)
+    private BookingStatus status; // PENDING, ACCEPTED, COMPLETED, CANCELLED
 
-    @Column(name = "total_cost", nullable = false)
-    private Double totalCost;
-
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
-    }
-
-    // Getters, setters
-
-    public Integer getBookingId() {
-        return bookingId;
-    }
-
-    public User getFamily() {
-        return family;
-    }
-
-    public User getNurse() {
-        return nurse;
-    }
-
-    public NurseService getService() {
-        return nurseService;
-    }
-
-    public ServiceType getServiceType() {
-        return serviceType;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public BookingStatus getStatus() {
-        return status;
-    }
-
-    public Double getTotalCost() {
-        return totalCost;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setFamily(User family) {
-        this.family = family;
-    }
-
-    public void setNurse(User nurse) {
-        this.nurse = nurse;
-    }
-
-    public void setService(NurseService nurseService) {
-        this.nurseService = nurseService;
-    }
-
-    public void setServiceType(ServiceType serviceType) {
-        this.serviceType = serviceType;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
-    }
-
-    public void setTotalCost(Double totalCost) {
-        this.totalCost = totalCost;
-    }
-
-    public Booking() {}
-
-    public Booking(User family, User nurse, NurseService service, ServiceType serviceType, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, Double totalCost) {
-        this.family = family;
-        this.nurse = nurse;
-        this.nurseService = service;
-        this.serviceType = serviceType;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.status = status;
-        this.totalCost = totalCost;
+        this.status = BookingStatus.PENDING;
     }
 }
-
