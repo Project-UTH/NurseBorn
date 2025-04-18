@@ -1,13 +1,13 @@
 package edu.uth.nurseborn.dtos;
 
-import lombok.Data;
-import java.sql.Time;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+import java.util.List;
+
+@Getter
+@Setter
 public class NurseAvailabilityDTO {
-    private Integer availabilityId;
-    private Integer nurseProfileId;
-    private String dayOfWeek; // "Monday", "Tuesday", etc.
-    private Time startTime;
-    private Time endTime;
+    private Long userId;
+    private List<String> selectedDays;
 }

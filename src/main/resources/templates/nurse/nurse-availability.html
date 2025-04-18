@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <div th:replace="~{master/head::head}"></div>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="~{master/layoutmenu::menu}"></div>
+    <div class="layout-page">
+      <div th:replace="~{master/navbar}"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <th:block th:fragment="content">
+            <div class="card mb-4">
+              <h5 class="card-header text-center">Chọn Ngày Làm Việc</h5>
+              <div class="card-body">
+                <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                  <span th:text="${error}"></span>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                  <span th:text="${success}"></span>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/nurse-availability}" th:object="${availabilityDTO}" method="post" class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Chọn các ngày làm việc trong tuần:</label>
+                    <div class="row">
+                      <div th:each="day : ${daysOfWeek}" class="col-md-6 mb-3">
+                        <div class="form-check">
+                          <input type="checkbox" th:field="*{selectedDays}" th:value="${day}"
+                                 class="form-check-input" th:id="'day-' + ${day}"
+                                 th:checked="${#lists.contains(availabilityDTO.selectedDays, day)}">
+                          <label class="form-check-label" th:for="'day-' + ${day}" th:text="${day}"></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" th:field="*{userId}">
+                  <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(to right, #4f46e5, #7c3aed);">
+                      Lưu Lịch Làm Việc
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </th:block>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
