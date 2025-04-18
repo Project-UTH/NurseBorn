@@ -91,13 +91,16 @@ public class WebController {
                 logger.info("Admin đăng nhập, điều hướng đến trang home-admin");
                 return "redirect:/admin/home";
             } else if ("FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+                logger.info("Family đăng nhập, điều hướng đến trang home-family");
                 FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
                 logger.debug("FamilyProfile cho userId {}: {}", user.getUserId(), familyProfile);
                 model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
+                return "family/home-family";
             } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
                 NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
                 logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
                 model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
+                return "master/home";
             }
 
             logger.info("Hiển thị trang home cho user: {}", username);
@@ -139,6 +142,43 @@ public class WebController {
             return "admin/home-admin";
         } catch (Exception e) {
             logger.error("Lỗi khi hiển thị trang home-admin: {}", e.getMessage(), e);
+            return "redirect:/login";
+        }
+    }
+    @GetMapping("/family/home")
+    public String familyHome(Model model) {
+        logger.debug("Hiển thị trang home-family");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+            // Ánh xạ User sang UserDTO và sửa role
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            String role = user.getRole().name();
+            userDTO.setRole(role.startsWith("ROLE_") ? role.substring(5) : role);
+            logger.debug("UserDTO role: {}", userDTO.getRole());
+
+            if (!"FAMILY".equalsIgnoreCase(userDTO.getRole())) {
+                logger.warn("User {} không có quyền truy cập trang home-family", username);
+                return "redirect:/";
+            }
+
+            FamilyProfileDTO familyProfile = familyProfileService.getFamilyProfileByUserId(user.getUserId());
+            logger.debug("FamilyProfile cho userId {}: {}", user.getUserId(), familyProfile);
+            model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
+            model.addAttribute("user", userDTO);
+            logger.info("Hiển thị trang home-family cho user: {}", username);
+            return "family/home-family";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang home-family: {}", e.getMessage(), e);
             return "redirect:/login";
         }
     }
@@ -404,6 +444,7 @@ public class WebController {
         logger.info("Đăng xuất thành công");
         return "redirect:/login?logout";
     }
+
     @GetMapping("/update-user")
     public String updateUserProfile(Model model) {
         logger.debug("Hiển thị trang cập nhật hồ sơ người dùng");
@@ -434,6 +475,7 @@ public class WebController {
             return "redirect:/login";
         }
     }
+
     @PostMapping("/update-user")
     public String updateUserProfile(
             @ModelAttribute("user") UserDTO userDTO,

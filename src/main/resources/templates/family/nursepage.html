@@ -4,7 +4,7 @@
         class="light-style layout-menu-fixed"
         dir="ltr"
         data-theme="theme-default"
-        data-assets-path="../assets/"
+        data-assets-path="/static/assets/"
         data-template="vertical-menu-template-free"
         xmlns:th="http://www.thymeleaf.org"
 >
@@ -26,16 +26,16 @@
 
     /* Tiêu đề danh sách y tá */
     h2.text-center {
-      font-size: 2.5rem; /* Tăng kích thước chữ */
-      font-weight: 800; /* Đậm hơn */
-      background: linear-gradient(45deg, #0d6efd, #28a745); /* Gradient xanh dương đến xanh lá */
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent; /* Hiệu ứng gradient cho chữ */
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Bóng chữ */
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
       position: relative;
       margin-bottom: 40px;
       padding: 10px 0;
-      animation: fadeIn 1s ease-in-out; /* Hiệu ứng xuất hiện */
+      animation: fadeIn 1s ease-in-out;
     }
     h2.text-center::after {
       content: '';
@@ -45,7 +45,7 @@
       transform: translateX(-50%);
       width: 100px;
       height: 4px;
-      background: linear-gradient(45deg, #0d6efd, #28a745); /* Viền dưới gradient */
+      background: linear-gradient(45deg, #0d6efd, #28a745);
       border-radius: 2px;
     }
     @keyframes fadeIn {
@@ -140,7 +140,8 @@
 <body>
 <div class="layout-wrapper layout-content-navbar">
   <div class="layout-container">
-    <div th:replace="~{master/layoutmenu::menu}"></div>
+    <!-- Sử dụng layoutmenufamily.html -->
+    <div th:replace="~{family/layoutmenufamily::menu}"></div>
 
     <div class="layout-page">
       <div th:replace="~{master/navbar}"></div>
@@ -171,29 +172,29 @@
                    class="col-md-4 mb-4 nurse-card"
                    th:attr="data-name=${nurse.user.fullName}, data-skills=${nurse.skills}, data-location=${nurse.location}">
                 <div class="card">
-                  <img th:src="${nurse.profileImage != null ? nurse.profileImage : '/assets/img/default_profile.jpg'}"
+                  <img th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/assets/img/default_profile.jpg'}"
                        class="card-img-top" alt="Ảnh Y Tá"/>
                   <div class="card-body">
                     <h5 class="card-title" th:text="${nurse.user.fullName} + ' | ' + (${nurse.skills != null ? nurse.skills : ''})"></h5>
                     <p class="card-text">
                       <strong>Lịch khám:</strong>
                       <span th:if="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                                                <th:block th:each="availability : ${nurse.nurseAvailabilities}">
-                                                    <span th:switch="${availability.dayOfWeek != null ? availability.dayOfWeek.name : 'UNKNOWN'}">
-                                                        <span th:case="'MONDAY'" th:utext="'Thứ Hai' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'TUESDAY'" th:utext="'Thứ Ba' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'WEDNESDAY'" th:utext="'Thứ Tư' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'THURSDAY'" th:utext="'Thứ Năm' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'FRIDAY'" th:utext="'Thứ Sáu' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'SATURDAY'" th:utext="'Thứ Bảy' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="'SUNDAY'" th:utext="'Chủ Nhật' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                        <span th:case="*" th:utext="'Ngày không xác định' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
-                                                    </span>
-                                                </th:block>
-                                            </span>
+                        <th:block th:each="availability : ${nurse.nurseAvailabilities}">
+                          <span th:switch="${availability.dayOfWeek != null ? availability.dayOfWeek.name : 'UNKNOWN'}">
+                            <span th:case="'MONDAY'" th:utext="'Thứ Hai' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'TUESDAY'" th:utext="'Thứ Ba' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'WEDNESDAY'" th:utext="'Thứ Tư' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'THURSDAY'" th:utext="'Thứ Năm' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'FRIDAY'" th:utext="'Thứ Sáu' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'SATURDAY'" th:utext="'Thứ Bảy' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="'SUNDAY'" th:utext="'Chủ Nhật' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                            <span th:case="*" th:utext="'Ngày không xác định' + ' ' + #temporals.format(availability.startTime, 'HH:mm') + '-' + #temporals.format(availability.endTime, 'HH:mm') + (${availabilityStat.last ? '' : ', '})"></span>
+                          </span>
+                        </th:block>
+                      </span>
                       <span th:unless="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                                                Chưa có lịch
-                                            </span>
+                        Chưa có lịch
+                      </span>
                     </p>
                     <p class="card-text"><strong>Giá khám theo giờ:</strong>
                       <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span>
@@ -223,12 +224,12 @@
   </div>
 </div>
 
-<script src="/assets/vendor/libs/jquery/jquery.js"></script>
-<script src="/assets/vendor/libs/popper/popper.js"></script>
-<script src="/assets/vendor/js/bootstrap.js"></script>
-<script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-<script src="/assets/vendor/js/menu.js"></script>
-<script src="/assets/js/main.js"></script>
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/js/main.js"></script>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 
 <script>

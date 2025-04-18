@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <div th:replace="~{master/head::head}"></div>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <!-- Sử dụng layoutmenufamily.html từ thư mục family -->
+    <div th:replace="~{family/layoutmenufamily::menu}"></div>
+    <div class="layout-page">
+      <!-- Sử dụng navbar.html từ thư mục master -->
+      <div th:replace="~{master/navbar::navbar}"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <h4 class="fw-bold py-3 mb-4">Trang chủ Gia đình</h4>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card mb-4">
+                <div class="card-body">
+                  <h5 class="card-title">Chào mừng đến với NurseBorn</h5>
+                  <p class="card-text">
+                    Đây là trang chủ dành riêng cho Gia đình. Bạn có thể tìm kiếm y tá, xem chi tiết hồ sơ y tá, và đặt dịch vụ chăm sóc từ menu bên trái.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>

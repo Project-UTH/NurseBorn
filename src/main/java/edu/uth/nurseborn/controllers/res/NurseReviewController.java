@@ -37,6 +37,6 @@ public class NurseReviewController {
             logger.error("Lỗi khi lấy thông tin y tá: {}", ex.getMessage(), ex);
             model.addAttribute("error", "Đã có lỗi xảy ra khi lấy thông tin y tá: " + ex.getMessage());
         }
-        return "master/nurse_review";
+        return "family/nurse_review";
     }
 }

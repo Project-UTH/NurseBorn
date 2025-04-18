@@ -64,6 +64,7 @@ public class SecurityConfig {
 
                             .requestMatchers("/admin/**", "/review-nurse-profile", "/nurse/approve/**", "/nurse/reject/**").hasRole("ADMIN")
                             .requestMatchers("/statistics-table/**", "/statistics/**").hasRole("ADMIN")
+                            .requestMatchers("/family/**", "/nursepage", "/nurse_review/**").hasRole("FAMILY")
 
                             // API endpoints with role-based access
                             .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("NURSE")
@@ -80,7 +81,7 @@ public class SecurityConfig {
                             .requestMatchers("/nurse-service/**").hasAnyRole("NURSE", "FAMILY")
 
                             // Web endpoints
-                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/nursepage", "/nursing-service", "/feedbacks", "/messages").authenticated()
+                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks", "/messages").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
                             .requestMatchers("/nursepage/**").permitAll()

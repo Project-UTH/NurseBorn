@@ -1,0 +1,61 @@
+<aside th:fragment="menu" id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+  <div class="app-brand demo">
+    <a href="/family/home" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        <img src="/static/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
+      </span>
+      <span class="app-brand-text demo text-body fw-bolder text-uppercase">NURSEBORN</span>
+    </a>
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+      <i class="bx bx-chevron-left bx-sm align-middle"></i>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+    <!-- Dashboard -->
+    <li class="menu-item active">
+      <a href="/family/home" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-home-circle"></i>
+        <div data-i18n="Analytics">Dashboard</div>
+      </a>
+    </li>
+
+    <!-- Family Management -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Quản lý Gia đình</span>
+    </li>
+    <li class="menu-item">
+      <a href="/nursepage" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-search"></i>
+        <div data-i18n="FindNurse">Đặt dịch vụ</div>
+      </a>
+    </li>
+
+    <!-- Account Settings -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Tài khoản</span>
+    </li>
+    <li class="menu-item">
+      <a href="/user-profile" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-dock-top"></i>
+        <div data-i18n="Profile">Hồ sơ</div>
+      </a>
+    </li>
+    <li class="menu-item">
+      <a href="/update-user" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-dock-top"></i>
+        <div data-i18n="UpdateProfile">Cập nhật hồ sơ</div>
+      </a>
+    </li>
+
+    <!-- Logout -->
+    <li class="menu-item">
+      <a href="/logout" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-log-out"></i>
+        <div data-i18n="Logout">Đăng xuất</div>
+      </a>
+    </li>
+  </ul>
+</aside>

@@ -33,7 +33,7 @@ public class NurseController {
             model.addAttribute("error", "Đã có lỗi xảy ra khi lấy danh sách y tá.");
         }
 
-        return "master/nursepage";
+        return "family/nursepage";
     }
 
 
