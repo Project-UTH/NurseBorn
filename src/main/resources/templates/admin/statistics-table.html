@@ -4,8 +4,9 @@
         class="light-style layout-menu-fixed"
         dir="ltr"
         data-theme="theme-default"
-        data-assets-path="../assets/"
+        data-assets-path="/static/assets/"
         data-template="vertical-menu-template-free"
+        xmlns:th="http://www.thymeleaf.org"
 >
 <head>
     <meta charset="utf-8" />
@@ -13,13 +14,11 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
     />
-
-    <title>Dashboard - Analytics | Sneat - Bootstrap 5 HTML Admin Template - Pro</title>
-
-    <meta name="description" content="" />
+    <title>Thống kê - Admin | NurseBorn</title>
+    <meta name="description" content="Admin Statistics Dashboard for NurseBorn" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/static/assets/img/favicon/favicon.ico" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -29,31 +28,25 @@
             rel="stylesheet"
     />
 
-    <!-- Icons. Uncomment required icon fonts -->
-    <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="/static/assets/vendor/fonts/boxicons.css" />
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="../assets/vendor/css/core.css" class="template-customizer-core-css" />
-    <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
-    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/static/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/static/assets/css/demo.css" />
 
     <!-- Vendors CSS -->
-    <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-
-    <link rel="stylesheet" href="../assets/vendor/libs/apex-charts/apex-charts.css" />
-
-    <!-- Page CSS -->
+    <link rel="stylesheet" href="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/static/assets/vendor/libs/apex-charts/apex-charts.css" />
 
     <!-- Helpers -->
-    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/static/assets/vendor/js/helpers.js"></script>
+    <script src="/static/assets/js/config.js"></script>
 
-    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-    <script src="/assets/js/config.js"></script>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             font-family: 'Public Sans', sans-serif;
@@ -68,29 +61,34 @@
 <body>
 <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
+        <!-- Menu Admin -->
         <div th:replace="~{admin/layoutmenuadmin::menu}"></div>
+
         <div class="layout-page">
+            <!-- Navbar -->
             <div th:replace="~{master/navbar::navbar}"></div>
+
             <div class="content-wrapper">
-                <div class="content-xxl flex-grow-1 container-p-y">
+                <div class="container-xxl flex-grow-1 container-p-y">
                     <div class="container-fluid p-4">
+                        <h4 class="fw-bold py-3 mb-4">Thống kê Admin</h4>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="card p-3">
                                     <h5>Số lượng y tá</h5>
-                                    <h3>120</h3>
+                                    <h3 th:text="${nurseCount ?: '120'}">120</h3>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="card p-3">
                                     <h5>Số lượng gia đình</h5>
-                                    <h3>350</h3>
+                                    <h3 th:text="${familyCount ?: '350'}">350</h3>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="card p-3">
                                     <h5>Lượt đặt lịch</h5>
-                                    <h3>890</h3>
+                                    <h3 th:text="${bookingCount ?: '890'}">890</h3>
                                 </div>
                             </div>
                         </div>
@@ -110,82 +108,75 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+
                 <!-- Footer -->
-                <div th:replace="master/footer::footer"></div>
+                <div th:replace="~{master/footer::footer}"></div>
                 <!-- / Footer -->
-                <div class="content-backdrop fade"></div>
             </div>
-            <!-- Content wrapper -->
         </div>
-        <!-- / Layout page -->
     </div>
-
-    <!-- Overlay -->
-    <div class="layout-overlay layout-menu-toggle"></div>
 </div>
-<!-- / Layout wrapper -->
 
-<div class="buy-now">
-    <a
-            href="https://themeselection.com/products/sneat-bootstrap-html-admin-template/"
-            target="_blank"
-            class="btn btn-danger btn-buy-now"
-    >Upgrade to Pro</a
-    >
-</div>
-<script>
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- Script động cho biểu đồ -->
+<script th:inline="javascript">
+    // Dữ liệu động từ model
+    const revenueData = /*[[${revenueData}]]*/ [1200, 1900, 3000, 5000, 2000, 3200, 4100, 3800, 4600, 5200, 6000, 6800];
+    const cashFlowData = /*[[${cashFlowData}]]*/ [500, 1000, 1500, 2500, 3000, 3500, 4000, 4200, 4600, 5000, 5500, 6000];
+    const months = /*[[${months}]]*/ ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Biểu đồ doanh thu
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     new Chart(revenueCtx, {
         type: 'bar',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: months,
             datasets: [{
                 label: 'Doanh thu ($)',
-                data: [1200, 1900, 3000, 5000, 2000, 3200, 4100, 3800, 4600, 5200, 6000, 6800],
+                data: revenueData,
                 backgroundColor: 'rgba(54, 162, 235, 0.6)'
             }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 
+    // Biểu đồ dòng tiền
     const cashFlowCtx = document.getElementById('cashFlowChart').getContext('2d');
     new Chart(cashFlowCtx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: months,
             datasets: [{
                 label: 'Dòng tiền ($)',
-                data: [500, 1000, 1500, 2500, 3000, 3500, 4000, 4200, 4600, 5000, 5500, 6000],
+                data: cashFlowData,
                 borderColor: 'rgb(255, 99, 132)',
                 fill: false
             }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 </script>
-
-<!-- Core JS -->
-<!-- build:js assets/vendor/js/core.js -->
-<script src="/assets/vendor/libs/jquery/jquery.js"></script>
-<script src="/assets/vendor/libs/popper/popper.js"></script>
-<script src="/assets/vendor/js/bootstrap.js"></script>
-<script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
-<script src="/assets/vendor/js/menu.js"></script>
-<!-- endbuild -->
-
-<!-- Vendors JS -->
-<script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-
-<!-- Main JS -->
-<script src="/assets/js/main.js"></script>
-
-<!-- Page JS -->
-<script src="/assets/js/dashboards-analytics.js"></script>
-
-<!-- Place this tag in your head or just before your close body tag. -->
-<script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>
