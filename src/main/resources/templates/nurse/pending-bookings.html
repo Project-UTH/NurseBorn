@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <div th:replace="~{master/head::head}"></div>
+  <style>
+    .pending-card .card {
+      border: none;
+      border-radius: 15px;
+      background-color: #ffffff;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pending-card .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    .btn-accept {
+      background-color: #28a745;
+      border-color: #28a745;
+      border-radius: 25px;
+      padding: 8px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+    .btn-accept:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="~{master/layoutmenu::menu}"></div>
+    <div class="layout-page">
+      <div th:replace="~{master/navbar}"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <div class="card mb-4">
+            <h5 class="card-header text-center">Lịch Đặt Chờ Xác Nhận</h5>
+            <div class="card-body">
+              <!-- Error Message -->
+              <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              <!-- Success Message -->
+              <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              <!-- Pending Bookings Display -->
+              <div th:if="${pendingBookings != null and not #lists.isEmpty(pendingBookings)}" class="row">
+                <div th:each="booking : ${pendingBookings}" class="col-md-4 mb-4 pending-card">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">
+                        <span th:text="'Khách hàng: ' + ${booking.familyUser.fullName}"></span>
+                      </h5>
+                      <p class="card-text">
+                        <strong>Ngày đặt:</strong>
+                        <span th:text="${booking.bookingDate}"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Loại dịch vụ:</strong>
+                        <span th:text="${booking.serviceType}"></span>
+                      </p>
+                      <p class="card-text" th:if="${booking.serviceType == 'HOURLY'}">
+                        <strong>Giờ bắt đầu:</strong>
+                        <span th:text="${booking.startTime}"></span>
+                        <br>
+                        <strong>Giờ kết thúc:</strong>
+                        <span th:text="${booking.endTime}"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Giá:</strong>
+                        <span th:text="${booking.price} + ' VND'"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Ghi chú:</strong>
+                        <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                      </p>
+                      <div class="text-center">
+                        <form th:action="@{/nurse/accept-booking(bookingId=${booking.bookingId})}" method="post">
+                          <button type="submit" class="btn btn-accept">Chấp nhận</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div th:if="${pendingBookings == null or #lists.isEmpty(pendingBookings)}" class="text-center">
+                <p>Không có lịch đặt nào chờ xác nhận.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>

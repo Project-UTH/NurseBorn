@@ -188,4 +188,48 @@ public class BookingService {
 
         return bookingDTO;
     }
+
+    // Lấy thông tin người dùng theo username
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với username: " + username));
+    }
+
+    // Lấy danh sách lịch đặt của y tá theo trạng thái
+    public List<Booking> getBookingsByNurseUserIdAndStatus(Long nurseUserId, BookingStatus status) {
+        List<Booking> bookings = bookingRepository.findByNurseUserUserIdAndStatus(nurseUserId, status);
+        logger.debug("Lấy danh sách lịch với nurseUserId={} và status={}: {} lịch", nurseUserId, status, bookings.size());
+        for (Booking booking : bookings) {
+            logger.debug("Booking: bookingId={}, bookingDate={}, dayOfWeek={}, status={}",
+                    booking.getBookingId(), booking.getBookingDate(), booking.getBookingDate().getDayOfWeek(), booking.getStatus());
+        }
+        return bookings;
+    }
+
+    // Lấy danh sách lịch đặt của y tá theo nurseUserId
+    public List<Booking> findByNurseUserUserIdAndStatus(Long nurseUserId, BookingStatus status) {
+        return bookingRepository.findByNurseUserUserIdAndStatus(nurseUserId, status);
+    }
+
+    // Chấp nhận lịch đặt
+    @Transactional
+    public void acceptBooking(Long bookingId, Long nurseUserId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch đặt với ID: " + bookingId));
+
+        // Kiểm tra xem lịch đặt có thuộc về y tá này không
+        if (!booking.getNurseUser().getUserId().equals(nurseUserId)) {
+            throw new IllegalArgumentException("Lịch đặt không thuộc về y tá này");
+        }
+
+        // Kiểm tra trạng thái hiện tại của lịch
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalArgumentException("Lịch đặt không ở trạng thái PENDING");
+        }
+
+        // Cập nhật trạng thái thành ACCEPTED
+        booking.setStatus(BookingStatus.ACCEPTED);
+        bookingRepository.save(booking);
+        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành ACCEPTED", bookingId);
+    }
 }

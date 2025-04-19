@@ -2,6 +2,53 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <div th:replace="~{master/head::head}"></div>
+    <style>
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .calendar-table th, .calendar-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: top;
+            min-height: 100px;
+        }
+        .calendar-table th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+        }
+        .working-day {
+            background-color: #d4edda; /* Màu xanh nhạt cho ngày làm việc */
+        }
+        .current-day {
+            border: 2px solid #dc3545 !important; /* Viền đỏ cho ngày hiện tại */
+        }
+        .booking-item {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #4338ca, #6d28d9);
+        }
+        .alert {
+            border-radius: 8px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
 <div class="layout-wrapper layout-content-navbar">
@@ -20,19 +67,58 @@
                                     <span th:text="${error}"></span>
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
-                                <!-- Schedule Display -->
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex flex-row gap-3">
-                                            <div th:each="day : ${daysOfWeek}" class="flex-fill text-center p-3 rounded"
-                                                 th:classappend="${#lists.contains(availabilityDTO.selectedDays, day)} ? 'bg-success text-white' : 'bg-gray-200 text-gray-600'">
-                                                <span th:text="${day}"></span>
+                                <!-- Success Message -->
+                                <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                                    <span th:text="${success}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+
+                                <!-- Calendar View -->
+                                <table class="calendar-table">
+                                    <thead>
+                                    <tr>
+                                        <th th:each="date : ${weekDates}">
+                                                <span th:switch="${date.getDayOfWeek().toString()}">
+                                                    <span th:case="'MONDAY'" th:text="'Thứ Hai'"></span>
+                                                    <span th:case="'TUESDAY'" th:text="'Thứ Ba'"></span>
+                                                    <span th:case="'WEDNESDAY'" th:text="'Thứ Tư'"></span>
+                                                    <span th:case="'THURSDAY'" th:text="'Thứ Năm'"></span>
+                                                    <span th:case="'FRIDAY'" th:text="'Thứ Sáu'"></span>
+                                                    <span th:case="'SATURDAY'" th:text="'Thứ Bảy'"></span>
+                                                    <span th:case="'SUNDAY'" th:text="'Chủ Nhật'"></span>
+                                                </span>
+                                            <br>
+                                            <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td th:each="date : ${weekDates}"
+                                            th:classappend="${#lists.contains(availabilityDTO.getSelectedDays(), date.getDayOfWeek().toString())} ? 'working-day' : '' + (${date.equals(currentDate)} ? ' current-day' : '')">
+                                            <div th:if="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
+                                                <div th:each="booking : ${bookingsByDate.get(date)}" class="booking-item">
+                                                    <strong>Khách hàng:</strong> <span th:text="${booking.familyUser.fullName}"></span><br>
+                                                    <strong>Loại dịch vụ:</strong> <span th:text="${booking.serviceType}"></span><br>
+                                                    <div th:if="${booking.serviceType == 'HOURLY'}">
+                                                        <strong>Giờ bắt đầu:</strong> <span th:text="${booking.startTime}"></span><br>
+                                                        <strong>Giờ kết thúc:</strong> <span th:text="${booking.endTime}"></span><br>
+                                                    </div>
+                                                    <strong>Giá:</strong> <span th:text="${booking.price} + ' VND'"></span><br>
+                                                    <strong>Ghi chú:</strong> <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <a th:href="@{/nurse-availability}" class="btn btn-primary"
-                                       style="background: linear-gradient(to right, #4f46e5, #7c3aed); border: none;">
-                                        Chỉnh Sửa Lịch
+                                            <div th:unless="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
+                                                <p>Không có lịch</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="text-center mt-4">
+                                    <a th:href="@{/nurse-availability}" class="btn btn-primary">
+                                        Chỉnh Sửa Lịch Làm Việc
                                     </a>
                                 </div>
                             </div>

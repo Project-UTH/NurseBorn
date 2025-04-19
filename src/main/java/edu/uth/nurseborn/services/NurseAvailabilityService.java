@@ -12,8 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NurseAvailabilityService {
@@ -25,6 +28,18 @@ public class NurseAvailabilityService {
 
     @Autowired
     private NurseProfileRepository nurseProfileRepository;
+
+    // Ánh xạ từ tiếng Việt sang tiếng Anh
+    private static final Map<String, String> DAY_OF_WEEK_MAPPING = new HashMap<>();
+    static {
+        DAY_OF_WEEK_MAPPING.put("Chủ Nhật", "SUNDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Hai", "MONDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Ba", "TUESDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Tư", "WEDNESDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Năm", "THURSDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Sáu", "FRIDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Bảy", "SATURDAY");
+    }
 
     @Transactional
     public NurseAvailabilityDTO createOrUpdateAvailability(Long userId, NurseAvailabilityDTO availabilityDTO) {
@@ -82,10 +97,13 @@ public class NurseAvailabilityService {
         List<NurseAvailability> availabilities = nurseAvailabilityRepository.findByNurseProfileNurseProfileId(nurseProfileOptional.get().getNurseProfileId());
         NurseAvailabilityDTO responseDTO = new NurseAvailabilityDTO();
         responseDTO.setUserId(userId);
-        responseDTO.setSelectedDays(availabilities.stream()
+        // Ánh xạ từ tiếng Việt sang tiếng Anh ngay tại đây
+        List<String> selectedDays = availabilities.stream()
                 .map(NurseAvailability::getDayOfWeek)
-                .toList());
-        logger.info("Đã lấy lịch làm việc cho userId: {} với {} ngày", userId, responseDTO.getSelectedDays().size());
+                .map(day -> DAY_OF_WEEK_MAPPING.getOrDefault(day, day))
+                .collect(Collectors.toList());
+        responseDTO.setSelectedDays(selectedDays);
+        logger.info("Đã lấy lịch làm việc cho userId: {} với {} ngày: {}", userId, responseDTO.getSelectedDays().size(), selectedDays);
         return responseDTO;
     }
 }

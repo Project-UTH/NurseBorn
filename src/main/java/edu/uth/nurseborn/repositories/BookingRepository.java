@@ -17,6 +17,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b WHERE b.nurseUser = :nurseUser AND b.bookingDate = :bookingDate AND b.status NOT IN ('CANCELLED')")
     List<Booking> findByNurseUserAndBookingDate(@Param("nurseUser") User nurseUser, @Param("bookingDate") LocalDate bookingDate);
+
     // Phương thức tìm kiếm lịch theo nurseUserId, bookingDate và status không phải CANCELLED
     List<Booking> findByNurseUserUserIdAndBookingDateAndStatusNot(Long nurseUserId, LocalDate bookingDate, BookingStatus status);
+
+    // Phương thức tìm kiếm lịch theo nurseUserId và trạng thái
+    @Query("SELECT b FROM Booking b WHERE b.nurseUser.userId = :nurseUserId AND b.status = :status")
+    List<Booking> findByNurseUserUserIdAndStatus(@Param("nurseUserId") Long nurseUserId, @Param("status") BookingStatus status);
 }
