@@ -1,5 +1,7 @@
 package edu.uth.nurseborn.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import edu.uth.nurseborn.models.enums.Role;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +13,8 @@ import java.util.Collections;
 
 @Entity
 @Table(name = "users")
-public class User { // Đổi tên class thành "User" (số ít, chuẩn naming convention)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -26,7 +29,7 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING) // Sửa: dùng enum thay vì String
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
 
@@ -40,19 +43,20 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
     private String address;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt; // Sửa: dùng LocalDateTime thay vì Timestamp
+    private LocalDateTime createdAt;
 
     @Column(name = "is_verified")
-    private Boolean isVerified = false; // Thêm giá trị mặc định
+    private Boolean isVerified = false;
 
-    // Thêm quan hệ 1-1 với FamilyProfiles và NurseProfiles
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private FamilyProfile familyProfile;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private NurseProfile nurseProfile;
 
-    @PrePersist // Thêm: tự động gán createdAt
+    @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
@@ -61,9 +65,7 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    // Getters, setters
-
-
+    // Getters and setters
     public Long getUserId() {
         return userId;
     }
@@ -167,4 +169,3 @@ public class User { // Đổi tên class thành "User" (số ít, chuẩn naming
         this.username = username;
     }
 }
-

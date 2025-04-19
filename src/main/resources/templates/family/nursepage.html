@@ -128,6 +128,18 @@
             background-color: #218838;
             border-color: #1e7e34;
         }
+        .btn-chat {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .btn-chat:hover {
+            background-color: #3b5bdb;
+            border-color: #3b5bdb;
+        }
         .card-footer {
             background-color: #f8f9fa;
             border-top: none;
@@ -179,13 +191,13 @@
                                         <p class="card-text">
                                             <strong>Lịch khám:</strong>
                                             <span th:if="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                        <th:block th:each="availability : ${nurse.nurseAvailabilities}">
-                          <span th:text="${availability.dayOfWeek != null ? availability.dayOfWeek : 'UNKNOWN'} + (${availabilityStat.last ? '' : ', '})"></span>
-                        </th:block>
-                      </span>
+                                                <th:block th:each="availability : ${nurse.nurseAvailabilities}">
+                                                    <span th:text="${availability.dayOfWeek != null ? availability.dayOfWeek : 'UNKNOWN'} + (${availabilityStat.last ? '' : ', '})"></span>
+                                                </th:block>
+                                            </span>
                                             <span th:unless="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
-                        Chưa có lịch
-                      </span>
+                                                Chưa có lịch
+                                            </span>
                                         </p>
                                         <p class="card-text"><strong>Giá khám theo giờ:</strong>
                                             <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span>
@@ -196,9 +208,11 @@
                                         <p class="card-text"><strong>Giá khám theo tuần:</strong>
                                             <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + 'đ/tuần' : 'Chưa có giá'}"></span>
                                         </p>
-                                        <a th:href="@{/nurse_review(nurseId=${nurse.user.userId})}" class="btn btn-link">Xem chi tiết</a>
-                                        <!-- Sửa userId thành nurseUserId -->
-                                        <a th:href="@{/set_service(nurseUserId=${nurse.user.userId})}" class="btn btn-primary">Đặt dịch vụ</a>
+                                        <div class="d-flex gap-2">
+                                            <a th:href="@{/nurse_review(nurseId=${nurse.user.userId})}" class="btn btn-link">Xem chi tiết</a>
+                                            <a th:href="@{/set_service(nurseUserId=${nurse.user.userId})}" class="btn btn-primary">Đặt dịch vụ</a>
+                                            <a th:href="@{/messages(nurseUserId=${nurse.user.userId})}" class="btn btn-chat text-white">Trò chuyện</a>
+                                        </div>
                                     </div>
                                     <div class="card-footer">
                                         <small class="text-muted">Bác sĩ Chuyên Khoa</small>

@@ -6,11 +6,13 @@ import java.time.LocalDateTime;
 @Data
 public class MessageDTO {
     private Integer messageId;
-    private Integer senderId;
-    private Integer receiverId;
+    private Long senderId;
+    private Long receiverId;
     private Integer bookingId;
+    private String senderUsername;
+    private String receiverUsername;
     private String content;
     private String attachment;
     private LocalDateTime sentAt;
-    private boolean isRead;
+    private Boolean isRead;
 }

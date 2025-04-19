@@ -1,18 +1,22 @@
 package edu.uth.nurseborn.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "family_profiles")
-public class FamilyProfile { // Đổi tên thành "FamilyProfile"
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class FamilyProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "family_profile_id")
     private Integer familyProfileId;
 
-    @OneToOne // Sửa: ánh xạ quan hệ 1-1 với User
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonBackReference
     private User user;
 
     @Column(name="child_name")
@@ -28,16 +32,15 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
     private String preferredLocation;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt; // Sửa: dùng LocalDateTime
+    private LocalDateTime updatedAt;
 
     @PrePersist
-    @PreUpdate // Thêm: tự động cập nhật updatedAt
+    @PreUpdate
     public void setUpdatedAt() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters, setters
-
+    // Getters and setters
     public Integer getFamilyProfileId() {
         return familyProfileId;
     }
@@ -45,7 +48,6 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
     public User getUser() {
         return user;
     }
-
 
     public String getSpecificNeeds() {
         return specificNeeds;
@@ -83,7 +85,6 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
         this.user = user;
     }
 
-
     public void setSpecificNeeds(String specificNeeds) {
         this.specificNeeds = specificNeeds;
     }
@@ -94,7 +95,7 @@ public class FamilyProfile { // Đổi tên thành "FamilyProfile"
 
     public FamilyProfile() {}
 
-    public FamilyProfile(User user, String specificNeeds, String preferredLocation, String childAge, String childName ) {
+    public FamilyProfile(User user, String specificNeeds, String preferredLocation, String childAge, String childName) {
         this.user = user;
         this.preferredLocation = preferredLocation;
         this.specificNeeds = specificNeeds;

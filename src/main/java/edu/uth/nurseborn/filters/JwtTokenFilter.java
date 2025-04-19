@@ -24,11 +24,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Bộ lọc JWT để xác thực các yêu cầu HTTP dựa trên token JWT.
- * Endpoint /nurse/income yêu cầu xác thực và không được thêm vào bypassTokens,
- * đảm bảo rằng chỉ y tá (vai trò NURSE) đã đăng nhập mới có thể truy cập.
- */
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -89,10 +84,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Kiểm tra xem yêu cầu có thuộc danh sách các endpoint bỏ qua xác thực token không.
-     * Endpoint /nurse/income KHÔNG được liệt kê ở đây để yêu cầu xác thực.
-     */
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
         final List<Pair<String, String>> bypassTokens = Arrays.asList(
                 Pair.of(String.format("%s/auth/register", apiPrefix), "POST"),
@@ -100,9 +91,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/home", "GET"),
                 Pair.of("/login-h", "GET"),
                 Pair.of("/review-nurse-profile", "POST"),
-                Pair.of("/home-admin", "GET"),
-                Pair.of("/home-family", "GET"),
-                Pair.of("/statistics-table", "GET"),
+                Pair.of("/home-admin","GET"),
+                Pair.of("/home-family","GET"),
+                Pair.of("/statistics-table","GET"),
+                Pair.of("messages","POST"),
                 Pair.of("/api-docs", "GET"),
                 Pair.of("/api-docs/.*", "GET"),
                 Pair.of("/swagger-resources", "GET"),
@@ -114,9 +106,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/swagger-ui/index.html", "GET"),
                 Pair.of("/", "GET"),
                 Pair.of("/login", "GET"),
-                Pair.of("/login", "POST"),
+                Pair.of("/login", "POST"), // Thêm để bỏ qua POST /login
                 Pair.of("/register", "GET"),
-                Pair.of("/register", "POST"),
+                Pair.of("/register", "POST"), // Thêm để bỏ qua POST /register
                 Pair.of("/logout", "GET"),
                 Pair.of("/role-selection", "GET"),
                 Pair.of("/register/nurse", "GET"),
@@ -127,8 +119,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/static/**", "GET"),
                 Pair.of("/css/**", "GET"),
                 Pair.of("/js/**", "GET"),
-                Pair.of("/nursepage", "GET"),
-                Pair.of("/nurse_review", "GET"),
+                Pair.of("/nursepage","GET"),
+                Pair.of("/nurse_review","GET"),
+                Pair.of("/images/**", "GET"),
                 Pair.of("/images/**", "GET"),
                 Pair.of("/user-profile", "GET"),
                 Pair.of("/update-user", "GET"),
@@ -136,7 +129,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/update-nurse", "GET"),
                 Pair.of("/update-nurse", "POST"),
                 Pair.of("/nurse-profile", "GET"),
-                Pair.of("/nurse-service/create", "GET"),
+                Pair.of("/nurse-profile", "GET"),
+                Pair.of("/nurse-service/create","GET"),
                 Pair.of("/nurse-service/create", "POST")
         );
 

@@ -1,15 +1,15 @@
 package edu.uth.nurseborn.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "nurse_profiles")
-@Getter
-@Setter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class NurseProfile {
 
     @Id
@@ -19,6 +19,7 @@ public class NurseProfile {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonBackReference
     private User user;
 
     @Column(name = "location", nullable = false)
@@ -52,11 +53,12 @@ public class NurseProfile {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<NurseAvailability> nurseAvailabilities;
 
     @OneToMany(mappedBy = "nurseProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Certificate> certificates;
-
 
     @PrePersist
     @PreUpdate
@@ -172,4 +174,7 @@ public class NurseProfile {
         this.nurseAvailabilities = nurseAvailabilities;
     }
 
+    public void setCertificates(List<Certificate> certificates) {
+        this.certificates = certificates;
+    }
 }

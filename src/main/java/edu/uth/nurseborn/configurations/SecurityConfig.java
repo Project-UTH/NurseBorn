@@ -68,6 +68,7 @@ public class SecurityConfig {
 
                             // Family endpoints
                             .requestMatchers("/family/**", "/nursepage", "/nurse_review/**").hasRole("FAMILY")
+                            .requestMatchers("/messages").hasAnyRole("NURSE","FAMILY")
 
                             // Nurse endpoints
                             .requestMatchers("/nurse/income").hasRole("NURSE") // Thêm để cho phép y tá truy cập thống kê thu nhập
@@ -89,7 +90,7 @@ public class SecurityConfig {
                             .requestMatchers("/nurse-service/**").hasAnyRole("NURSE", "FAMILY")
 
                             // Web endpoints
-                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks", "/messages").authenticated()
+                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
                             .requestMatchers("/nursepage/**").permitAll()
