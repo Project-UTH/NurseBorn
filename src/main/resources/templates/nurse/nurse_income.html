@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <div th:replace="~{master/head::head}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div th:replace="~{nurse/layoutmenu_nurse::menu-nurse}"></div>
+        <div class="layout-page">
+            <div th:replace="~{profile/navbar-nurse::navbar-nurse}"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4">Thống Kê Thu Nhập Y Tá</h4>
+
+                    <!-- Bộ lọc -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <select class="form-control" id="filterType" onchange="onFilterChange()">
+                                <option value="DAY" th:selected="${period == 'DAY'}">Theo Ngày</option>
+                                <option value="WEEK" th:selected="${period == 'WEEK'}">Theo Tuần</option>
+                                <option value="MONTH" th:selected="${period == 'MONTH'}">Theo Tháng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4" id="datePickerContainer"></div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary btn-block" onclick="applyFilter()">Lọc Thống Kê</button>
+                        </div>
+                    </div>
+
+                    <!-- Thống kê tổng quan -->
+                    <div class="row text-white">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-info">
+                                <div class="card-body">
+                                    <h5 class="card-title">Số Lượng Đặt Lịch</h5>
+                                    <p class="card-text" id="bookingCount" th:text="${bookingCount}">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">Phí Nền Tảng</h5>
+                                    <p class="card-text" id="platformFee" th:text="${#numbers.formatInteger(totalIncome * 0.1, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thu Nhập Thuần</h5>
+                                    <p class="card-text" id="totalIncome" th:text="${#numbers.formatInteger(totalIncome, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-danger">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thu Nhập Sau Triết Khấu</h5>
+                                    <p class="card-text" id="netIncomeAfterFee" th:text="${#numbers.formatInteger(totalIncome * 0.9, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biểu đồ -->
+                    <div class="card mt-5">
+                        <div class="card-body">
+                            <h5 class="card-title">Biểu Đồ Thu Nhập</h5>
+                            <canvas id="incomeChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<script th:inline="javascript">
+    let chartLabels = /*[[${chartLabels}]]*/ [];
+    let chartData = /*[[${chartData}]]*/ [];
+
+    function onFilterChange() {
+        const filterType = document.getElementById("filterType").value;
+        const container = document.getElementById("datePickerContainer");
+        container.innerHTML = "";
+
+        if (filterType === "DAY") {
+            container.innerHTML = `<input type="date" id="specificDate" class="form-control" value="/*[[${specificDate}]]*/">`;
+        } else if (filterType === "WEEK") {
+            container.innerHTML = `<input type="week" id="specificDate" class="form-control" value="/*[[${specificDate}]]*/">`;
+        } else if (filterType === "MONTH") {
+            container.innerHTML = `<input type="month" id="specificDate" class="form-control" value="/*[[${specificDate}]]*/">`;
+        }
+    }
+
+    function applyFilter() {
+        const type = document.getElementById("filterType").value;
+        const value = document.getElementById("specificDate").value;
+
+        if (!value) {
+            alert("Vui lòng chọn thời gian thống kê!");
+            return;
+        }
+
+        window.location.href = `/nurse/income?period=${type}&specificDate=${value}`;
+    }
+
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    const incomeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Thu Nhập Y Tá (VNĐ)',
+                data: chartData,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        callback: value => value.toLocaleString() + " VNĐ"
+                    }
+                }
+            }
+        }
+    });
+
+    window.onload = onFilterChange;
+</script>
+</body>
+</html>

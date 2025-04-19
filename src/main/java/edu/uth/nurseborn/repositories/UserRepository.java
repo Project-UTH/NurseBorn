@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Thêm phương thức mới để tìm User theo role và is_verified
     List<User> findByRoleAndIsVerified(Role role, Boolean isVerified);
+
+    List<User> findAllByRole(Role role);
 }

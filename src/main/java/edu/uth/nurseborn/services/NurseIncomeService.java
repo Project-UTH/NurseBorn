@@ -64,7 +64,7 @@ public class NurseIncomeService {
         User nurseUser = userRepository.findById(nurseUserId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + nurseUserId));
         Double total = nurseIncomeRepository.sumIncomeByNurseUserAndDateRange(nurseUser, startDate, endDate);
-        return total != null ? total : 0.0;
+        return total != null ? total * 1000 : 0.0; // Nhân 1000 để đúng mệnh giá
     }
 
     /**
@@ -155,7 +155,8 @@ public class NurseIncomeService {
         switch (period.toUpperCase()) {
             case "DAY":
                 // Chỉ có 1 ngày
-                data.add(incomeByLabel.getOrDefault(startDate.toString(), 0.0));
+                Double dayIncome = incomeByLabel.getOrDefault(startDate.toString(), 0.0);
+                data.add(dayIncome * 1000); // Nhân 1000 để đúng mệnh giá
                 break;
 
             case "WEEK":
@@ -163,7 +164,8 @@ public class NurseIncomeService {
                 LocalDate currentDay = startDate;
                 while (!currentDay.isAfter(endDate)) {
                     String label = "Ngày " + currentDay.toString();
-                    data.add(incomeByLabel.getOrDefault(label, 0.0));
+                    Double dailyIncome = incomeByLabel.getOrDefault(label, 0.0);
+                    data.add(dailyIncome * 1000); // Nhân 1000 để đúng mệnh giá
                     currentDay = currentDay.plusDays(1);
                 }
                 break;
@@ -173,7 +175,8 @@ public class NurseIncomeService {
                 LocalDate currentWeekStart = startDate;
                 while (!currentWeekStart.isAfter(endDate)) {
                     String label = "Tuần " + currentWeekStart.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-                    data.add(incomeByLabel.getOrDefault(label, 0.0));
+                    Double weeklyIncome = incomeByLabel.getOrDefault(label, 0.0);
+                    data.add(weeklyIncome * 1000); // Nhân 1000 để đúng mệnh giá
                     currentWeekStart = currentWeekStart.plusWeeks(1);
                 }
                 break;

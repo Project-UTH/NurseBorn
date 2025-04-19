@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import java.util.Locale;
  * Controller xử lý yêu cầu liên quan đến thống kê thu nhập của y tá.
  */
 @Controller
+@RequestMapping("/nurse")
 public class NurseIncomeController {
 
     private static final Logger logger = LoggerFactory.getLogger(NurseIncomeController.class);
@@ -36,7 +38,7 @@ public class NurseIncomeController {
     /**
      * Xử lý yêu cầu GET để hiển thị thống kê thu nhập của y tá.
      */
-    @GetMapping("/nurse/income")
+    @GetMapping("/income")
     public String getNurseIncome(
             @RequestParam(value = "period", defaultValue = "MONTH") String period,
             @RequestParam(value = "specificDate", required = false) String specificDate,
@@ -126,6 +128,6 @@ public class NurseIncomeController {
         model.addAttribute("chartData", chartData);
 
         logger.info("Hiển thị thống kê thu nhập cho y tá: {}", username);
-        return "master/nurse_income";
+        return "nurse/nurse_income";
     }
 }
