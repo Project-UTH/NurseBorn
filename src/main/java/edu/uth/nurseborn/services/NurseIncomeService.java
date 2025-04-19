@@ -13,10 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.IsoFields;
-import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -28,6 +26,8 @@ public class NurseIncomeService {
 
     private static final Logger logger = LoggerFactory.getLogger(NurseIncomeService.class);
 
+    private static final double PLATFORM_FEE_RATE = 0.1; // Phí nền tảng là 10%
+
     @Autowired
     private NurseIncomeRepository nurseIncomeRepository;
 
@@ -38,7 +38,7 @@ public class NurseIncomeService {
     private ModelMapper modelMapper;
 
     /**
-     * Lấy danh sách thu nhập của y tá theo khoảng thời gian và kỳ.
+     * Lấy danh sách thu nhập của y tá theo khoảng thời gian và kỳ, chỉ tính các booking COMPLETED.
      */
     public List<NurseIncomeDTO> getIncomeByPeriod(Long nurseUserId, String period, LocalDate startDate, LocalDate endDate) {
         logger.debug("Lấy thu nhập cho nurseUserId: {}, kỳ: {}, ngày bắt đầu: {}, ngày kết thúc: {}", nurseUserId, period, startDate, endDate);
@@ -46,8 +46,11 @@ public class NurseIncomeService {
         User nurseUser = userRepository.findById(nurseUserId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + nurseUserId));
 
-        List<NurseIncome> incomes = nurseIncomeRepository.findByNurseUserAndBookingDateBetween(nurseUser, startDate, endDate);
-        logger.info("Số lượng bản ghi thu nhập tìm thấy: {}", incomes.size());
+        List<NurseIncome> incomes = nurseIncomeRepository.findByNurseUserAndBookingDateBetween(nurseUser, startDate, endDate)
+                .stream()
+                .filter(income -> income.getStatus() == edu.uth.nurseborn.models.enums.BookingStatus.COMPLETED)
+                .collect(Collectors.toList());
+        logger.info("Số lượng bản ghi thu nhập COMPLETED tìm thấy: {}", incomes.size());
 
         return incomes.stream()
                 .map(income -> modelMapper.map(income, NurseIncomeDTO.class))
@@ -55,7 +58,7 @@ public class NurseIncomeService {
     }
 
     /**
-     * Tính tổng thu nhập của y tá trong khoảng thời gian.
+     * Tính tổng thu nhập thuần của y tá trong khoảng thời gian (chỉ tính COMPLETED).
      */
     public Double getTotalIncome(Long nurseUserId, LocalDate startDate, LocalDate endDate) {
         User nurseUser = userRepository.findById(nurseUserId)
@@ -65,7 +68,24 @@ public class NurseIncomeService {
     }
 
     /**
-     * Đếm số lượng đặt lịch của y tá trong khoảng thời gian.
+     * Tính tổng phí nền tảng (10% tổng thu nhập thuần).
+     */
+    public Double getPlatformFee(Long nurseUserId, LocalDate startDate, LocalDate endDate) {
+        Double totalIncome = getTotalIncome(nurseUserId, startDate, endDate);
+        return totalIncome * PLATFORM_FEE_RATE;
+    }
+
+    /**
+     * Tính tổng thu nhập sau triết khấu (tổng thu nhập thuần - phí nền tảng).
+     */
+    public Double getNetIncomeAfterFee(Long nurseUserId, LocalDate startDate, LocalDate endDate) {
+        Double totalIncome = getTotalIncome(nurseUserId, startDate, endDate);
+        Double platformFee = getPlatformFee(nurseUserId, startDate, endDate);
+        return totalIncome - platformFee;
+    }
+
+    /**
+     * Đếm số lượng đặt lịch của y tá trong khoảng thời gian (chỉ tính COMPLETED).
      */
     public Long getBookingCount(Long nurseUserId, LocalDate startDate, LocalDate endDate) {
         User nurseUser = userRepository.findById(nurseUserId)
@@ -111,11 +131,12 @@ public class NurseIncomeService {
     }
 
     /**
-     * Tạo dữ liệu cho biểu đồ dựa trên kỳ thống kê.
+     * Tạo dữ liệu cho biểu đồ dựa trên kỳ thống kê (chỉ tính COMPLETED).
      */
     public List<Double> getChartData(List<NurseIncomeDTO> incomes, String period, LocalDate startDate, LocalDate endDate) {
         // Tính tổng thu nhập theo nhãn
         Map<String, Double> incomeByLabel = incomes.stream()
+                .filter(income -> income.getStatus() == edu.uth.nurseborn.models.enums.BookingStatus.COMPLETED)
                 .collect(Collectors.groupingBy(
                         income -> {
                             LocalDate date = income.getBookingDate();
@@ -126,7 +147,7 @@ public class NurseIncomeService {
                                 default -> throw new IllegalArgumentException("Kỳ không hợp lệ: " + period);
                             };
                         },
-                        Collectors.summingDouble(income -> income.getStatus() == edu.uth.nurseborn.models.enums.BookingStatus.ACCEPTED ? income.getPrice() : 0.0)
+                        Collectors.summingDouble(NurseIncomeDTO::getPrice)
                 ));
 
         // Tạo danh sách dữ liệu theo nhãn

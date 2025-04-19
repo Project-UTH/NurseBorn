@@ -3,14 +3,14 @@ package edu.uth.nurseborn.services;
 import edu.uth.nurseborn.dtos.BookingDTO;
 import edu.uth.nurseborn.models.Booking;
 import edu.uth.nurseborn.models.NurseAvailability;
-import edu.uth.nurseborn.models.NurseIncome; // Thêm import
+import edu.uth.nurseborn.models.NurseIncome;
 import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.BookingStatus;
 import edu.uth.nurseborn.models.enums.ServiceType;
 import edu.uth.nurseborn.repositories.BookingRepository;
 import edu.uth.nurseborn.repositories.NurseAvailabilityRepository;
-import edu.uth.nurseborn.repositories.NurseIncomeRepository; // Thêm import
+import edu.uth.nurseborn.repositories.NurseIncomeRepository;
 import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -65,20 +65,20 @@ public class BookingService {
     }
 
     /**
-     * Đồng bộ dữ liệu từ bảng bookings sang bảng nurse_incomes.
+     * Đồng bộ dữ liệu từ bảng bookings sang bảng nurse_incomes (chỉ cho trạng thái COMPLETED).
      */
     @Transactional
     public void syncBookingsToNurseIncomes() {
         logger.info("Bắt đầu đồng bộ dữ liệu từ bookings sang nurse_incomes...");
 
-        // Lấy tất cả booking có trạng thái ACCEPTED
-        List<Booking> acceptedBookings = bookingRepository.findAll().stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.ACCEPTED)
+        // Lấy tất cả booking có trạng thái COMPLETED
+        List<Booking> completedBookings = bookingRepository.findAll().stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
                 .collect(Collectors.toList());
 
-        logger.debug("Số lượng booking có trạng thái ACCEPTED: {}", acceptedBookings.size());
+        logger.debug("Số lượng booking có trạng thái COMPLETED: {}", completedBookings.size());
 
-        for (Booking booking : acceptedBookings) {
+        for (Booking booking : completedBookings) {
             // Kiểm tra xem đã có bản ghi trong nurse_incomes chưa
             List<NurseIncome> existingIncomes = nurseIncomeRepository.findByNurseUserAndBookingDateBetween(
                     booking.getNurseUser(),
@@ -105,7 +105,7 @@ public class BookingService {
             }
         }
 
-        logger.info("Hoàn tất đồng bộ dữ liệu từ bookings sang nurse_incomes. Tổng số booking được xử lý: {}", acceptedBookings.size());
+        logger.info("Hoàn tất đồng bộ dữ liệu từ bookings sang nurse_incomes. Tổng số booking được xử lý: {}", completedBookings.size());
     }
 
     @Transactional
@@ -263,7 +263,7 @@ public class BookingService {
         return bookingRepository.findByNurseUserUserIdAndStatus(nurseUserId, status);
     }
 
-    // Chấp nhận lịch đặt và tạo bản ghi NurseIncome
+    // Chấp nhận lịch đặt
     @Transactional
     public void acceptBooking(Long bookingId, Long nurseUserId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -282,17 +282,7 @@ public class BookingService {
         // Cập nhật trạng thái thành ACCEPTED
         booking.setStatus(BookingStatus.ACCEPTED);
         bookingRepository.save(booking);
-
-        // Tạo bản ghi NurseIncome
-        NurseIncome nurseIncome = new NurseIncome();
-        nurseIncome.setNurseUser(booking.getNurseUser());
-        nurseIncome.setBookingDate(booking.getBookingDate());
-        nurseIncome.setPrice(booking.getPrice());
-        nurseIncome.setServiceType(booking.getServiceType());
-        nurseIncome.setStatus(booking.getStatus());
-        nurseIncomeRepository.save(nurseIncome);
-
-        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành ACCEPTED và tạo bản ghi NurseIncome", bookingId);
+        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành ACCEPTED", bookingId);
     }
 
     // Hủy lịch đặt
@@ -317,7 +307,7 @@ public class BookingService {
         logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành CANCELLED", bookingId);
     }
 
-    // Hoàn thành lịch đặt
+    // Hoàn thành lịch đặt và tạo bản ghi NurseIncome
     @Transactional
     public void completeBooking(Long bookingId, Long nurseUserId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -336,6 +326,30 @@ public class BookingService {
         // Cập nhật trạng thái thành COMPLETED
         booking.setStatus(BookingStatus.COMPLETED);
         bookingRepository.save(booking);
+
+        // Tạo bản ghi NurseIncome
+        List<NurseIncome> existingIncomes = nurseIncomeRepository.findByNurseUserAndBookingDateBetween(
+                booking.getNurseUser(),
+                booking.getBookingDate(),
+                booking.getBookingDate()
+        );
+
+        boolean alreadySynced = existingIncomes.stream()
+                .anyMatch(income -> income.getPrice().equals(booking.getPrice()) &&
+                        income.getServiceType() == booking.getServiceType() &&
+                        income.getStatus() == booking.getStatus());
+
+        if (!alreadySynced) {
+            NurseIncome nurseIncome = new NurseIncome();
+            nurseIncome.setNurseUser(booking.getNurseUser());
+            nurseIncome.setBookingDate(booking.getBookingDate());
+            nurseIncome.setPrice(booking.getPrice());
+            nurseIncome.setServiceType(booking.getServiceType());
+            nurseIncome.setStatus(booking.getStatus());
+            nurseIncomeRepository.save(nurseIncome);
+            logger.info("Đã tạo bản ghi NurseIncome cho booking_id: {}", bookingId);
+        }
+
         logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành COMPLETED", bookingId);
     }
 }

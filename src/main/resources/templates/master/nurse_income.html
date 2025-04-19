@@ -12,73 +12,91 @@
             <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
                     <th:block th:fragment="content">
-                        <h2 class="text-center mb-4">Thống Kê Thu Nhập Y Tá</h2>
+                        <h2 class="text-center mb-4 fw-bold text-primary">Thống Kê Thu Nhập Y Tá</h2>
 
                         <!-- Form Lọc -->
-                        <form th:action="@{/nurse/income}" method="get" class="mb-4">
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-3">
-                                    <label for="period" class="form-label">Thời Gian</label>
-                                    <select id="period" name="period" class="form-select" onchange="toggleDateInput(this)">
-                                        <option value="DAY" th:selected="${period == 'DAY'}">Hàng Ngày</option>
-                                        <option value="WEEK" th:selected="${period == 'WEEK'}">Hàng Tuần</option>
-                                        <option value="MONTH" th:selected="${period == 'MONTH'}">Hàng Tháng</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="specificDate" class="form-label" id="specificDateLabel">Chọn Tháng</label>
-                                    <input type="month" id="specificDate" name="specificDate" class="form-control" th:value="${specificDate}">
-                                </div>
-                                <div class="col-md-3">
-                                    <button type="submit" class="btn btn-primary w-100">Lọc</button>
-                                </div>
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <form th:action="@{/nurse/income}" method="get">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <label for="period" class="form-label">Thời Gian</label>
+                                            <select id="period" name="period" class="form-select" onchange="toggleDateInput(this)">
+                                                <option value="DAY" th:selected="${period == 'DAY'}">Hàng Ngày</option>
+                                                <option value="WEEK" th:selected="${period == 'WEEK'}">Hàng Tuần</option>
+                                                <option value="MONTH" th:selected="${period == 'MONTH'}">Hàng Tháng</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="specificDate" class="form-label" id="specificDateLabel">Chọn Thời Gian</label>
+                                            <input type="text" id="specificDate" name="specificDate" class="form-control" th:value="${specificDate}">
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button type="submit" class="btn btn-success w-100">🔍 Lọc</button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
 
                         <!-- Tóm Tắt Thu Nhập -->
-                        <div class="card mb-4">
+                        <div class="card border-primary mb-4 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">Tóm Tắt Thu Nhập</h5>
-                                <p>Tổng Thu Nhập: <strong th:text="${#numbers.formatCurrency(totalIncome)}">0 VNĐ</strong></p>
-                                <p>Số Lượng Đặt Lịch: <strong th:text="${bookingCount}">0</strong></p>
+                                <h5 class="card-title text-primary">Tóm Tắt Thu Nhập</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p>Tổng Thu Nhập Thuần: <strong class="text-success" th:text="${#numbers.formatCurrency(totalIncome)}">0 VNĐ</strong></p>
+                                        <p>Tổng Phí Nền Tảng (10%): <strong class="text-danger" th:text="${#numbers.formatCurrency(totalIncome * 0.1)}">0 VNĐ</strong></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p>Thu Nhập Sau Triết Khấu: <strong class="text-primary" th:text="${#numbers.formatCurrency(totalIncome - (totalIncome * 0.1))}">0 VNĐ</strong></p>
+                                        <p>Số Lượng Đặt Lịch: <strong class="text-info" th:text="${bookingCount}">0</strong></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Thông báo nếu không có dữ liệu -->
                         <div th:if="${incomes.isEmpty}" class="alert alert-info text-center mb-4">
-                            Hiện tại không có dữ liệu thu nhập trong khoảng thời gian đã chọn. Vui lòng kiểm tra lại hoặc thay đổi khoảng thời gian.
+                            ❗ Hiện tại không có dữ liệu thu nhập trong khoảng thời gian đã chọn.
                         </div>
 
                         <!-- Biểu Đồ -->
-                        <div class="card mb-4">
+                        <div class="card mb-4 shadow-sm" th:unless="${incomes.isEmpty}">
                             <div class="card-body">
+                                <h5 class="card-title">📈 Biểu Đồ Thu Nhập</h5>
                                 <canvas id="incomeChart" style="max-height: 400px;"></canvas>
                             </div>
                         </div>
 
-                        <!-- Bảng Chi Tiết Thu Nhập -->
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                <tr>
-                                    <th>Ngày</th>
-                                    <th>Loại Dịch Vụ</th>
-                                    <th>Giá</th>
-                                    <th>Trạng Thái</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="income : ${incomes}">
-                                    <td th:text="${income.bookingDate}"></td>
-                                    <td th:text="${income.serviceType}"></td>
-                                    <td th:text="${#numbers.formatCurrency(income.price)}"></td>
-                                    <td th:text="${income.status}"></td>
-                                </tr>
-                                <tr th:if="${incomes.isEmpty}">
-                                    <td colspan="4" class="text-center">Không tìm thấy bản ghi thu nhập.</td>
-                                </tr>
-                                </tbody>
-                            </table>
+                        <!-- Bảng Chi Tiết -->
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">📋 Chi Tiết Thu Nhập</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered align-middle">
+                                        <thead class="table-light text-center">
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Loại Dịch Vụ</th>
+                                            <th>Giá</th>
+                                            <th>Trạng Thái</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="income : ${incomes}">
+                                            <td th:text="${income.bookingDate}"></td>
+                                            <td th:text="${income.serviceType}"></td>
+                                            <td th:text="${#numbers.formatCurrency(income.price)}"></td>
+                                            <td th:text="${income.status}"></td>
+                                        </tr>
+                                        <tr th:if="${incomes.isEmpty}">
+                                            <td colspan="4" class="text-center text-muted">Không tìm thấy bản ghi thu nhập.</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </th:block>
                 </div>
@@ -87,47 +105,34 @@
     </div>
 </div>
 
-<!-- Core JS -->
+<!-- JS như cũ -->
 <script src="/assets/vendor/libs/jquery/jquery.js"></script>
 <script src="/assets/vendor/libs/popper/popper.js"></script>
 <script src="/assets/vendor/js/bootstrap.js"></script>
 <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 <script src="/assets/vendor/js/menu.js"></script>
-<script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-<script src="/assets/js/main.js"></script>
-<script src="/assets/js/dashboards-analytics.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
 <script th:inline="javascript">
-    // Thay đổi nhãn của trường nhập ngày theo loại thời gian
     function toggleDateInput(select) {
-        const specificDateLabel = document.getElementById('specificDateLabel');
-        const specificDateInput = document.getElementById('specificDate');
+        const label = document.getElementById('specificDateLabel');
+        const input = document.getElementById('specificDate');
         if (select.value === 'DAY') {
-            specificDateLabel.textContent = 'Chọn Ngày';
-            specificDateInput.type = 'date';
+            label.textContent = 'Chọn Ngày';
+            input.type = 'date';
         } else if (select.value === 'WEEK') {
-            specificDateLabel.textContent = 'Chọn Tuần';
-            specificDateInput.type = 'week';
-        } else if (select.value === 'MONTH') {
-            specificDateLabel.textContent = 'Chọn Tháng';
-            specificDateInput.type = 'month';
+            label.textContent = 'Chọn Tuần';
+            input.type = 'week';
+        } else {
+            label.textContent = 'Chọn Tháng';
+            input.type = 'month';
         }
     }
 
-    // Gọi hàm khi trang được tải để đặt nhãn ban đầu và vẽ biểu đồ
     document.addEventListener('DOMContentLoaded', function() {
-        const periodSelect = document.getElementById('period');
-        toggleDateInput(periodSelect);
-
-        // Dữ liệu cho biểu đồ
+        toggleDateInput(document.getElementById('period'));
+        const ctx = document.getElementById('incomeChart');
         const labels = /*[[${chartLabels}]]*/ [];
         const data = /*[[${chartData}]]*/ [];
-
-        console.log('Labels:', labels);
-        console.log('Data:', data);
-
-        // Vẽ biểu đồ
-        const ctx = document.getElementById('incomeChart').getContext('2d');
         if (ctx) {
             new Chart(ctx, {
                 type: 'bar',
@@ -142,6 +147,7 @@
                     }]
                 },
                 options: {
+                    responsive: true,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -153,14 +159,12 @@
                         x: {
                             title: {
                                 display: true,
-                                text: /*[[${period == 'DAY' ? 'Ngày' : period == 'WEEK' ? 'Ngày trong tuần' : 'Tuần trong tháng'}]]*/ 'Thời gian'
+                                text: /*[[${period == 'DAY' ? 'Ngày' : period == 'WEEK' ? 'Tuần' : 'Tháng'}]]*/ 'Thời Gian'
                             }
                         }
                     }
                 }
             });
-        } else {
-            console.error('Không tìm thấy canvas element với ID "incomeChart"');
         }
     });
 </script>
