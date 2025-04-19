@@ -95,6 +95,7 @@ public class SecurityConfig {
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
                             .requestMatchers("/nursepage/**").permitAll()
                             .requestMatchers("/nurse_review/**").permitAll()
+                            .requestMatchers("/notifications/**").permitAll()
 
                             .anyRequest().authenticated();
                 })

@@ -49,7 +49,10 @@ public class BookingService {
     private NurseProfileRepository nurseProfileRepository;
 
     @Autowired
-    private NurseIncomeRepository nurseIncomeRepository; // Thêm repository để lưu NurseIncome
+    private NurseIncomeRepository nurseIncomeRepository;
+
+    @Autowired
+    private NotificationService notificationService; // Thêm để tạo thông báo
 
     // Ánh xạ các ngày từ tiếng Việt sang tiếng Anh
     private static final Map<String, String> DAY_OF_WEEK_MAPPING = new HashMap<>();
@@ -238,6 +241,11 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
         logger.info("Đã lưu đặt lịch thành công vào CSDL với ID: {}", savedBooking.getBookingId());
 
+        // Tạo thông báo cho y tá
+        String message = String.format("Bạn có một lịch đặt mới từ khách hàng %s vào ngày %s.",
+                familyUser.getFullName(), bookingDate);
+        notificationService.createNotification(nurseUser, message, savedBooking);
+
         return bookingDTO;
     }
 
@@ -283,6 +291,11 @@ public class BookingService {
         booking.setStatus(BookingStatus.ACCEPTED);
         bookingRepository.save(booking);
         logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành ACCEPTED", bookingId);
+
+        // Tạo thông báo cho khách hàng
+        String message = String.format("Lịch đặt của bạn vào ngày %s đã được y tá %s xác nhận.",
+                booking.getBookingDate(), booking.getNurseUser().getFullName());
+        notificationService.createNotification(booking.getFamilyUser(), message, booking);
     }
 
     // Hủy lịch đặt
