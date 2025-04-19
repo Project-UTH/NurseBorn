@@ -48,7 +48,7 @@ public class EarningService {
         }
         User nurse = userOptional.get();
 
-        Optional<Booking> bookingOptional = bookingRepository.findById(earningDTO.getBookingId());
+        Optional<Booking> bookingOptional = bookingRepository.findById(Long.valueOf(earningDTO.getBookingId()));
         if (!bookingOptional.isPresent()) {
             logger.warn("Không tìm thấy booking với ID: {}", earningDTO.getBookingId());
             throw new RuntimeException("Không tìm thấy booking với ID: " + earningDTO.getBookingId());

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <div th:replace="~{master/head::head}"></div>
+  <style>
+    .form-label {
+      font-weight: 600;
+      color: #343a40;
+    }
+    .form-control, .form-select {
+      border-radius: 8px;
+      border: 2px solid #0d6efd;
+      padding: 10px;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #28a745;
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+    }
+    .btn-primary {
+      background: linear-gradient(to right, #4f46e5, #7c3aed);
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      font-weight: 500;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(to right, #4338ca, #6d28d9);
+    }
+    .alert {
+      border-radius: 8px;
+    }
+    .card {
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    .disabled-option {
+      color: #6c757d;
+      font-style: italic;
+    }
+    .input-group-text {
+      border-radius: 8px;
+      border: 2px solid #0d6efd;
+      border-left: none;
+    }
+    .time-field {
+      display: none;
+    }
+    .time-field.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <div th:replace="~{family/layoutmenufamily::menu}"></div>
+    <div class="layout-page">
+      <div th:replace="~{master/navbar}"></div>
+      <div class="content-wrapper">
+        <div class="content-xxl flex-grow-1 container-p-y">
+          <div class="card mb-4">
+            <h5 class="card-header text-center">Đặt Lịch Y Tá</h5>
+            <div class="card-body">
+              <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+
+              <form th:action="@{/set_service}" th:object="${bookingDTO}" method="post" class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Y Tá Được Chọn:</label>
+                  <p th:if="${nurse != null}" th:text="${nurse.fullName} + ' (' + ${nurse.username} + ')'" class="form-control-plaintext"></p>
+                  <p th:unless="${nurse != null}" class="form-control-plaintext">Không tìm thấy thông tin y tá</p>
+                  <input type="hidden" th:field="*{nurseUserId}"/>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Lịch Làm Việc:</label>
+                  <p th:if="${availability != null and availability.selectedDays != null and not #lists.isEmpty(availability.selectedDays)}" class="form-control-plaintext">
+                    <span th:each="day, iterStat : ${availability.selectedDays}">
+                      <span th:switch="${day}">
+                        <span th:case="'SUNDAY'" th:text="'Chủ Nhật' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'MONDAY'" th:text="'Thứ Hai' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'TUESDAY'" th:text="'Thứ Ba' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'WEDNESDAY'" th:text="'Thứ Tư' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'THURSDAY'" th:text="'Thứ Năm' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'FRIDAY'" th:text="'Thứ Sáu' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="'SATURDAY'" th:text="'Thứ Bảy' + (${iterStat.last ? '' : ', '})"></span>
+                        <span th:case="*" th:text="${day} + (${iterStat.last ? '' : ', '})"></span>
+                      </span>
+                    </span>
+                  </p>
+                  <p th:unless="${availability != null and availability.selectedDays != null and not #lists.isEmpty(availability.selectedDays)}"
+                     class="form-control-plaintext">Chưa có lịch làm việc</p>
+                </div>
+
+                <div class="col-12">
+                  <label for="serviceType" class="form-label">Loại Dịch Vụ:</label>
+                  <select id="serviceType" th:field="*{serviceType}" class="form-select" onchange="updatePrice(); toggleTimeFields();">
+                    <option value="">-- Chọn loại dịch vụ --</option>
+                    <option value="HOURLY">HOURLY</option>
+                    <option value="DAILY">DAILY</option>
+                    <option value="WEEKLY" th:disabled="${availability != null and #lists.size(availability.selectedDays) != 7}"
+                            th:class="${availability != null and #lists.size(availability.selectedDays) != 7} ? 'disabled-option'">WEEKLY (Yêu cầu y tá có lịch làm việc đủ 7 ngày)</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label for="price" class="form-label">Giá Dịch Vụ:</label>
+                  <div class="input-group">
+                    <input type="text" id="price" th:field="*{price}" class="form-control" readonly/>
+                    <span class="input-group-text">VND</span>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label for="bookingDate" class="form-label">Ngày Đặt Lịch:</label>
+                  <input type="date" id="bookingDate" th:field="*{bookingDate}" class="form-control"/>
+                </div>
+
+                <div class="col-12 time-field" id="startTimeField">
+                  <label for="startTime" class="form-label">Giờ Bắt Đầu:</label>
+                  <input type="time" id="startTime" th:field="*{startTime}" class="form-control" onchange="updatePrice()"/>
+                </div>
+
+                <div class="col-12 time-field" id="endTimeField">
+                  <label for="endTime" class="form-label">Giờ Kết Thúc:</label>
+                  <input type="time" id="endTime" th:field="*{endTime}" class="form-control" onchange="updatePrice()"/>
+                </div>
+
+                <div class="col-12">
+                  <label for="notes" class="form-label">Ghi Chú:</label>
+                  <textarea id="notes" th:field="*{notes}" class="form-control"></textarea>
+                </div>
+
+                <div class="col-12 text-center">
+                  <button type="submit" class="btn btn-primary">Đặt Lịch</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/js/main.js"></script>
+
+<script th:inline="javascript">
+  // Lấy danh sách ngày làm việc của y tá
+  const availableDays = /*[[${availability?.selectedDays}]]*/ [];
+  const daysOfWeek = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+  // Hàm hiển thị/ẩn các trường thời gian dựa trên loại dịch vụ
+  function toggleTimeFields() {
+    const serviceType = document.getElementById('serviceType').value;
+    const startTimeField = document.getElementById('startTimeField');
+    const endTimeField = document.getElementById('endTimeField');
+
+    if (serviceType === 'HOURLY') {
+      startTimeField.classList.add('visible');
+      endTimeField.classList.add('visible');
+    } else {
+      startTimeField.classList.remove('visible');
+      endTimeField.classList.remove('visible');
+      // Xóa giá trị của startTime và endTime nếu không cần
+      document.getElementById('startTime').value = '';
+      document.getElementById('endTime').value = '';
+    }
+  }
+
+  function calculateHours() {
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    if (!startTime || !endTime) return 0;
+
+    const start = new Date(`1970-01-01T${startTime}:00`);
+    const end = new Date(`1970-01-01T${endTime}:00`);
+    const diffInMs = end - start;
+    const hours = diffInMs / (1000 * 60 * 60); // Chuyển đổi từ milliseconds sang giờ
+    return hours > 0 ? hours : 0; // Đảm bảo không trả về số âm
+  }
+
+  function updatePrice() {
+    const serviceType = document.getElementById('serviceType').value;
+    const priceInput = document.getElementById('price');
+    const hourlyRate = /*[[${nurseProfile != null ? nurseProfile.hourlyRate : 0}]]*/ 0;
+    const dailyRate = /*[[${nurseProfile != null ? nurseProfile.dailyRate : 0}]]*/ 0;
+    const weeklyRate = /*[[${nurseProfile != null ? nurseProfile.weeklyRate : 0}]]*/ 0;
+
+    let totalPrice = 0;
+    if (serviceType === 'HOURLY') {
+      const hours = calculateHours();
+      totalPrice = hourlyRate * hours;
+    } else if (serviceType === 'DAILY') {
+      totalPrice = dailyRate;
+    } else if (serviceType === 'WEEKLY') {
+      totalPrice = weeklyRate;
+    }
+
+    // Đảm bảo giá luôn có giá trị hợp lệ, nếu không thì đặt là 0
+    priceInput.value = totalPrice > 0 ? totalPrice.toFixed(2) : '0';
+  }
+
+  // Vô hiệu hóa các ngày không có trong lịch làm việc của y tá
+  document.getElementById('bookingDate').addEventListener('input', function() {
+    const selectedDate = new Date(this.value);
+    const dayOfWeek = daysOfWeek[selectedDate.getDay()];
+    if (!availableDays.includes(dayOfWeek)) {
+      alert('Y tá không làm việc vào ngày ' +
+              (dayOfWeek === 'SUNDAY' ? 'Chủ Nhật' :
+                      dayOfWeek === 'MONDAY' ? 'Thứ Hai' :
+                              dayOfWeek === 'TUESDAY' ? 'Thứ Ba' :
+                                      dayOfWeek === 'WEDNESDAY' ? 'Thứ Tư' :
+                                              dayOfWeek === 'THURSDAY' ? 'Thứ Năm' :
+                                                      dayOfWeek === 'FRIDAY' ? 'Thứ Sáu' :
+                                                              dayOfWeek === 'SATURDAY' ? 'Thứ Bảy' : dayOfWeek) +
+              '. Vui lòng chọn ngày khác.');
+      this.value = ''; // Xóa giá trị ngày không hợp lệ
+    }
+  });
+
+  // Gọi toggleTimeFields và updatePrice khi thay đổi loại dịch vụ
+  document.getElementById('serviceType').addEventListener('change', function() {
+    toggleTimeFields();
+    updatePrice();
+  });
+
+  // Gọi updatePrice khi thay đổi giờ bắt đầu hoặc giờ kết thúc
+  document.getElementById('startTime').addEventListener('change', updatePrice);
+  document.getElementById('endTime').addEventListener('change', updatePrice);
+
+  // Kiểm tra các trường bắt buộc trước khi gửi form
+  document.querySelector('form').addEventListener('submit', function(event) {
+    const serviceType = document.getElementById('serviceType').value;
+    const bookingDate = document.getElementById('bookingDate').value;
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    const priceInput = document.getElementById('price');
+
+    // Kiểm tra loại dịch vụ
+    if (!serviceType) {
+      event.preventDefault();
+      alert('Vui lòng chọn loại dịch vụ.');
+      return;
+    }
+
+    // Kiểm tra ngày đặt lịch
+    if (!bookingDate) {
+      event.preventDefault();
+      alert('Vui lòng chọn ngày đặt lịch.');
+      return;
+    }
+
+    // Kiểm tra giờ bắt đầu và giờ kết thúc chỉ khi loại dịch vụ là HOURLY
+    if (serviceType === 'HOURLY') {
+      if (!startTime || !endTime) {
+        event.preventDefault();
+        alert('Giờ bắt đầu và giờ kết thúc không được để trống khi chọn dịch vụ theo giờ.');
+        return;
+      }
+
+      // Kiểm tra giờ kết thúc phải lớn hơn giờ bắt đầu
+      const start = new Date(`1970-01-01T${startTime}:00`);
+      const end = new Date(`1970-01-01T${endTime}:00`);
+      if (end <= start) {
+        event.preventDefault();
+        alert('Giờ kết thúc phải lớn hơn giờ bắt đầu.');
+        return;
+      }
+    }
+
+    // Tính giá trước khi gửi form
+    updatePrice();
+
+    // Kiểm tra giá
+    if (!priceInput.value || parseFloat(priceInput.value) <= 0) {
+      event.preventDefault();
+      alert('Vui lòng đảm bảo giá được tính toán hợp lệ.');
+      return;
+    }
+  });
+
+  // Gọi toggleTimeFields và updatePrice khi trang tải
+  window.onload = function() {
+    toggleTimeFields();
+    updatePrice();
+  };
+</script>
+</body>
+</html>

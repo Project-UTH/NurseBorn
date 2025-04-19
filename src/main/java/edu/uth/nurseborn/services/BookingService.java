@@ -1,26 +1,32 @@
 package edu.uth.nurseborn.services;
 
 import edu.uth.nurseborn.dtos.BookingDTO;
-import edu.uth.nurseborn.exception.UserNotFoundException;
 import edu.uth.nurseborn.models.Booking;
+import edu.uth.nurseborn.models.NurseAvailability;
 import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
-import edu.uth.nurseborn.models.NurseService;
+import edu.uth.nurseborn.models.enums.BookingStatus;
+import edu.uth.nurseborn.models.enums.ServiceType;
 import edu.uth.nurseborn.repositories.BookingRepository;
+import edu.uth.nurseborn.repositories.NurseAvailabilityRepository;
 import edu.uth.nurseborn.repositories.NurseProfileRepository;
-import edu.uth.nurseborn.repositories.ServiceRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-@org.springframework.stereotype.Service
+@Service
 public class BookingService {
 
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
@@ -32,189 +38,154 @@ public class BookingService {
     private UserRepository userRepository;
 
     @Autowired
+    private NurseAvailabilityRepository nurseAvailabilityRepository;
+
+    @Autowired
     private NurseProfileRepository nurseProfileRepository;
 
-    @Autowired
-    private ServiceRepository serviceRepository;
+    // Ánh xạ các ngày từ tiếng Việt sang tiếng Anh
+    private static final Map<String, String> DAY_OF_WEEK_MAPPING = new HashMap<>();
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Transactional
-    public BookingDTO createBooking(BookingDTO bookingDTO) {
-        logger.debug("Tạo Booking với dữ liệu: {}", bookingDTO);
-
-        // Kiểm tra start_time < end_time
-        if (bookingDTO.getStartTime() == null || bookingDTO.getEndTime() == null ||
-                !bookingDTO.getStartTime().isBefore(bookingDTO.getEndTime())) {
-            logger.warn("start_time phải nhỏ hơn end_time: start_time={}, end_time={}",
-                    bookingDTO.getStartTime(), bookingDTO.getEndTime());
-            throw new IllegalArgumentException("start_time phải nhỏ hơn end_time");
-        }
-
-        // Kiểm tra family user
-        Optional<User> familyOptional = userRepository.findById(bookingDTO.getFamilyUserId()); // Sửa unboxing
-        if (!familyOptional.isPresent()) {
-            logger.warn("Không tìm thấy family user với ID: {}", bookingDTO.getFamilyUserId());
-            throw new UserNotFoundException("Không tìm thấy family user với ID: " + bookingDTO.getFamilyUserId());
-        }
-        User family = familyOptional.get();
-        if (!"family".equalsIgnoreCase(family.getRole().name())) {
-            logger.warn("User với ID: {} không có role 'family'", bookingDTO.getFamilyUserId());
-            throw new IllegalArgumentException("User phải có role 'family' để tạo booking");
-        }
-
-        // Kiểm tra nurse user
-        Optional<User> nurseOptional = userRepository.findById(bookingDTO.getNurseUserId()); // Sửa unboxing
-        if (!nurseOptional.isPresent()) {
-            logger.warn("Không tìm thấy nurse user với ID: {}", bookingDTO.getNurseUserId());
-            throw new UserNotFoundException("Không tìm thấy nurse user với ID: " + bookingDTO.getNurseUserId());
-        }
-        User nurse = nurseOptional.get();
-        if (!"nurse".equalsIgnoreCase(nurse.getRole().name())) {
-            logger.warn("User với ID: {} không có role 'nurse'", bookingDTO.getNurseUserId());
-            throw new IllegalArgumentException("User phải có role 'nurse' để tạo booking");
-        }
-
-        // Kiểm tra nurse có được phê duyệt không
-        Optional<NurseProfile> nurseProfileOptional = nurseProfileRepository.findByUserUserId(nurse.getUserId());
-        if (!nurseProfileOptional.isPresent() || !nurseProfileOptional.get().getApproved()) {
-            logger.warn("Nurse với ID: {} chưa được phê duyệt", nurse.getUserId());
-            throw new IllegalArgumentException("Nurse phải được phê duyệt trước khi nhận booking");
-        }
-
-        // Kiểm tra service
-        Optional<NurseService> serviceOptional = serviceRepository.findById(bookingDTO.getServiceId());
-        if (!serviceOptional.isPresent()) {
-            logger.warn("Không tìm thấy service với ID: {}", bookingDTO.getServiceId());
-            throw new IllegalArgumentException("Không tìm thấy service với ID: " + bookingDTO.getServiceId());
-        }
-        NurseService service = serviceOptional.get();
-
-        try {
-            Booking booking = modelMapper.map(bookingDTO, Booking.class);
-            booking.setFamily(family);
-            booking.setNurse(nurse);
-            booking.setService(service);
-
-            logger.debug("Booking entity trước khi lưu: {}", booking);
-            Booking savedBooking = bookingRepository.save(booking);
-            bookingRepository.flush();
-            logger.info("Đã lưu Booking thành công với ID: {}", savedBooking.getBookingId());
-
-            return modelMapper.map(savedBooking, BookingDTO.class);
-        } catch (Exception ex) {
-            logger.error("Lỗi khi lưu Booking: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi lưu Booking: " + ex.getMessage());
-        }
-    }
-
-    public BookingDTO getBookingById(Integer bookingId) {
-        logger.debug("Lấy Booking với ID: {}", bookingId);
-
-        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
-        if (!bookingOptional.isPresent()) {
-            logger.warn("Không tìm thấy Booking với ID: {}", bookingId);
-            throw new RuntimeException("Không tìm thấy Booking với ID: " + bookingId);
-        }
-
-        Booking booking = bookingOptional.get();
-        return modelMapper.map(booking, BookingDTO.class);
+    static {
+        DAY_OF_WEEK_MAPPING.put("Chủ Nhật", "SUNDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Hai", "MONDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Ba", "TUESDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Tư", "WEDNESDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Năm", "THURSDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Sáu", "FRIDAY");
+        DAY_OF_WEEK_MAPPING.put("Thứ Bảy", "SATURDAY");
     }
 
     @Transactional
-    public BookingDTO updateBookingStatus(Integer bookingId, String status) {
-        logger.debug("Cập nhật trạng thái Booking với ID: {} thành {}", bookingId, status);
+    public BookingDTO createBooking(BookingDTO bookingDTO, Long familyUserId) {
+        logger.debug("Tạo đặt lịch mới cho familyUserId: {} và nurseUserId: {}", familyUserId, bookingDTO.getNurseUserId());
 
-        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
-        if (!bookingOptional.isPresent()) {
-            logger.warn("Không tìm thấy Booking với ID: {}", bookingId);
-            throw new RuntimeException("Không tìm thấy Booking với ID: " + bookingId);
+        // Kiểm tra dữ liệu đầu vào
+        if (bookingDTO.getNurseUserId() == null) {
+            throw new IllegalArgumentException("NurseUserId không được để trống");
+        }
+        if (bookingDTO.getBookingDate() == null) {
+            throw new IllegalArgumentException("Ngày đặt lịch không được để trống");
+        }
+        if (bookingDTO.getServiceType() == null) {
+            throw new IllegalArgumentException("Loại dịch vụ không được để trống");
+        }
+        if ("HOURLY".equals(bookingDTO.getServiceType())) {
+            if (bookingDTO.getStartTime() == null || bookingDTO.getEndTime() == null) {
+                throw new IllegalArgumentException("Giờ bắt đầu và giờ kết thúc không được để trống khi chọn dịch vụ theo giờ");
+            }
+            // Kiểm tra endTime phải lớn hơn startTime
+            if (bookingDTO.getStartTime() != null && bookingDTO.getEndTime() != null &&
+                    bookingDTO.getEndTime().isBefore(bookingDTO.getStartTime())) {
+                throw new IllegalArgumentException("Giờ kết thúc phải lớn hơn giờ bắt đầu");
+            }
+        } else {
+            // Nếu không phải HOURLY, đặt startTime và endTime thành null để tránh lưu giá trị không cần thiết
+            bookingDTO.setStartTime(null);
+            bookingDTO.setEndTime(null);
+        }
+        if (bookingDTO.getPrice() == null) {
+            throw new IllegalArgumentException("Giá không được để trống");
         }
 
-        Booking booking = bookingOptional.get();
-        try {
-            booking.setStatus(edu.uth.nurseborn.models.enums.BookingStatus.valueOf(status.toUpperCase()));
-            logger.debug("Booking entity trước khi cập nhật: {}", booking);
-            Booking updatedBooking = bookingRepository.save(booking);
-            bookingRepository.flush();
-            logger.info("Đã cập nhật trạng thái Booking thành công với ID: {}", bookingId);
+        // Lấy thông tin khách hàng
+        User familyUser = userRepository.findById(familyUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với ID: " + familyUserId));
 
-            return modelMapper.map(updatedBooking, BookingDTO.class);
-        } catch (Exception ex) {
-            logger.error("Lỗi khi cập nhật trạng thái Booking: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi cập nhật trạng thái Booking: " + ex.getMessage());
+        // Lấy thông tin y tá
+        User nurseUser = userRepository.findById(bookingDTO.getNurseUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy y tá với ID: " + bookingDTO.getNurseUserId()));
+
+        // Kiểm tra vai trò
+        if (!"FAMILY".equalsIgnoreCase(familyUser.getRole().name())) {
+            logger.warn("User {} không phải FAMILY", familyUserId);
+            throw new IllegalArgumentException("Người dùng phải có vai trò FAMILY");
         }
-    }
-
-    @Transactional
-    public void deleteBooking(Integer bookingId) {
-        logger.debug("Xóa Booking với ID: {}", bookingId);
-
-        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
-        if (!bookingOptional.isPresent()) {
-            logger.warn("Không tìm thấy Booking với ID: {}", bookingId);
-            throw new RuntimeException("Không tìm thấy Booking với ID: " + bookingId);
+        if (!"NURSE".equalsIgnoreCase(nurseUser.getRole().name())) {
+            logger.warn("User {} không phải NURSE", bookingDTO.getNurseUserId());
+            throw new IllegalArgumentException("Người dùng phải có vai trò NURSE");
         }
 
-        try {
-            bookingRepository.delete(bookingOptional.get());
-            bookingRepository.flush();
-            logger.info("Đã xóa Booking thành công với ID: {}", bookingId);
-        } catch (Exception ex) {
-            logger.error("Lỗi khi xóa Booking: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Lỗi khi xóa Booking: " + ex.getMessage());
+        // Kiểm tra NurseProfile đã được phê duyệt
+        NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(nurseUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho y tá với ID: " + nurseUser.getUserId()));
+        if (!nurseProfile.getApproved()) {
+            logger.warn("NurseProfile của y tá {} chưa được phê duyệt", nurseUser.getUsername());
+            throw new IllegalArgumentException("Y tá chưa được phê duyệt");
         }
-    }
 
-    public List<BookingDTO> getAllBookings() {
-        logger.debug("Lấy tất cả Bookings");
-
-        List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream()
-                .map(booking -> modelMapper.map(booking, BookingDTO.class))
+        // Kiểm tra lịch làm việc của y tá
+        LocalDate bookingDate = bookingDTO.getBookingDate();
+        logger.info("Booking Date: {}", bookingDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        String dayOfWeek = bookingDate.getDayOfWeek().toString();
+        logger.info("Calculated Day of Week: {}", dayOfWeek);
+        List<NurseAvailability> availabilities = nurseAvailabilityRepository.findByNurseProfileUserUserId(nurseUser.getUserId());
+        List<String> availableDaysList = availabilities.stream()
+                .map(availability -> {
+                    String day = availability.getDayOfWeek().trim();
+                    return DAY_OF_WEEK_MAPPING.getOrDefault(day, day).toUpperCase();
+                })
                 .collect(Collectors.toList());
-    }
+        logger.info("Available Days: {}", availableDaysList);
+        boolean isAvailable = availableDaysList.stream()
+                .anyMatch(day -> day.equalsIgnoreCase(dayOfWeek));
 
-    public List<BookingDTO> getBookingsByFamilyUserId(Integer familyUserId) {
-        logger.debug("Lấy Bookings theo family user ID: {}", familyUserId);
-
-        // Lấy đối tượng User từ familyUserId
-        Optional<User> familyOptional = userRepository.findById(familyUserId.longValue());
-        if (!familyOptional.isPresent()) {
-            logger.warn("Không tìm thấy family user với ID: {}", familyUserId);
-            throw new UserNotFoundException("Không tìm thấy family user với ID: " + familyUserId);
+        if (!isAvailable) {
+            String availableDays = String.join(", ", availableDaysList);
+            logger.warn("Y tá {} không làm việc vào ngày {}. Các ngày làm việc: {}", nurseUser.getUsername(), dayOfWeek, availableDays);
+            throw new IllegalArgumentException("Y tá không làm việc vào ngày đã chọn. Các ngày làm việc: " + availableDays);
         }
-        User family = familyOptional.get();
 
-        // Sử dụng findByFamily
-        List<Booking> bookings = bookingRepository.findByFamily(family);
-        return bookings.stream()
-                .map(booking -> modelMapper.map(booking, BookingDTO.class))
-                .collect(Collectors.toList());
-    }
+        // Kiểm tra xung đột lịch
+        List<Booking> existingBookings = bookingRepository.findByNurseUserUserIdAndBookingDateAndStatusNot(
+                nurseUser.getUserId(), bookingDate, BookingStatus.CANCELLED);
 
-    public List<BookingDTO> getBookingsByNurseUserId(Integer nurseUserId) {
-        logger.debug("Lấy Bookings theo nurse user ID: {}", nurseUserId);
+        LocalTime startTime = bookingDTO.getStartTime();
+        LocalTime endTime = bookingDTO.getEndTime();
 
-        // Lấy đối tượng User từ nurseUserId
-        Optional<User> nurseOptional = userRepository.findById(nurseUserId.longValue());
-        if (!nurseOptional.isPresent()) {
-            logger.warn("Không tìm thấy nurse user với ID: {}", nurseUserId);
-            throw new UserNotFoundException("Không tìm thấy nurse user với ID: " + nurseUserId);
+        for (Booking existingBooking : existingBookings) {
+            if ("DAILY".equals(bookingDTO.getServiceType()) || "WEEKLY".equals(bookingDTO.getServiceType())) {
+                // Nếu đặt lịch DAILY hoặc WEEKLY, không cho phép có lịch khác trong ngày đó
+                throw new IllegalArgumentException("Xung đột lịch cho y tá " + nurseUser.getUsername() + " vào ngày " + bookingDate);
+            } else if ("HOURLY".equals(bookingDTO.getServiceType())) {
+                // Nếu đặt lịch HOURLY, kiểm tra xem có lịch DAILY/WEEKLY nào không
+                if ("DAILY".equals(existingBooking.getServiceType()) || "WEEKLY".equals(existingBooking.getServiceType())) {
+                    throw new IllegalArgumentException("Xung đột lịch cho y tá " + nurseUser.getUsername() + " vào ngày " + bookingDate + " (đã có lịch cả ngày)");
+                }
+                // Kiểm tra xung đột thời gian với lịch HOURLY khác
+                LocalTime existingStart = existingBooking.getStartTime();
+                LocalTime existingEnd = existingBooking.getEndTime();
+
+                if (startTime != null && endTime != null && existingStart != null && existingEnd != null) {
+                    if (!(endTime.isBefore(existingStart) || startTime.isAfter(existingEnd))) {
+                        logger.warn("Xung đột lịch cho y tá {} vào khung giờ này", nurseUser.getUsername());
+                        throw new IllegalArgumentException("Xung đột lịch cho y tá " + nurseUser.getUsername() + " vào khung giờ này");
+                    }
+                }
+            }
         }
-        User nurse = nurseOptional.get();
 
-        // Sử dụng findByNurse
-        List<Booking> bookings = bookingRepository.findByNurse(nurse);
-        return bookings.stream()
-                .map(booking -> modelMapper.map(booking, BookingDTO.class))
-                .collect(Collectors.toList());
-    }
+        // Tự động lấy giá từ BookingDTO (đã được tính ở giao diện)
+        Double price = bookingDTO.getPrice();
+        ServiceType serviceType = ServiceType.valueOf(bookingDTO.getServiceType());
 
-    // Thêm phương thức countBookings
-    public long countBookings() {
-        logger.debug("Đếm tổng số Bookings");
-        return bookingRepository.count();
+        // Tạo Booking
+        Booking booking = new Booking();
+        booking.setFamilyUser(familyUser);
+        booking.setNurseUser(nurseUser);
+        booking.setServiceType(serviceType);
+        booking.setBookingDate(bookingDate);
+        booking.setStartTime(startTime);
+        booking.setEndTime(endTime);
+        booking.setPrice(price);
+        booking.setNotes(bookingDTO.getNotes());
+        booking.setStatus(BookingStatus.PENDING);
+        booking.setCreatedAt(LocalDateTime.now());
+
+        // Lưu vào CSDL
+        Booking savedBooking = bookingRepository.save(booking);
+        logger.info("Đã lưu đặt lịch thành công vào CSDL với ID: {}", savedBooking.getBookingId());
+
+        return bookingDTO;
     }
 }

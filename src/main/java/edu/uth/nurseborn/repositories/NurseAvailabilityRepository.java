@@ -8,4 +8,5 @@ import java.util.List;
 public interface NurseAvailabilityRepository extends JpaRepository<NurseAvailability, Long> {
     List<NurseAvailability> findByNurseProfileNurseProfileId(Integer nurseProfileId);
     void deleteByNurseProfileNurseProfileId(Integer nurseProfileId);
+    List<NurseAvailability> findByNurseProfileUserUserId(Long userId);
 }

@@ -29,8 +29,6 @@ public class AdminActionService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    private BookingService bookingService;
 
     // Constructor injection
     public AdminActionService(AdminActionRepository adminActionRepository, UserRepository userRepository, ModelMapper modelMapper) {

@@ -50,13 +50,8 @@ public class WebController {
     private FamilyProfileService familyProfileService;
 
     @Autowired
-    private BookingService bookingService;
-
-    @Autowired
     private FeedbackService feedbackService;
 
-    @Autowired
-    private MessageService messageService;
 
     @Autowired
     private EarningService earningService;

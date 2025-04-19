@@ -39,7 +39,7 @@ public class FeedbackService {
     public FeedbackDTO createFeedback(FeedbackDTO danhGiaDTO) {
         logger.debug("Bắt đầu transaction để tạo đánh giá: {}", danhGiaDTO);
 
-        Booking booking = bookingRepository.findById(danhGiaDTO.getBookingId())
+        Booking booking = bookingRepository.findById(Long.valueOf(danhGiaDTO.getBookingId()))
                 .orElseThrow(() -> {
                     logger.warn("Không tìm thấy lịch đặt với ID: {}", danhGiaDTO.getBookingId());
                     return new FeedbackNotFoundException("Lịch đặt không tồn tại với ID: " + danhGiaDTO.getBookingId());
@@ -85,7 +85,7 @@ public class FeedbackService {
 
     public FeedbackDTO getFeedbackByBooking(Integer bookingId) {
         logger.debug("Tìm đánh giá cho lịch đặt ID: {}", bookingId);
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findById(Long.valueOf(bookingId))
                 .orElseThrow(() -> new FeedbackNotFoundException("Lịch đặt không tồn tại với ID: " + bookingId));
 
         return feedbackRepository.findOneByBooking(booking)
@@ -98,7 +98,7 @@ public class FeedbackService {
 
     public FeedbackDTO getFeedbackByBookingAndNurse(Integer bookingId, Long nurseUserId) {
         logger.debug("Tìm đánh giá cho lịch đặt ID: {} và y tá ID: {}", bookingId, nurseUserId);
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findById(Long.valueOf(bookingId))
                 .orElseThrow(() -> new FeedbackNotFoundException("Lịch đặt không tồn tại với ID: " + bookingId));
         User nurse = userRepository.findById(nurseUserId)
                 .orElseThrow(() -> new FeedbackNotFoundException("Y tá không tồn tại với ID: " + nurseUserId));
