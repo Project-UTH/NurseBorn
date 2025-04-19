@@ -82,7 +82,7 @@ public class SecurityConfig {
                             .requestMatchers("/nurse-profile", "/update-nurse").hasRole("NURSE")
                             .requestMatchers("/nurse-availability", "/nurse-schedule").hasRole("NURSE")
                             .requestMatchers("/nurse-availability", "/nurse-schedule").hasRole("NURSE")
-                            .requestMatchers("/nurse/pending-bookings", "/nurse/accept-booking").hasRole("NURSE")
+                            .requestMatchers("/nurse/pending-bookings", "/nurse/accept-booking", "/nurse/cancel-booking").hasRole("NURSE")
 
                             // Web endpoints
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks", "/messages").authenticated()

@@ -26,6 +26,18 @@
       background-color: #218838;
       border-color: #1e7e34;
     }
+    .btn-cancel {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      border-radius: 25px;
+      padding: 8px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+    .btn-cancel:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
   </style>
 </head>
 <body>
@@ -58,6 +70,22 @@
                         <span th:text="'Khách hàng: ' + ${booking.familyUser.fullName}"></span>
                       </h5>
                       <p class="card-text">
+                        <strong>ID Booking:</strong>
+                        <span th:text="${booking.bookingId}"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Tên trẻ:</strong>
+                        <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childName : 'N/A'}"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Tuổi trẻ:</strong>
+                        <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childAge : 'N/A'}"></span>
+                      </p>
+                      <p class="card-text">
+                        <strong>Vị trí:</strong>
+                        <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.preferredLocation : 'N/A'}"></span>
+                      </p>
+                      <p class="card-text">
                         <strong>Ngày đặt:</strong>
                         <span th:text="${booking.bookingDate}"></span>
                       </p>
@@ -81,8 +109,11 @@
                         <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
                       </p>
                       <div class="text-center">
-                        <form th:action="@{/nurse/accept-booking(bookingId=${booking.bookingId})}" method="post">
+                        <form th:action="@{/nurse/accept-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
                           <button type="submit" class="btn btn-accept">Chấp nhận</button>
+                        </form>
+                        <form th:action="@{/nurse/cancel-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
+                          <button type="submit" class="btn btn-cancel">Hủy</button>
                         </form>
                       </div>
                     </div>

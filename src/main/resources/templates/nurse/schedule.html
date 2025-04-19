@@ -73,20 +73,26 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
 
+                                <!-- Navigation Buttons -->
+                                <div class="text-center mb-3">
+                                    <a th:href="@{/nurse-schedule(weekOffset=${weekOffset - 1})}" class="btn btn-primary me-2">Tuần Trước</a>
+                                    <a th:href="@{/nurse-schedule(weekOffset=${weekOffset + 1})}" class="btn btn-primary">Tuần Sau</a>
+                                </div>
+
                                 <!-- Calendar View -->
                                 <table class="calendar-table">
                                     <thead>
                                     <tr>
                                         <th th:each="date : ${weekDates}">
-                                                <span th:switch="${date.getDayOfWeek().toString()}">
-                                                    <span th:case="'MONDAY'" th:text="'Thứ Hai'"></span>
-                                                    <span th:case="'TUESDAY'" th:text="'Thứ Ba'"></span>
-                                                    <span th:case="'WEDNESDAY'" th:text="'Thứ Tư'"></span>
-                                                    <span th:case="'THURSDAY'" th:text="'Thứ Năm'"></span>
-                                                    <span th:case="'FRIDAY'" th:text="'Thứ Sáu'"></span>
-                                                    <span th:case="'SATURDAY'" th:text="'Thứ Bảy'"></span>
-                                                    <span th:case="'SUNDAY'" th:text="'Chủ Nhật'"></span>
-                                                </span>
+                                            <span th:switch="${date.getDayOfWeek().toString()}">
+                                                <span th:case="'MONDAY'" th:text="'Thứ Hai'"></span>
+                                                <span th:case="'TUESDAY'" th:text="'Thứ Ba'"></span>
+                                                <span th:case="'WEDNESDAY'" th:text="'Thứ Tư'"></span>
+                                                <span th:case="'THURSDAY'" th:text="'Thứ Năm'"></span>
+                                                <span th:case="'FRIDAY'" th:text="'Thứ Sáu'"></span>
+                                                <span th:case="'SATURDAY'" th:text="'Thứ Bảy'"></span>
+                                                <span th:case="'SUNDAY'" th:text="'Chủ Nhật'"></span>
+                                            </span>
                                             <br>
                                             <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span>
                                         </th>
@@ -98,7 +104,11 @@
                                             th:classappend="${#lists.contains(availabilityDTO.getSelectedDays(), date.getDayOfWeek().toString())} ? 'working-day' : '' + (${date.equals(currentDate)} ? ' current-day' : '')">
                                             <div th:if="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
                                                 <div th:each="booking : ${bookingsByDate.get(date)}" class="booking-item">
+                                                    <strong>ID Booking:</strong> <span th:text="${booking.bookingId}"></span><br>
                                                     <strong>Khách hàng:</strong> <span th:text="${booking.familyUser.fullName}"></span><br>
+                                                    <strong>Tên trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childName : 'N/A'}"></span><br>
+                                                    <strong>Tuổi trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childAge : 'N/A'}"></span><br>
+                                                    <strong>Vị trí:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.preferredLocation : 'N/A'}"></span><br>
                                                     <strong>Loại dịch vụ:</strong> <span th:text="${booking.serviceType}"></span><br>
                                                     <div th:if="${booking.serviceType == 'HOURLY'}">
                                                         <strong>Giờ bắt đầu:</strong> <span th:text="${booking.startTime}"></span><br>
