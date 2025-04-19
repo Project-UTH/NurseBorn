@@ -62,26 +62,31 @@ public class SecurityConfig {
                             .requestMatchers("/api/feedbacks/**", "/api/reports/**").permitAll()
                             .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
+                            // Admin endpoints
                             .requestMatchers("/admin/**", "/review-nurse-profile", "/nurse/approve/**", "/nurse/reject/**").hasRole("ADMIN")
                             .requestMatchers("/statistics-table/**", "/statistics/**").hasRole("ADMIN")
+
+                            // Family endpoints
                             .requestMatchers("/family/**", "/nursepage", "/nurse_review/**").hasRole("FAMILY")
 
-                            // API endpoints with role-based access
+                            // Nurse endpoints
+                            .requestMatchers("/nurse/income").hasRole("NURSE") // Thêm để cho phép y tá truy cập thống kê thu nhập
                             .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("NURSE")
                             .requestMatchers(HttpMethod.PUT, "/api/nurse-availability/**").hasRole("NURSE")
                             .requestMatchers(HttpMethod.DELETE, "/api/nurse-availability/**").hasRole("NURSE")
                             .requestMatchers(HttpMethod.GET, "/api/nurse-availability/**").hasAnyRole("NURSE", "FAMILY", "ADMIN")
                             .requestMatchers("/api/nurse-profiles/**").hasRole("NURSE")
+                            .requestMatchers("/nurse-profile", "/update-nurse").hasRole("NURSE")
+                            .requestMatchers("/nurse-availability", "/nurse-schedule").hasRole("NURSE")
+                            .requestMatchers("/nurse/pending-bookings", "/nurse/accept-booking").hasRole("NURSE")
+
+                            // API endpoints with role-based access
                             .requestMatchers("/api/family-profiles/**").hasRole("FAMILY")
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/**").permitAll()
-                            .requestMatchers("/user-profile").hasAnyRole("FAMILY","NURSE","ADMIN")
-                            .requestMatchers("/nurse-profile").hasRole("NURSE")
-                            .requestMatchers("/update-user").hasAnyRole("FAMILY","NURSE","ADMIN")
+                            .requestMatchers("/user-profile").hasAnyRole("FAMILY", "NURSE", "ADMIN")
+                            .requestMatchers("/update-user").hasAnyRole("FAMILY", "NURSE", "ADMIN")
                             .requestMatchers("/nurse-service/**").hasAnyRole("NURSE", "FAMILY")
-                            .requestMatchers("/nurse-profile", "/update-nurse").hasRole("NURSE")
-                            .requestMatchers("/nurse-availability", "/nurse-schedule", "/home-nurse").hasRole("NURSE")
-                            .requestMatchers("/nurse/pending-bookings", "/nurse/accept-booking", "/nurse/cancel-booking", "/nurse/complete-booking").hasRole("NURSE")
 
                             // Web endpoints
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks", "/messages").authenticated()

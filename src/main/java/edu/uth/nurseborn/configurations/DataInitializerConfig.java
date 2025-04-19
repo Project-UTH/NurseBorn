@@ -1,9 +1,9 @@
 package edu.uth.nurseborn.configurations;
 
-
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.Role;
 import edu.uth.nurseborn.repositories.UserRepository;
+import edu.uth.nurseborn.services.BookingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Lớp khởi tạo dữ liệu ban đầu khi ứng dụng khởi động.
+ */
 @Configuration
 public class DataInitializerConfig {
 
@@ -22,6 +25,9 @@ public class DataInitializerConfig {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private BookingService bookingService; // Thêm BookingService để gọi syncBookingsToNurseIncomes
 
     @Bean
     public CommandLineRunner initializeData() {
@@ -44,6 +50,14 @@ public class DataInitializerConfig {
                 logger.info("Tạo tài khoản admin thành công: username=admin, password=admin123");
             } else {
                 logger.info("Tài khoản admin đã tồn tại, bỏ qua khởi tạo.");
+            }
+
+            // Đồng bộ dữ liệu từ bookings sang nurse_incomes
+            try {
+                bookingService.syncBookingsToNurseIncomes();
+                logger.info("Đồng bộ dữ liệu từ bookings sang nurse_incomes thành công.");
+            } catch (Exception e) {
+                logger.error("Lỗi khi đồng bộ dữ liệu từ bookings sang nurse_incomes: {}", e.getMessage(), e);
             }
         };
     }
