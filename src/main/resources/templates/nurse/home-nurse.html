@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <div th:replace="~{master/head::head}"></div>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div th:replace="~{nurse/layoutmenu_nurse::menu-nurse}"></div>
+        <div class="layout-page">
+            <div th:replace="~{profile/navbar-nurse::navbar-nurse}"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+                    <!-- Welcome Content -->
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Chào mừng, <span th:text="${user.fullName != null ? user.fullName : 'Y Tá'}"></span>!</h5>
+                            <p class="card-text">
+                                Chào mừng bạn đến với NurseBorn! Bạn đã sẵn sàng để bắt đầu công việc chưa?
+                                Hãy kiểm tra lịch làm việc và các lịch đặt chờ xác nhận của bạn.
+                            </p>
+                            <div th:if="${nurseProfile != null and nurseProfile.location != null}">
+                                <p class="card-text">
+                                    <strong>Địa điểm làm việc:</strong> <span th:text="${nurseProfile.location}"></span>
+                                </p>
+                            </div>
+                            <div class="mt-3">
+                                <a href="/nurse-schedule" class="btn btn-primary me-2">Xem Lịch Làm Việc</a>
+                                <a href="/nurse/pending-bookings" class="btn btn-primary">Xem Lịch Đặt Chờ Xác Nhận</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>

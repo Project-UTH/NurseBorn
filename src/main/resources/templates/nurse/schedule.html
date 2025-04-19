@@ -41,6 +41,18 @@
         .btn-primary:hover {
             background: linear-gradient(to right, #4338ca, #6d28d9);
         }
+        .btn-complete {
+            background-color: #28a745;
+            border-color: #28a745;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .btn-complete:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
         .alert {
             border-radius: 8px;
         }
@@ -53,10 +65,11 @@
 <body>
 <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
-        <div th:replace="~{master/layoutmenu::menu}"></div>
-        <div class="layout-page">
-            <div th:replace="~{master/navbar}"></div>
-            <div class="content-wrapper">
+        <div class="layout-container">
+            <div th:replace="~{nurse/layoutmenu_nurse::menu-nurse}"></div>
+            <div class="layout-page">
+                <div th:replace="~{profile/navbar-nurse::navbar-nurse}"></div>
+                <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
                     <th:block th:fragment="content">
                         <div class="card mb-4">
@@ -116,6 +129,11 @@
                                                     </div>
                                                     <strong>Giá:</strong> <span th:text="${booking.price} + ' VND'"></span><br>
                                                     <strong>Ghi chú:</strong> <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                                                    <div class="text-center mt-2">
+                                                        <form th:action="@{/nurse/complete-booking(bookingId=${booking.bookingId}, weekOffset=${weekOffset})}" method="post">
+                                                            <button type="submit" class="btn btn-complete">Hoàn thành</button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div th:unless="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">

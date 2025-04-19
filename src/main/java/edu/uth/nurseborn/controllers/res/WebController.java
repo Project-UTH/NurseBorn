@@ -1,4 +1,3 @@
-
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.*;
@@ -52,7 +51,6 @@ public class WebController {
     @Autowired
     private FeedbackService feedbackService;
 
-
     @Autowired
     private EarningService earningService;
 
@@ -94,10 +92,11 @@ public class WebController {
                 model.addAttribute("familyProfile", familyProfile != null ? familyProfile : new FamilyProfileDTO());
                 return "family/home-family";
             } else if ("NURSE".equalsIgnoreCase(userDTO.getRole())) {
+                logger.info("Nurse đăng nhập, điều hướng đến trang home-nurse");
                 NurseProfileDTO nurseProfile = nurseProfileService.getNurseProfileByUserId(user.getUserId());
                 logger.debug("NurseProfile cho userId {}: {}", user.getUserId(), nurseProfile);
                 model.addAttribute("nurseProfile", nurseProfile != null ? nurseProfile : new NurseProfileDTO());
-                return "master/home";
+                return "nurse/home-nurse"; // Chuyển hướng đến home-nurse.html
             }
 
             logger.info("Hiển thị trang home cho user: {}", username);
@@ -142,6 +141,7 @@ public class WebController {
             return "redirect:/login";
         }
     }
+
     @GetMapping("/family/home")
     public String familyHome(Model model) {
         logger.debug("Hiển thị trang home-family");
@@ -260,7 +260,7 @@ public class WebController {
             }
 
             if ("NURSE".equalsIgnoreCase(role)) {
-                logger.debug("Tạo NurseProfile với skills: {}, experienceYears: {}", registerRequest.getNurseProfile().getSkills(), registerRequest.getNurseProfile().getExperienceYears());
+                logger.debug("Tạo NurseProfile với skills: {}, experienceISSUEYears: {}", registerRequest.getNurseProfile().getSkills(), registerRequest.getNurseProfile().getExperienceYears());
                 NurseProfileDTO nurseProfileDTO = registerRequest.getNurseProfile() != null ? registerRequest.getNurseProfile() : new NurseProfileDTO();
                 nurseProfileDTO.setLocation(registerRequest.getUser().getAddress());
                 nurseProfileDTO.setApproved(false);
@@ -698,6 +698,5 @@ public class WebController {
             model.addAttribute("error", "Lỗi khi cập nhật hồ sơ y tá: " + e.getMessage());
             return "profile/update-nurse";
         }
-        
     }
 }

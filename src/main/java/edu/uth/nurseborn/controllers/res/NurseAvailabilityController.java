@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -46,11 +47,16 @@ public class NurseAvailabilityController {
     @Autowired
     private ModelMapper modelMapper;
 
-    // Phương thức tiện ích để kiểm tra và lấy thông tin người dùng
-    private UserDTO authenticateAndGetNurse(Model model) {
+    // Phương thức tiện ích chính với đầy đủ tham số
+    private UserDTO authenticateAndGetNurse(Model model, RedirectAttributes redirectAttributes, String redirectUrl) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
             logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            if (redirectAttributes != null) {
+                redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập");
+            } else if (model != null) {
+                model.addAttribute("error", "Vui lòng đăng nhập");
+            }
             throw new IllegalStateException("redirect:/login");
         }
 
@@ -64,10 +70,20 @@ public class NurseAvailabilityController {
 
         if (!"NURSE".equalsIgnoreCase(userDTO.getRole())) {
             logger.warn("User {} không có quyền truy cập", username);
-            throw new IllegalStateException("redirect:/");
+            if (redirectAttributes != null) {
+                redirectAttributes.addFlashAttribute("error", "Người dùng phải có vai trò NURSE");
+            } else if (model != null) {
+                model.addAttribute("error", "Người dùng phải có vai trò NURSE");
+            }
+            throw new IllegalStateException(redirectUrl);
         }
 
         return userDTO;
+    }
+
+    // Phương thức overload với ít tham số hơn
+    private UserDTO authenticateAndGetNurse(Model model) {
+        return authenticateAndGetNurse(model, null, "redirect:/");
     }
 
     @GetMapping("/nurse-availability")
@@ -150,6 +166,28 @@ public class NurseAvailabilityController {
             logger.error("Lỗi khi hiển thị lịch: {}", e.getMessage(), e);
             model.addAttribute("error", "Lỗi khi tải lịch: " + e.getMessage());
             return "error";
+        }
+    }
+
+    @PostMapping("/nurse/complete-booking")
+    public String completeBooking(
+            @RequestParam("bookingId") Long bookingId,
+            @RequestParam("weekOffset") int weekOffset,
+            RedirectAttributes redirectAttributes) {
+        logger.debug("Xử lý hoàn thành lịch đặt với bookingId: {}", bookingId);
+
+        try {
+            UserDTO userDTO = authenticateAndGetNurse(null, redirectAttributes, "redirect:/nurse-schedule?weekOffset=" + weekOffset);
+            bookingService.completeBooking(bookingId, userDTO.getUserId());
+            logger.info("Y tá {} đã hoàn thành lịch đặt với bookingId: {}", userDTO.getUsername(), bookingId);
+            redirectAttributes.addFlashAttribute("success", "Hoàn thành lịch đặt thành công!");
+            return "redirect:/nurse-schedule?weekOffset=" + weekOffset;
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        } catch (Exception e) {
+            logger.error("Lỗi khi hoàn thành lịch đặt: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi hoàn thành lịch đặt: " + e.getMessage());
+            return "redirect:/nurse-schedule?weekOffset=" + weekOffset;
         }
     }
 }

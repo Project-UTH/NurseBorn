@@ -254,4 +254,26 @@ public class BookingService {
         bookingRepository.save(booking);
         logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành CANCELLED", bookingId);
     }
+
+    // Hoàn thành lịch đặt
+    @Transactional
+    public void completeBooking(Long bookingId, Long nurseUserId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch đặt với ID: " + bookingId));
+
+        // Kiểm tra xem lịch đặt có thuộc về y tá này không
+        if (!booking.getNurseUser().getUserId().equals(nurseUserId)) {
+            throw new IllegalArgumentException("Lịch đặt không thuộc về y tá này");
+        }
+
+        // Kiểm tra trạng thái hiện tại của lịch
+        if (booking.getStatus() != BookingStatus.ACCEPTED) {
+            throw new IllegalArgumentException("Lịch đặt không ở trạng thái ACCEPTED");
+        }
+
+        // Cập nhật trạng thái thành COMPLETED
+        booking.setStatus(BookingStatus.COMPLETED);
+        bookingRepository.save(booking);
+        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành COMPLETED", bookingId);
+    }
 }
