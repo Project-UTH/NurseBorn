@@ -10,34 +10,48 @@
     <div class="layout-page">
       <div th:replace="~{profile/navbar-nurse::navbar-nurse}"></div>
       <div class="content-wrapper">
-        <div class="content-xxl flex-grow-1 container-p-y">
-
-          <!-- Hiển thị thông tin y tá -->
+        <div class="container-xxl flex-grow-1 container-p-y">
           <div th:if="${user}">
-            <h2>Hồ sơ y tá</h2>
-            <p><strong>Họ và tên:</strong> <span th:text="${user.fullName}"></span></p>
-            <p><strong>Tên đăng nhập:</strong> <span th:text="${user.username}"></span></p>
-            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
-            <p><strong>Số điện thoại:</strong> <span th:text="${user.phoneNumber}"></span></p>
-            <p><strong>Địa chỉ:</strong> <span th:text="${user.address}"></span></p>
-            <p><strong>Vai trò:</strong> <span th:text="${user.role}"></span></p>
+            <h4 class="mb-4">Hồ sơ y tá</h4>
+            <div class="card p-4 mb-4">
+              <h5 class="card-title">Thông tin cá nhân của y tá</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Họ và tên:</strong> <span th:text="${user.fullName}"></span></p>
+                  <p><strong>Tên đăng nhập:</strong> <span th:text="${user.username}"></span></p>
+                  <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Số điện thoại:</strong> <span th:text="${user.phoneNumber}"></span></p>
+                  <p><strong>Địa chỉ:</strong> <span th:text="${user.address}"></span></p>
+                  <p><strong>Vai trò:</strong> <span th:text="${user.role}"></span></p>
+                </div>
+              </div>
+            </div>
 
-            <!-- Thông tin hồ sơ y tá -->
-            <div th:if="${user.role == 'NURSE'}">
-              <h5>Thông tin y tá</h5>
-              <p><strong>Vị trí:</strong> <span th:text="${nurseProfile != null && nurseProfile.location != null ? nurseProfile.location : 'Không có thông tin'}"></span></p>
-              <p><strong>Kỹ năng:</strong> <span th:text="${nurseProfile != null && nurseProfile.skills != null ? nurseProfile.skills : 'Không có thông tin'}"></span></p>
-              <p><strong>Số năm kinh nghiệm:</strong> <span th:text="${nurseProfile != null && nurseProfile.experienceYears != null ? nurseProfile.experienceYears + ' năm' : 'Không có thông tin'}"></span></p>
-              <p><strong>Lương giờ:</strong> <span th:text="${nurseProfile != null && nurseProfile.hourlyRate != null ? nurseProfile.hourlyRate + ' VNĐ/giờ' : 'Không có thông tin'}"></span></p>
-              <p><strong>Lương ngày:</strong> <span th:text="${nurseProfile != null && nurseProfile.dailyRate != null ? nurseProfile.dailyRate + ' VNĐ/ngày' : 'Không có thông tin'}"></span></p>
-              <p><strong>Lương tuần:</strong> <span th:text="${nurseProfile != null && nurseProfile.weeklyRate != null ? nurseProfile.weeklyRate + ' VNĐ/tuần' : 'Không có thông tin'}"></span></p>
-              <p><strong>Tiểu sử:</strong> <span th:text="${nurseProfile != null && nurseProfile.bio != null ? nurseProfile.bio : 'Không có thông tin'}"></span></p>
-              <p><strong>Ảnh đại diện:</strong> <img th:src="${nurseProfile != null && nurseProfile.profileImage != null ? nurseProfile.profileImage : '/static/assets/img/avatars/default_profile.jpg'}" alt="Profile Image" style="max-width: 100px;"/></p>
-              <p><strong>Trạng thái phê duyệt:</strong> <span th:text="${nurseProfile != null && nurseProfile.approved != null ? (nurseProfile.approved ? 'Đã phê duyệt' : 'Chưa phê duyệt') : 'Không có thông tin'}"></span></p>
-
-              <!-- Danh sách chứng chỉ -->
-              <div th:if="${nurseProfile != null && nurseProfile.certificates != null && !nurseProfile.certificates.isEmpty()}">
-                <h6>Chứng chỉ:</h6>
+            <div th:if="${user.role == 'NURSE'}" class="card p-4 mb-4">
+              <h5 class="card-title">Thông tin dịch vụ của y tá</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Vị trí:</strong> <span th:text="${nurseProfile?.location ?: 'Không có thông tin'}"></span></p>
+                  <p><strong>Kỹ năng:</strong> <span th:text="${nurseProfile?.skills ?: 'Không có thông tin'}"></span></p>
+                  <p><strong>Kinh nghiệm:</strong> <span th:text="${nurseProfile?.experienceYears != null ? nurseProfile.experienceYears + ' năm' : 'Không có thông tin'}"></span></p>
+                  <p><strong>Tiểu sử:</strong> <span th:text="${nurseProfile?.bio ?: 'Không có thông tin'}"></span></p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Lương giờ:</strong> <span th:text="${nurseProfile?.hourlyRate != null ? nurseProfile.hourlyRate + ' VNĐ/giờ' : 'Không có thông tin'}"></span></p>
+                  <p><strong>Lương ngày:</strong> <span th:text="${nurseProfile?.dailyRate != null ? nurseProfile.dailyRate + ' VNĐ/ngày' : 'Không có thông tin'}"></span></p>
+                  <p><strong>Lương tuần:</strong> <span th:text="${nurseProfile?.weeklyRate != null ? nurseProfile.weeklyRate + ' VNĐ/tuần' : 'Không có thông tin'}"></span></p>
+                  <p><strong>Trạng thái phê duyệt:</strong> <span th:text="${nurseProfile?.approved != null ? (nurseProfile.approved ? 'Đã phê duyệt' : 'Chưa phê duyệt') : 'Không có thông tin'}"></span></p>
+                </div>
+              </div>
+              <div class="mt-3">
+                <p><strong>Ảnh đại diện:</strong>
+                  <img th:src="${nurseProfile?.profileImage ?: '/static/assets/img/avatars/default_profile.jpg'}" alt="Profile Image" style="max-width: 100px;"/>
+                </p>
+              </div>
+              <div th:if="${nurseProfile?.certificates?.size() > 0}">
+                <h6 class="mt-3">Chứng chỉ:</h6>
                 <ul>
                   <li th:each="certificate : ${nurseProfile.certificates}">
                     <span th:text="${certificate.certificateName}"></span>
@@ -45,21 +59,20 @@
                   </li>
                 </ul>
               </div>
-              <div th:unless="${nurseProfile != null && nurseProfile.certificates != null && !nurseProfile.certificates.isEmpty()}">
+              <div th:unless="${nurseProfile?.certificates?.size() > 0}">
                 <p><strong>Chứng chỉ:</strong> Không có thông tin</p>
               </div>
             </div>
 
-            <div class="mt-3">
+            <div class="d-flex gap-2">
               <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
               <a th:href="@{/update-nurse}" class="btn btn-success" id="update-nurse-btn">Cập nhật hồ sơ</a>
               <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
             </div>
           </div>
 
-          <!-- Thông báo nếu chưa đăng nhập -->
-          <div th:unless="${user}">
-            <h2>Bạn chưa đăng nhập</h2>
+          <div th:unless="${user}" class="alert alert-warning">
+            <h4>Bạn chưa đăng nhập</h4>
             <p>Vui lòng <a th:href="@{/login}">đăng nhập</a> để xem hồ sơ y tá của bạn.</p>
           </div>
         </div>

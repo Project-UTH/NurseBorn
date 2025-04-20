@@ -159,6 +159,9 @@
                             <p><strong>Tuổi trẻ:</strong> <span th:text="${familyProfile != null && familyProfile.childAge != null ? familyProfile.childAge : 'Không có thông tin'}"></span></p>
                             <p><strong>Nhu cầu cụ thể:</strong> <span th:text="${familyProfile != null && familyProfile.specificNeeds != null ? familyProfile.specificNeeds : 'Không có thông tin'}"></span></p>
                             <p><strong>Vị trí ưu tiên:</strong> <span th:text="${familyProfile != null && familyProfile.preferredLocation != null ? familyProfile.preferredLocation : 'Không có thông tin'}"></span></p>
+                            <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
+                            <a th:href="@{/update-user}" class="btn btn-success">Cập nhật hồ sơ</a>
+                            <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
                         </div>
 
                         <!-- Thông tin admin -->
@@ -166,13 +169,10 @@
                             <h5>Thông tin quản trị viên</h5>
                             <p><strong>Ngày tham gia:</strong> <span th:text="${user.createdAt != null ? user.createdAt : 'Không có thông tin'}"></span></p>
                             <!-- Thêm các thông tin quản trị khác nếu cần -->
+                            <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
+                            <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
                         </div>
-
-                        <a th:href="@{/}" class="btn btn-primary">Quay lại trang chủ</a>
-                        <a th:href="@{/update-user}" class="btn btn-success">Cập nhật hồ sơ</a>
-                        <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
                     </div>
-
                     <!-- Thông báo nếu chưa đăng nhập -->
                     <div th:unless="${user}">
                         <h2>Bạn chưa đăng nhập</h2>
