@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Y Tá - Admin</title>
+    <th:block th:replace="~{master/head::head}"></th:block>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin-top: 50px;
+        }
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0d6efd;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .table {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .table th {
+            background-color: #0d6efd;
+            color: #ffffff;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <!-- Tích hợp menu từ layoutmenuadmin.html -->
+        <div th:replace="~{admin/layoutmenuadmin::menu}"></div>
+        <div class="layout-page">
+            <!-- Navbar -->
+            <div th:replace="~{master/navbar}"></div>
+            <!-- Nội dung chính -->
+            <div class="content-wrapper">
+                <div class="container">
+                    <h2>Danh sách Y Tá</h2>
+                    <div th:if="${nurses != null and not #lists.isEmpty(nurses)}">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ</th>
+                                <th>Ngày tạo</th>
+                                <th>Xác thực</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="nurse : ${nurses}">
+                                <td th:text="${nurse.userId}"></td>
+                                <td th:text="${nurse.fullName}"></td>
+                                <td th:text="${nurse.email}"></td>
+                                <td th:text="${nurse.phoneNumber != null ? nurse.phoneNumber : 'Chưa có'}"></td>
+                                <td th:text="${nurse.address != null ? nurse.address : 'Chưa có'}"></td>
+                                <td th:text="${#temporals.format(nurse.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${nurse.verified ? 'Đã xác thực' : 'Chưa xác thực'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:unless="${nurses != null and not #lists.isEmpty(nurses)}" class="alert alert-info">
+                        Không có y tá nào để hiển thị.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
