@@ -202,8 +202,13 @@
                                     </div>
                                     <div class="card-body">
                                         <h5 class="card-title" th:text="${nurse.user.fullName} + ' | ' + (${nurse.skills != null ? nurse.skills : ''})"></h5>
-                                        <p class="card-text">
-                                            <strong>Lịch khám:</strong>
+                                        <p class="card-text"><strong>Kinh nghiệm:</strong>
+                                            <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Chưa có thông tin'}"></span>
+                                        </p>
+                                        <p class="card-text"><strong>Địa điểm:</strong>
+                                            <span th:text="${nurse.location != null ? nurse.location : 'Chưa có thông tin'}"></span>
+                                        </p>
+                                        <p class="card-text"><strong>Lịch làm việc:</strong>
                                             <span th:if="${nurse.nurseAvailabilities != null and not #lists.isEmpty(nurse.nurseAvailabilities)}">
                                                 <th:block th:each="availability : ${nurse.nurseAvailabilities}">
                                                     <span th:text="${availability.dayOfWeek != null ? availability.dayOfWeek : 'UNKNOWN'} + (${availabilityStat.last ? '' : ', '})"></span>

@@ -79,9 +79,14 @@
             margin-bottom: 10px;
         }
         .card-body p strong {
-            color: #343a40;
+            color: #2c3e50; /* Đổi màu đen đậm hơn và nổi bật */
             width: 140px;
             display: inline-block;
+            font-weight: 700; /* Tô đậm để highlight */
+            letter-spacing: 0.3px; /* Thêm khoảng cách chữ để đẹp hơn */
+            background: linear-gradient(45deg, #e3f2fd, #f8f9fa); /* Nền gradient nhẹ để nổi bật */
+            padding: 2px 5px; /* Thêm padding để tạo hiệu ứng highlight */
+            border-radius: 3px; /* Bo góc nhẹ */
         }
 
         /* Số sao trung bình */
@@ -176,7 +181,7 @@
                                 <div class="col-md-7">
                                     <div class="card-body">
                                         <h5 class="card-title" th:text="${nurse.user.fullName}"></h5>
-                                        <p><strong>Chuyên khoa:</strong> <span th:text="${nurse.skills != null ? nurse.skills : 'Chưa có thông tin'}"></span></p>
+                                        <p><strong>Kỹ năng:</strong> <span th:text="${nurse.skills != null ? nurse.skills : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Kinh nghiệm:</strong> <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Địa điểm:</strong> <span th:text="${nurse.location != null ? nurse.location : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Giá khám theo giờ:</strong> <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span></p>
