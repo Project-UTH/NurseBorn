@@ -2,6 +2,152 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
   <div th:replace="~{master/head::head}"></div>
+  <style>
+    /* Tùy chỉnh tổng thể */
+    body {
+      background-color: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+    }
+    .container-p-y {
+      max-width: 1200px;
+    }
+
+    /* Tiêu đề */
+    h5.card-header.text-center {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      margin-bottom: 40px;
+      padding: 15px 0;
+      animation: fadeIn 1s ease-in-out;
+    }
+    h5.card-header.text-center::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 5px;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      border-radius: 3px;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card chứa form */
+    .card.mb-4 {
+      border: none;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(145deg, #ffffff, #f0f4f8);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card.mb-4:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+    .card-body {
+      padding: 30px;
+    }
+
+    /* Thông báo lỗi và thành công */
+    .alert-danger, .alert-success {
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .alert-danger {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+    .btn-close {
+      filter: opacity(0.6);
+    }
+    .btn-close:hover {
+      filter: opacity(1);
+    }
+
+    /* Form chọn ngày */
+    .row.g-3 {
+      margin-top: 20px;
+    }
+    .form-label {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #0d6efd;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      border-radius: 10px;
+      background-color: #f8f9fa;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .form-check:hover {
+      background-color: #e9ecef;
+      transform: scale(1.02);
+    }
+    .form-check-input {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #0d6efd;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .form-check-input:checked {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+    .form-check-input:focus {
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+      outline: none;
+    }
+    .form-check-label {
+      font-size: 1rem;
+      color: #343a40;
+      cursor: pointer;
+    }
+
+    /* Nút lưu */
+    .btn-primary {
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      border: none;
+      border-radius: 25px;
+      padding: 10px 25px;
+      font-weight: 500;
+      color: #fff;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #0056b3, #218838);
+      transform: scale(1.05);
+      color: #fff;
+    }
+    .btn-primary i {
+      margin-right: 5px;
+    }
+    .text-center {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
 <div class="layout-wrapper layout-content-navbar">
@@ -39,8 +185,8 @@
                   </div>
                   <input type="hidden" th:field="*{userId}">
                   <div class="col-12 text-center">
-                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(to right, #4f46e5, #7c3aed);">
-                      Lưu Lịch Làm Việc
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-save"></i> Lưu Lịch Làm Việc
                     </button>
                   </div>
                 </form>

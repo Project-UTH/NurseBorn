@@ -21,11 +21,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-          href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
   />
   <!-- Icons -->
   <link rel="stylesheet" href="/static/assets/vendor/fonts/boxicons.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <!-- Core CSS -->
   <link rel="stylesheet" href="/static/assets/vendor/css/core.css" class="template-customizer-core-css" />
   <link rel="stylesheet" href="/static/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
@@ -36,6 +37,173 @@
   <script src="/static/assets/vendor/js/helpers.js"></script>
   <!-- Theme config -->
   <script src="/static/assets/js/config.js"></script>
+  <style>
+    /* Tùy chỉnh tổng thể */
+    body {
+      background-color: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+    }
+    .container-xxl {
+      max-width: 1200px;
+    }
+
+    /* Tiêu đề trang */
+    h4.fw-bold.py-3.mb-4 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      margin-bottom: 40px;
+      padding: 15px 0;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+    h4.fw-bold.py-3.mb-4::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 5px;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      border-radius: 3px;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Thẻ hồ sơ y tá */
+    .card.mb-4 {
+      border: none;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(145deg, #ffffff, #f0f4f8);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card.mb-4:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+    .card-body {
+      padding: 25px;
+    }
+    .d-flex.align-items-center.mb-3 {
+      gap: 15px;
+    }
+    .rounded-circle.me-3 {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border: 3px solid #0d6efd;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .d-flex.align-items-center.mb-3 h5 {
+      color: #0d6efd;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .d-flex.align-items-center.mb-3 p {
+      color: #6c757d;
+      font-size: 0.95rem;
+      margin-bottom: 0;
+    }
+    .mb-2 {
+      color: #5a6268;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mb-2 strong {
+      color: #343a40;
+      font-weight: 600;
+    }
+    .mb-2 i {
+      color: #0d6efd;
+      font-size: 1.1rem;
+    }
+    .mb-2 ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .mb-2 ul li {
+      color: #5a6268;
+      font-size: 0.95rem;
+    }
+    .mb-2 ul li a {
+      color: #0d6efd;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .mb-2 ul li a:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+    .text-success {
+      color: #28a745 !important;
+      font-weight: 600;
+    }
+    .text-danger {
+      color: #dc3545 !important;
+      font-weight: 600;
+    }
+
+    /* Nút bấm */
+    .btn-primary {
+      background: linear-gradient(45deg, #28a745, #34c759);
+      border: none;
+      border-radius: 25px;
+      padding: 8px 20px;
+      font-weight: 500;
+      color: #fff;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #218838, #2eb44f);
+      transform: scale(1.05);
+      color: #fff;
+    }
+    .btn-danger {
+      background: linear-gradient(45deg, #dc3545, #e4606d);
+      border: none;
+      border-radius: 25px;
+      padding: 8px 20px;
+      font-weight: 500;
+      color: #fff;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(45deg, #c82333, #d43f4c);
+      transform: scale(1.05);
+      color: #fff;
+    }
+    .btn i {
+      margin-right: 5px;
+    }
+    .d-flex.gap-2 {
+      gap: 10px !important;
+      justify-content: center;
+    }
+
+    /* Thông báo khi không có hồ sơ */
+    .text-center.text-muted {
+      color: #6c757d;
+      font-size: 1.1rem;
+      font-style: italic;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+  </style>
 </head>
 
 <body>
@@ -62,56 +230,111 @@
                         th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/assets/img/avatars/default_profile.jpg'}"
                         alt="Ảnh hồ sơ"
                         class="rounded-circle me-3"
-                        style="width: 80px; height: 80px;"
                 />
                 <div>
                   <h5 class="mb-1" th:text="${nurse.fullName != null ? nurse.fullName : 'Chưa xác định'}">Tên Y Tá</h5>
                   <p class="mb-0"><strong>ID:</strong> <span th:text="${nurse.nurseProfileId != null ? nurse.nurseProfileId : 'Chưa xác định'}">YT000</span></p>
                 </div>
               </div>
-              <p class="mb-2"><strong>Tên đăng nhập:</strong> <span th:text="${nurse.username != null ? nurse.username : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Email:</strong> <span th:text="${nurse.email != null ? nurse.email : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Số điện thoại:</strong> <span th:text="${nurse.phoneNumber != null ? nurse.phoneNumber : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Địa chỉ:</strong> <span th:text="${nurse.address != null ? nurse.address : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Vai trò:</strong> <span th:text="${nurse.role != null ? nurse.role : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Vị trí:</strong> <span th:text="${nurse.location != null ? nurse.location : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Kỹ năng:</strong> <span th:text="${nurse.skills != null ? nurse.skills : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Kinh nghiệm:</strong> <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Lương giờ:</strong> <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + ' VNĐ/giờ' : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Lương ngày:</strong> <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + ' VNĐ/ngày' : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Lương tuần:</strong> <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + ' VNĐ/tuần' : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Tiểu sử:</strong> <span th:text="${nurse.bio != null ? nurse.bio : 'Không có thông tin'}"></span></p>
-              <p class="mb-2"><strong>Chứng chỉ:</strong>
+              <p class="mb-2">
+                <i class="fas fa-user"></i>
+                <strong>Tên đăng nhập:</strong>
+                <span th:text="${nurse.username != null ? nurse.username : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-envelope"></i>
+                <strong>Email:</strong>
+                <span th:text="${nurse.email != null ? nurse.email : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-phone"></i>
+                <strong>Số điện thoại:</strong>
+                <span th:text="${nurse.phoneNumber != null ? nurse.phoneNumber : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-map-marker-alt"></i>
+                <strong>Địa chỉ:</strong>
+                <span th:text="${nurse.address != null ? nurse.address : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-user-tag"></i>
+                <strong>Vai trò:</strong>
+                <span th:text="${nurse.role != null ? nurse.role : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-location-dot"></i>
+                <strong>Vị trí:</strong>
+                <span th:text="${nurse.location != null ? nurse.location : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-tools"></i>
+                <strong>Kỹ năng:</strong>
+                <span th:text="${nurse.skills != null ? nurse.skills : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-briefcase"></i>
+                <strong>Kinh nghiệm:</strong>
+                <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-money-bill-wave"></i>
+                <strong>Lương giờ:</strong>
+                <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + ' VNĐ/giờ' : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-money-bill-wave"></i>
+                <strong>Lương ngày:</strong>
+                <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + ' VNĐ/ngày' : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-money-bill-wave"></i>
+                <strong>Lương tuần:</strong>
+                <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + ' VNĐ/tuần' : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-info-circle"></i>
+                <strong>Tiểu sử:</strong>
+                <span th:text="${nurse.bio != null ? nurse.bio : 'Không có thông tin'}"></span>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-certificate"></i>
+                <strong>Chứng chỉ:</strong>
                 <span th:if="${nurse.certificates != null and not #lists.isEmpty(nurse.certificates)}">
-                  <ul>
-                    <li th:each="certificate : ${nurse.certificates}">
-                      <span th:text="${certificate.certificateName}"></span>
-                      (<a th:href="${certificate.filePath}" target="_blank">Xem file</a>)
-                    </li>
-                  </ul>
-                </span>
+                                    <ul>
+                                        <li th:each="certificate : ${nurse.certificates}">
+                                            <span th:text="${certificate.certificateName}"></span>
+                                            (<a th:href="${certificate.filePath}" target="_blank">Xem file</a>)
+                                        </li>
+                                    </ul>
+                                </span>
                 <span th:unless="${nurse.certificates != null and not #lists.isEmpty(nurse.certificates)}">Không có thông tin</span>
               </p>
-              <p class="mb-2"><strong>Trạng thái:</strong>
+              <p class="mb-2">
+                <i class="fas fa-check-circle"></i>
+                <strong>Trạng thái:</strong>
                 <span th:class="${nurse.approved != null and nurse.approved ? 'text-success' : 'text-danger'}"
                       th:text="${nurse.approved != null ? (nurse.approved ? 'Đã phê duyệt' : 'Chưa phê duyệt') : 'Không có thông tin'}">
-                    Chưa xác định
-                </span>
+                                    Chưa xác định
+                                </span>
               </p>
               <div class="d-flex gap-2">
                 <form th:action="@{/nurse/approve/{id}(id=${nurse.userId})}" method="post" style="display: inline;">
-                  <button type="submit" class="btn btn-primary">Phê duyệt</button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Phê duyệt
+                  </button>
                 </form>
                 <form th:action="@{/nurse/reject/{id}(id=${nurse.userId})}" method="post" style="display: inline;">
-                  <button type="submit" class="btn btn-danger">Từ chối</button>
+                  <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Từ chối
+                  </button>
                 </form>
               </div>
             </div>
           </div>
 
           <!-- Thông báo nếu không có hồ sơ -->
-          <div th:if="${#lists.isEmpty(nurseProfiles)}" class="text-center">
-            <p class="text-muted">Hiện tại không có hồ sơ y tá nào để phê duyệt.</p>
+          <div th:if="${#lists.isEmpty(nurseProfiles)}" class="text-center text-muted">
+            <p>Hiện tại không có hồ sơ y tá nào để phê duyệt.</p>
           </div>
         </div>
         <!-- / Content -->

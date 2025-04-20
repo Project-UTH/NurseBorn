@@ -3,50 +3,131 @@
 <head>
   <div th:replace="~{master/head::head}"></div>
   <style>
+    /* Tùy chỉnh tổng thể */
+    body {
+      background: linear-gradient(to bottom, #f5f7fa, #e8ecef);
+      font-family: 'Arial', sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Card chính */
+    .card {
+      border: none;
+      border-radius: 15px;
+      background-color: #fff;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card-body {
+      padding: 30px;
+    }
+
+    /* Tiêu đề */
+    h5.card-header {
+      background: linear-gradient(45deg, #007bff, #28a745);
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 20px;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      position: relative;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form đặt lịch */
     .form-label {
       font-weight: 600;
       color: #343a40;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
     }
-    .form-control, .form-select {
+    .form-control, .form-select, .form-control-plaintext {
       border-radius: 8px;
       border: 2px solid #0d6efd;
-      padding: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .form-control:focus, .form-select:focus {
       border-color: #28a745;
       box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+      outline: none;
     }
-    .btn-primary {
-      background: linear-gradient(to right, #4f46e5, #7c3aed);
-      border: none;
-      border-radius: 25px;
-      padding: 10px 20px;
-      font-weight: 500;
-    }
-    .btn-primary:hover {
-      background: linear-gradient(to right, #4338ca, #6d28d9);
-    }
-    .alert {
-      border-radius: 8px;
-    }
-    .card {
-      border-radius: 15px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-    .disabled-option {
+    .form-control-plaintext {
       color: #6c757d;
-      font-style: italic;
+      background-color: #f8f9fa;
+      border: none;
     }
     .input-group-text {
       border-radius: 8px;
       border: 2px solid #0d6efd;
       border-left: none;
+      background-color: #f8f9fa;
+      color: #343a40;
+      font-weight: 500;
     }
     .time-field {
       display: none;
     }
     .time-field.visible {
       display: block;
+    }
+    .disabled-option {
+      color: #6c757d;
+      font-style: italic;
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Nút Đặt Lịch */
+    .btn-primary {
+      background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #4338ca, #6d28d9);
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    /* Thông báo */
+    .alert {
+      border-radius: 10px;
+      margin-bottom: 20px;
+      padding: 15px;
+      font-size: 1rem;
+    }
+    .alert-success {
+      background-color: #e6ffed;
+      border-color: #28a745;
+      color: #28a745;
+    }
+    .alert-danger {
+      background-color: #ffe6e6;
+      border-color: #dc3545;
+      color: #dc3545;
     }
   </style>
 </head>
@@ -73,7 +154,7 @@
               <form th:action="@{/set_service}" th:object="${bookingDTO}" method="post" class="row g-3">
                 <div class="col-12">
                   <label class="form-label">Y Tá Được Chọn:</label>
-                  <p th:if="${nurse != null}" th:text="${nurse.fullName} + ' (' + ${nurse.username} + ')'" class="form-control-plaintext"></p>
+                  <p th:if="${nurse != null}" th:text="${nurse.fullName}" class="form-control-plaintext"></p>
                   <p th:unless="${nurse != null}" class="form-control-plaintext">Không tìm thấy thông tin y tá</p>
                   <input type="hidden" th:field="*{nurseUserId}"/>
                 </div>

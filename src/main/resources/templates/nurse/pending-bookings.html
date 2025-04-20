@@ -3,9 +3,48 @@
 <head>
   <div th:replace="~{master/head::head}"></div>
   <style>
+    /* Tùy chỉnh tổng thể */
+    body {
+      background-color: #f5f7fa;
+    }
+    .container {
+      max-width: 1200px;
+    }
+
+    /* Tiêu đề danh sách y tá */
+    h5.card-header.text-center {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      position: relative;
+      margin-bottom: 40px;
+      padding: 10px 0;
+      animation: fadeIn 1s ease-in-out;
+    }
+    h5.card-header.text-center::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(45deg, #0d6efd, #28a745);
+      border-radius: 2px;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Thẻ lịch đặt */
     .pending-card .card {
       border: none;
       border-radius: 15px;
+      overflow: hidden;
       background-color: #ffffff;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -14,6 +53,18 @@
       transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     }
+    .card-title {
+      color: #0d6efd;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .card-text {
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+    .card-text strong {
+      color: #343a40;
+    }
     .btn-accept {
       background-color: #28a745;
       border-color: #28a745;
@@ -21,10 +72,12 @@
       padding: 8px 20px;
       font-weight: 500;
       transition: background-color 0.3s ease;
+      color: #ffffff;
     }
     .btn-accept:hover {
       background-color: #218838;
       border-color: #1e7e34;
+      color: #ffffff;
     }
     .btn-cancel {
       background-color: #dc3545;
@@ -33,14 +86,16 @@
       padding: 8px 20px;
       font-weight: 500;
       transition: background-color 0.3s ease;
+      color: #ffffff;
     }
     .btn-cancel:hover {
       background-color: #c82333;
       border-color: #bd2130;
+      color: #ffffff;
     }
     .btn-chat {
-      background-color: #4299e1;
-      border-color: #4299e1;
+      background-color: #4e73df;
+      border-color: #4e73df;
       border-radius: 25px;
       padding: 8px 20px;
       font-weight: 500;
@@ -48,8 +103,13 @@
       color: #ffffff;
     }
     .btn-chat:hover {
-      background-color: #3182ce;
-      border-color: #2b6cb0;
+      background-color: #3b5bdb;
+      border-color: #3b5bdb;
+      color: #ffffff;
+    }
+    .text-center {
+      color: #6c757d;
+      font-size: 1rem;
     }
   </style>
 </head>
@@ -121,14 +181,14 @@
                         <strong>Ghi chú:</strong>
                         <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
                       </p>
-                      <div class="text-center">
+                      <div class="text-center d-flex gap-2 justify-content-center">
                         <form th:action="@{/nurse/accept-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
                           <button type="submit" class="btn btn-accept">Chấp nhận</button>
                         </form>
                         <form th:action="@{/nurse/cancel-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
                           <button type="submit" class="btn btn-cancel">Hủy</button>
                         </form>
-                        <a th:href="@{/messages(nurseUserId=${booking.familyUser.userId})}" class="btn btn-chat mt-2">Trò chuyện</a>
+                        <a th:href="@{/messages(nurseUserId=${booking.familyUser.userId})}" class="btn btn-chat">Trò chuyện</a>
                       </div>
                     </div>
                   </div>

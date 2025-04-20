@@ -184,9 +184,9 @@
                                         <p><strong>Kỹ năng:</strong> <span th:text="${nurse.skills != null ? nurse.skills : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Kinh nghiệm:</strong> <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Địa điểm:</strong> <span th:text="${nurse.location != null ? nurse.location : 'Chưa có thông tin'}"></span></p>
-                                        <p><strong>Giá khám theo giờ:</strong> <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span></p>
-                                        <p><strong>Giá khám theo ngày:</strong> <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + 'đ/ngày' : 'Chưa có giá'}"></span></p>
-                                        <p><strong>Giá khám theo tuần:</strong> <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + 'đ/tuần' : 'Chưa có giá'}"></span></p>
+                                        <p><strong>Giá theo giờ:</strong> <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span></p>
+                                        <p><strong>Giá theo ngày:</strong> <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + 'đ/ngày' : 'Chưa có giá'}"></span></p>
+                                        <p><strong>Giá theo tuần:</strong> <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + 'đ/tuần' : 'Chưa có giá'}"></span></p>
                                         <p><strong>Số điện thoại:</strong> <span th:text="${nurse.user.phoneNumber != null ? nurse.user.phoneNumber : 'Chưa có thông tin'}"></span></p>
                                         <p><strong>Email:</strong> <span th:text="${nurse.user.email != null ? nurse.user.email : 'Chưa có thông tin'}"></span></p>
                                     </div>
