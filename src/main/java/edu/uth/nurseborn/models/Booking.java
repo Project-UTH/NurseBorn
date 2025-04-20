@@ -13,6 +13,7 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long bookingId;
 
     @ManyToOne
@@ -24,28 +25,32 @@ public class Booking {
     private User nurseUser;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "service_type", nullable = false)
     private ServiceType serviceType;
 
-    @Column(nullable = false)
+    @Column(name = "booking_date", nullable = false)
     private LocalDate bookingDate;
 
+    @Column(name = "start_time")
     private LocalTime startTime;
 
+    @Column(name = "end_time")
     private LocalTime endTime;
 
     @Column(nullable = false)
     private Double price;
 
-    @Column(columnDefinition = "TEXT")
     private String notes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "has_feedback", nullable = false)
+    private Boolean hasFeedback = false; // Trường mới để theo dõi trạng thái đánh giá
 
     // Getters and Setters
     public Long getBookingId() {
@@ -135,4 +140,13 @@ public class Booking {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Boolean getHasFeedback() {
+        return hasFeedback;
+    }
+
+    public void setHasFeedback(Boolean hasFeedback) {
+        this.hasFeedback = hasFeedback;
+    }
 }
+

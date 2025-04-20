@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,7 +62,8 @@ public class FamilyBookingController {
         List<Booking> bookings = bookingService.getBookingsByFamilyUser(user);
         logger.debug("Số lượng lịch đặt tìm thấy cho user {}: {}", user.getUsername(), bookings.size());
         for (Booking booking : bookings) {
-            logger.debug("Booking ID: {}, Status: {}", booking.getBookingId(), booking.getStatus().name());
+            logger.debug("Booking ID: {}, Status: {}, Has Feedback: {}",
+                    booking.getBookingId(), booking.getStatus().name(), booking.getHasFeedback());
         }
 
         model.addAttribute("bookings", bookings);
@@ -155,6 +157,7 @@ public class FamilyBookingController {
     }
 
     @PostMapping("/submit-feedback")
+    @Transactional
     public String submitFeedback(
             @ModelAttribute("feedbackDTO") FeedbackDTO feedbackDTO,
             @RequestParam(value = "attachment", required = false) MultipartFile[] attachments,
@@ -175,9 +178,24 @@ public class FamilyBookingController {
         }
 
         try {
+            // Kiểm tra booking trước khi lưu feedback
+            Booking booking = bookingRepository.findById(feedbackDTO.getBookingId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch đặt với ID: " + feedbackDTO.getBookingId()));
+            logger.debug("Trước khi lưu feedback - Booking ID: {}, Has Feedback: {}", feedbackDTO.getBookingId(), booking.getHasFeedback());
+
             feedbackService.createFeedback(feedbackDTO, user, attachments);
             redirectAttributes.addFlashAttribute("success", "Gửi đánh giá thành công!");
             logger.info("Người dùng {} đã gửi đánh giá cho lịch đặt ID: {}", user.getUsername(), feedbackDTO.getBookingId());
+
+            // Cập nhật hasFeedback của booking
+            booking.setHasFeedback(true);
+            bookingRepository.save(booking);
+            logger.info("Đã cập nhật hasFeedback thành true cho booking ID: {}", feedbackDTO.getBookingId());
+
+            // Làm mới dữ liệu để kiểm tra
+            booking = bookingRepository.findById(feedbackDTO.getBookingId()).orElse(booking);
+            logger.debug("Sau khi lưu feedback - Booking ID: {}, Has Feedback: {}", feedbackDTO.getBookingId(), booking.getHasFeedback());
+
         } catch (IllegalArgumentException e) {
             logger.error("Lỗi khi gửi đánh giá: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi khi gửi đánh giá: " + e.getMessage());
@@ -186,6 +204,6 @@ public class FamilyBookingController {
             redirectAttributes.addFlashAttribute("error", "Lỗi không mong muốn khi gửi đánh giá: " + e.getMessage());
         }
 
-        return "redirect:/family/feedbacks?bookingId=" + feedbackDTO.getBookingId();
-    }
+        return "redirect:/family/feedbacks?bookingId=" + feedbackDTO.getBookingId();    }
 }
+
