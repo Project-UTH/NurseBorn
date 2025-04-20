@@ -77,7 +77,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/nurse-availability/**").hasRole("NURSE")
                             .requestMatchers(HttpMethod.GET, "/api/nurse-availability/**").hasAnyRole("NURSE", "FAMILY", "ADMIN")
                             .requestMatchers("/api/nurse-profiles/**").hasRole("NURSE")
-                            .requestMatchers("/nurse-profile", "/update-nurse").hasRole("NURSE")
+                            .requestMatchers("/nurse-profile", "/update-nurse", "/home-nurse").hasRole("NURSE")
                             .requestMatchers("/nurse-availability", "/nurse-schedule").hasRole("NURSE")
                             .requestMatchers("/nurse/pending-bookings", "/nurse/accept-booking").hasRole("NURSE")
 
@@ -101,7 +101,7 @@ public class SecurityConfig {
                             .requestMatchers("/feedback/**").hasRole("FAMILY")
                             .requestMatchers("/notifications/**").permitAll()
                             .requestMatchers("/family/bookings","/family/cancel-booking").hasRole("FAMILY")
-                            .requestMatchers("/error").permitAll()
+                            .requestMatchers("/error", "family/home-family").permitAll()
 
                             .anyRequest().authenticated();
                 })

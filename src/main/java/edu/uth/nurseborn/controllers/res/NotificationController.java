@@ -1,7 +1,9 @@
 package edu.uth.nurseborn.controllers.res;
 
+import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.Notification;
 import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import edu.uth.nurseborn.services.NotificationService;
 import org.slf4j.Logger;
@@ -27,6 +29,9 @@ public class NotificationController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NurseProfileRepository nurseProfileRepository;
+
     @GetMapping("/notifications")
     public String Notifications(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -39,10 +44,18 @@ public class NotificationController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
+        // Thêm nurseProfile nếu người dùng là NURSE
+        if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
+            NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(user.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + user.getUserId()));
+            logger.debug("NurseProfile userId={}, profileImage={}", user.getUserId(), nurseProfile.getProfileImage());
+            model.addAttribute("nurseProfile", nurseProfile);
+        }
+
         List<Notification> notifications = notificationService.getAllNotificationsForUser(user);
         model.addAttribute("notifications", notifications);
         model.addAttribute("user", user);
-        return "master/notifications"; // Tên template Thymeleaf để hiển thị thông báo
+        return "master/notifications";
     }
 
     @GetMapping("/notifications/mark-as-read/{notificationId}")

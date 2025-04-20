@@ -5,6 +5,7 @@ import edu.uth.nurseborn.models.Feedback;
 import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.BookingStatus;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.services.BookingService;
 import edu.uth.nurseborn.services.FeedbackService;
 import edu.uth.nurseborn.services.NurseServiceService;
@@ -37,6 +38,9 @@ public class NurseController {
 
     @Autowired
     private FeedbackService feedbackService;
+
+    @Autowired
+    private NurseProfileRepository nurseProfileRepository;
 
     // Phương thức tiện ích để kiểm tra và lấy thông tin người dùng
     private User authenticateAndGetNurse(String redirectUrl, RedirectAttributes redirectAttributes, Model model) {
@@ -85,6 +89,7 @@ public class NurseController {
                     averageRating = totalRating / feedbacks.size();
                 }
                 averageRatings.put(nurse.getUser().getUserId(), averageRating);
+                logger.debug("Nurse userId={}, profileImage={}", nurse.getUser().getUserId(), nurse.getProfileImage());
             }
 
             model.addAttribute("nurses", nurses);
@@ -105,7 +110,15 @@ public class NurseController {
         try {
             User nurseUser = authenticateAndGetNurse("error", null, model);
             List<Booking> pendingBookings = bookingService.getBookingsByNurseUserIdAndStatus(nurseUser.getUserId(), BookingStatus.PENDING);
+
+            // Thêm nurseProfile vào model
+            NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(nurseUser.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + nurseUser.getUserId()));
+            logger.debug("NurseProfile userId={}, profileImage={}", nurseUser.getUserId(), nurseProfile.getProfileImage());
+
             model.addAttribute("pendingBookings", pendingBookings);
+            model.addAttribute("nurseProfile", nurseProfile);
+            model.addAttribute("user", nurseUser);
             logger.info("Hiển thị danh sách lịch đặt chờ xác nhận cho y tá: {}", nurseUser.getUsername());
             return "nurse/pending-bookings";
         } catch (IllegalStateException e) {
@@ -155,4 +168,3 @@ public class NurseController {
         }
     }
 }
-

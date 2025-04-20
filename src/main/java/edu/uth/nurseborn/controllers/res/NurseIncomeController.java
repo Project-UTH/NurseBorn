@@ -1,7 +1,9 @@
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.NurseIncomeDTO;
+import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import edu.uth.nurseborn.services.NurseIncomeService;
 import org.slf4j.Logger;
@@ -35,6 +37,9 @@ public class NurseIncomeController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NurseProfileRepository nurseProfileRepository;
+
     /**
      * Xử lý yêu cầu GET để hiển thị thống kê thu nhập của y tá.
      */
@@ -55,6 +60,12 @@ public class NurseIncomeController {
             logger.warn("Người dùng {} không phải y tá", username);
             return "redirect:/";
         }
+
+        // Thêm nurseProfile vào model
+        NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(nurseUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + nurseUser.getUserId()));
+        logger.debug("NurseProfile userId={}, profileImage={}", nurseUser.getUserId(), nurseProfile.getProfileImage());
+        model.addAttribute("nurseProfile", nurseProfile);
 
         // Xác định khoảng thời gian dựa trên period và specificDate
         LocalDate startDate;
@@ -126,6 +137,7 @@ public class NurseIncomeController {
         model.addAttribute("specificDate", specificDate != null ? specificDate : displayDate);
         model.addAttribute("chartLabels", chartLabels);
         model.addAttribute("chartData", chartData);
+        model.addAttribute("user", nurseUser);
 
         logger.info("Hiển thị thống kê thu nhập cho y tá: {}", username);
         return "nurse/nurse_income";

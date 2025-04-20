@@ -26,5 +26,11 @@ public class NurseProfileDTO {
     private String certificateNames; // Thêm trường này
     private List<CertificateDTO> certificates;
 
+    private String username;
+    private String email;
+    private String phoneNumber;
+    private String address;
+    private String role;
+
     // Getter và Setter đã được tạo tự động bởi @Getter và @Setter của Lombok
 }

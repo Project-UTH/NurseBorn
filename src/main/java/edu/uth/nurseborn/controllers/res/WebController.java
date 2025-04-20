@@ -67,7 +67,7 @@ public class WebController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
             logger.debug("Người dùng chưa đăng nhập, hiển thị trang home mặc định");
-            return "master/home";
+            return "family/home-family";
         }
 
         try {
@@ -100,10 +100,10 @@ public class WebController {
             }
 
             logger.info("Hiển thị trang home cho user: {}", username);
-            return "master/home";
+            return "family/home-family";
         } catch (Exception e) {
             logger.error("Lỗi khi hiển thị trang home: {}", e.getMessage(), e);
-            return "master/home";
+            return "family/home-family";
         }
     }
 
@@ -179,6 +179,7 @@ public class WebController {
             return "redirect:/login";
         }
     }
+
 
     @GetMapping("/login")
     public String login(Model model) {

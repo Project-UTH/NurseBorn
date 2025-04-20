@@ -53,6 +53,12 @@
         .notification a:hover {
             background-color: #357abd;
         }
+        .error-message {
+            color: #e53e3e;
+            font-size: 14px;
+            padding: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -62,7 +68,9 @@
         <div id="menu-placeholder"></div>
 
         <div class="layout-page">
-            <div th:replace="~{master/navbar :: navbar}"></div>
+            <!-- Placeholder để JavaScript thêm navbar -->
+            <div id="navbar-placeholder"></div>
+
             <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
                     <!-- Tiêu đề -->
@@ -108,9 +116,11 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const currentUser = {
-        userId: [[${user.userId}]],
-        username: [[${user.username}]],
-        role: [[${user.role}]]
+        userId: [[${user?.userId}]],
+    username: [[${user?.username}]],
+    role: [[${user?.role}]],
+    fullName: [[${user?.fullName}]],
+    profileImage: [[${nurseProfile?.profileImage}]] || '/static/assets/img/avatars/default_profile.jpg'
     };
 
     // Hàm để thêm menu dựa trên vai trò
@@ -118,11 +128,10 @@
         const menuPlaceholder = document.getElementById('menu-placeholder');
 
         if (currentUser.role === 'NURSE') {
-            // Menu cho Nurse
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                     <div class="app-brand demo">
-                        <a href="/nurse/home-nurse" class="app-brand-link">
+                        <a href="/" class="app-brand-link">
                             <span class="app-brand-logo demo">
                                 <img src="/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
                             </span>
@@ -136,7 +145,7 @@
                     <ul class="menu-inner py-1">
                         <!-- Dashboard -->
                         <li class="menu-item active">
-                            <a href="/nurse/home-nurse" class="menu-link">
+                            <a href="/" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                                 <div data-i18n="Dashboard">Trang chủ</div>
                             </a>
@@ -214,7 +223,6 @@
                 </aside>
             `;
         } else if (currentUser.role === 'FAMILY') {
-            // Menu cho Family
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                     <div class="app-brand demo">
@@ -230,73 +238,72 @@
                     </div>
                     <div class="menu-inner-shadow"></div>
                     <ul class="menu-inner py-1">
-                    <!-- Dashboard -->
-                    <li class="menu-item active">
-                      <a href="/family/home" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                        <div data-i18n="Analytics">Home</div>
-                      </a>
-                    </li>
-                    <li class="menu-item active">
-                      <a href="/family/bookings" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-dock-top"></i>
-                        <div data-i18n="Analytics">Danh Sách Lịch Đặt</div>
-                      </a>
-                    </li>
+                        <!-- Dashboard -->
+                        <li class="menu-item active">
+                            <a href="/family/home" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                                <div data-i18n="Analytics">Home</div>
+                            </a>
+                        </li>
 
-                    <!-- Family Management -->
-                    <li class="menu-header small text-uppercase">
-                      <span class="menu-header-text">Quản lý Gia đình</span>
-                    </li>
+                        <li class="menu-item active">
+                            <a href="/family/bookings" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="Analytics">Danh Sách Lịch Đặt</div>
+                            </a>
+                        </li>
 
-                    <li class="menu-item">
-                      <a href="/nursepage" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-search"></i>
-                        <div data-i18n="FindNurse">Đặt dịch vụ</div>
-                      </a>
-                    </li>
+                        <!-- Family Management -->
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text">Quản lý Gia đình</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/nursepage" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-search"></i>
+                                <div data-i18n="FindNurse">Đặt dịch vụ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/messages" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-square"></i>
+                                <div data-i18n="Messages">Trò chuyện</div>
+                            </a>
+                        </li>
 
-                    <li class="menu-item">
-                      <a href="/messages" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-check-square"></i>
-                        <div data-i18n="Messages">Trò chuyện</div>
-                      </a>
-                    </li>
+                        <!-- Account Settings -->
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text">Tài khoản</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/user-profile" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="Profile">Hồ sơ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/update-user" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="UpdateProfile">Cập nhật hồ sơ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/notifications" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                                <div data-i18n="notifications">Thông Báo</div>
+                            </a>
+                        </li>
 
-                    <!-- Account Settings -->
-                    <li class="menu-header small text-uppercase">
-                      <span class="menu-header-text">Tài khoản</span>
-                    </li>
-                    <li class="menu-item">
-                      <a href="/user-profile" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-dock-top"></i>
-                        <div data-i18n="Profile">Hồ sơ</div>
-                      </a>
-                    </li>
-                    <li class="menu-item">
-                      <a href="/update-user" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-dock-top"></i>
-                        <div data-i18n="UpdateProfile">Cập nhật hồ sơ</div>
-                      </a>
-                    </li>
-                    <li class="menu-item">
-                      <a href="/notifications" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-calendar"></i>
-                        <div data-i18n="notifications">Thông Báo</div>
-                      </a>
-                    </li>
-                    <!-- Logout -->
-                    <li class="menu-item">
-                      <a href="/logout" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-log-out"></i>
-                        <div data-i18n="Logout">Đăng xuất</div>
-                      </a>
-                    </li>
-                  </ul>
+                        <!-- Logout -->
+                        <li class="menu-item">
+                            <a href="/logout" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-log-out"></i>
+                                <div data-i18n="Logout">Đăng xuất</div>
+                            </a>
+                        </li>
+                    </ul>
                 </aside>
             `;
         } else {
-            // Menu mặc định (cho vai trò khác, ví dụ ADMIN)
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                     <div class="app-brand demo">
@@ -324,10 +331,154 @@
         }
     }
 
-    // Gọi hàm loadMenuBasedOnRole và khởi tạo menu khi trang được tải
+    // Hàm để thêm navbar dựa trên vai trò
+    function loadNavbarBasedOnRole() {
+        const navbarPlaceholder = document.getElementById('navbar-placeholder');
+
+        if (currentUser.role === 'NURSE') {
+            navbarPlaceholder.innerHTML = `
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="bx bx-menu bx-sm"></i>
+                        </a>
+                    </div>
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Thanh tìm kiếm -->
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item d-flex align-items-center">
+                                <i class="bx bx-search fs-4 lh-0"></i>
+                                <input type="text" class="form-control border-0 shadow-none" placeholder="Tìm kiếm..." aria-label="Tìm kiếm..." />
+                            </div>
+                        </div>
+                        <!-- /Thanh tìm kiếm -->
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- Người dùng -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <img src="${currentUser.profileImage}" alt="Ảnh đại diện" class="w-px-40 h-auto rounded-circle" />
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/nurse-profile">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <img src="${currentUser.profileImage}" alt="Ảnh đại diện" class="w-px-40 h-auto rounded-circle" />
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-semibold d-block">${currentUser.fullName || 'Người dùng'}</span>
+                                                    <small class="text-muted">${currentUser.role || 'Khách'}</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/nurse-profile">
+                                            <i class="bx bx-user me-2"></i>
+                                            <span class="align-middle">Hồ sơ của tôi</span>
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/logout">
+                                            <i class="bx bx-power-off me-2"></i>
+                                            <span class="align-middle">Đăng xuất</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ Người dùng -->
+                        </ul>
+                    </div>
+                </nav>
+            `;
+        } else if (currentUser.role === 'FAMILY') {
+            navbarPlaceholder.innerHTML = `
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="bx bx-menu bx-sm"></i>
+                        </a>
+                    </div>
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Thanh tìm kiếm -->
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item d-flex align-items-center">
+                                <i class="bx bx-search fs-4 lh-0"></i>
+                                <input type="text" class="form-control border-0 shadow-none" placeholder="Tìm kiếm..." aria-label="Tìm kiếm..." />
+                            </div>
+                        </div>
+                        <!-- /Thanh tìm kiếm -->
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- Người dùng -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <img src="/static/assets/img/avatars/default_profile.jpg" alt="Ảnh đại diện" class="w-px-40 h-auto rounded-circle" />
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/user-profile">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <img src="/static/assets/img/avatars/default_profile.jpg" alt="Ảnh đại diện" class="w-px-40 h-auto rounded-circle" />
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-semibold d-block">${currentUser.fullName || 'Người dùng'}</span>
+                                                    <small class="text-muted">${currentUser.role || 'Khách'}</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/user-profile">
+                                            <i class="bx bx-user me-2"></i>
+                                            <span class="align-middle">Hồ sơ của tôi</span>
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/logout">
+                                            <i class="bx bx-power-off me-2"></i>
+                                            <span class="align-middle">Đăng xuất</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ Người dùng -->
+                        </ul>
+                    </div>
+                </nav>
+            `;
+        } else {
+            navbarPlaceholder.innerHTML = `
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/login">Đăng nhập</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            `;
+        }
+    }
+
+    // Gọi hàm loadMenuBasedOnRole và loadNavbarBasedOnRole khi trang được tải
     document.addEventListener('DOMContentLoaded', function() {
         try {
             loadMenuBasedOnRole();
+            loadNavbarBasedOnRole();
             if (typeof Menu !== 'undefined') {
                 const menuElements = document.querySelectorAll('.menu');
                 menuElements.forEach(menu => {
@@ -338,7 +489,7 @@
                 console.error('Menu class is not defined. Ensure menu.js is loaded correctly.');
             }
         } catch (error) {
-            console.error('Error initializing menu:', error);
+            console.error('Error initializing menu or navbar:', error);
         }
     });
     /*]]>*/

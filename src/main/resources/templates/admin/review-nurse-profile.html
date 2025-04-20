@@ -59,25 +59,42 @@
             <div class="card-body">
               <div class="d-flex align-items-center mb-3">
                 <img
-                        th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/images/default_profile.jpg'}"
+                        th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/assets/img/avatars/default_profile.jpg'}"
                         alt="Ảnh hồ sơ"
                         class="rounded-circle me-3"
                         style="width: 80px; height: 80px;"
                 />
                 <div>
-                  <h5 class="mb-1" th:text="${nurse.fullName ?: 'Chưa xác định'}">Tên Y Tá</h5>
-                  <p class="mb-0"><strong>ID:</strong> <span th:text="${nurse.nurseProfileId}">YT000</span></p>
+                  <h5 class="mb-1" th:text="${nurse.fullName != null ? nurse.fullName : 'Chưa xác định'}">Tên Y Tá</h5>
+                  <p class="mb-0"><strong>ID:</strong> <span th:text="${nurse.nurseProfileId != null ? nurse.nurseProfileId : 'Chưa xác định'}">YT000</span></p>
                 </div>
               </div>
-              <p class="mb-2"><strong>Kỹ năng:</strong> <span th:text="${nurse.skills ?: 'Chưa cập nhật'}">Chưa cập nhật</span></p>
-              <p class="mb-2"><strong>Kinh nghiệm:</strong> <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Chưa cập nhật'}">Chưa cập nhật</span></p>
+              <p class="mb-2"><strong>Tên đăng nhập:</strong> <span th:text="${nurse.username != null ? nurse.username : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Email:</strong> <span th:text="${nurse.email != null ? nurse.email : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Số điện thoại:</strong> <span th:text="${nurse.phoneNumber != null ? nurse.phoneNumber : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Địa chỉ:</strong> <span th:text="${nurse.address != null ? nurse.address : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Vai trò:</strong> <span th:text="${nurse.role != null ? nurse.role : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Vị trí:</strong> <span th:text="${nurse.location != null ? nurse.location : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Kỹ năng:</strong> <span th:text="${nurse.skills != null ? nurse.skills : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Kinh nghiệm:</strong> <span th:text="${nurse.experienceYears != null ? nurse.experienceYears + ' năm' : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Lương giờ:</strong> <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + ' VNĐ/giờ' : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Lương ngày:</strong> <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + ' VNĐ/ngày' : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Lương tuần:</strong> <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + ' VNĐ/tuần' : 'Không có thông tin'}"></span></p>
+              <p class="mb-2"><strong>Tiểu sử:</strong> <span th:text="${nurse.bio != null ? nurse.bio : 'Không có thông tin'}"></span></p>
               <p class="mb-2"><strong>Chứng chỉ:</strong>
-                <span th:text="${nurse.certificateNames ?: 'Chưa có'}">Chưa có</span>
+                <span th:if="${nurse.certificates != null and not #lists.isEmpty(nurse.certificates)}">
+                  <ul>
+                    <li th:each="certificate : ${nurse.certificates}">
+                      <span th:text="${certificate.certificateName}"></span>
+                      (<a th:href="${certificate.filePath}" target="_blank">Xem file</a>)
+                    </li>
+                  </ul>
+                </span>
+                <span th:unless="${nurse.certificates != null and not #lists.isEmpty(nurse.certificates)}">Không có thông tin</span>
               </p>
-              <p class="mb-2"><strong>Bio:</strong> <span th:text="${nurse.bio ?: 'Chưa cập nhật'}">Chưa cập nhật</span></p>
               <p class="mb-2"><strong>Trạng thái:</strong>
-                <span th:class="${nurse.isVerified ? 'text-success' : 'text-danger'}"
-                      th:text="${nurse.isVerified ? 'Đã xác minh' : 'Chưa xác minh'}">
+                <span th:class="${nurse.approved != null and nurse.approved ? 'text-success' : 'text-danger'}"
+                      th:text="${nurse.approved != null ? (nurse.approved ? 'Đã phê duyệt' : 'Chưa phê duyệt') : 'Không có thông tin'}">
                     Chưa xác định
                 </span>
               </p>
@@ -98,23 +115,6 @@
           </div>
         </div>
         <!-- / Content -->
-
-        <!-- Footer -->
-        <footer class="content-footer footer bg-footer-theme">
-          <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-            <div class="mb-2 mb-md-0">
-              © <script>document.write(new Date().getFullYear());</script>, made with ❤️ by
-              <a href="https://themeselection.com" target="_blank" class="footer-link fw-bolder">ThemeSelection</a>
-            </div>
-            <div>
-              <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">License</a>
-              <a href="https://themeselection.com/" target="_blank" class="footer-link me-4">More Themes</a>
-              <a href="https://themeselection.com/demo/sneat-bootstrap-html-admin-template/documentation/" target="_blank" class="footer-link me-4">Documentation</a>
-              <a href="https://github.com/themeselection/sneat-html-admin-template-free/issues" target="_blank" class="footer-link me-4">Support</a>
-            </div>
-          </div>
-        </footer>
-        <!-- / Footer -->
 
         <div class="content-backdrop fade"></div>
       </div>

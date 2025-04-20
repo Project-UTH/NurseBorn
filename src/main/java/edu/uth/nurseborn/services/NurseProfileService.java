@@ -303,8 +303,16 @@ public class NurseProfileService {
         return nurseProfiles.stream()
                 .map(nurseProfile -> {
                     NurseProfileDTO dto = modelMapper.map(nurseProfile, NurseProfileDTO.class);
-                    dto.setFullName(nurseProfile.getUser().getFullName());
-                    dto.setIsVerified(nurseProfile.getUser().getVerified());
+                    User user = nurseProfile.getUser();
+                    dto.setFullName(user.getFullName());
+                    dto.setIsVerified(user.getVerified());
+                    // Thêm ánh xạ các trường từ User
+                    dto.setUsername(user.getUsername());
+                    dto.setEmail(user.getEmail());
+                    dto.setPhoneNumber(user.getPhoneNumber());
+                    dto.setAddress(user.getAddress());
+                    dto.setRole(user.getRole().name().startsWith("ROLE_") ?
+                            user.getRole().name().substring(5) : user.getRole().name());
                     List<Certificate> certificates = certificateRepository.findByNurseProfileUserUserId(nurseProfile.getUser().getUserId());
                     List<CertificateDTO> certificateDTOs = certificates.stream()
                             .map(certificate -> modelMapper.map(certificate, CertificateDTO.class))

@@ -2,7 +2,9 @@ package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.MessageDTO;
 import edu.uth.nurseborn.dtos.UserDTO;
+import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,9 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private NurseProfileRepository nurseProfileRepository;
+
     @GetMapping
     public String getMessagesPage(Model model, @RequestParam(value = "nurseUserId", required = false) Long nurseUserId) {
         logger.debug("Hiển thị trang tin nhắn, nurseUserId: {}", nurseUserId);
@@ -34,6 +39,15 @@ public class MessageController {
         try {
             User user = messageService.getUserByUsername(username);
             model.addAttribute("user", user);
+
+            // Thêm nurseProfile nếu người dùng là NURSE
+            if ("NURSE".equalsIgnoreCase(user.getRole().name())) {
+                NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(user.getUserId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + user.getUserId()));
+                logger.debug("NurseProfile userId={}, profileImage={}", user.getUserId(), nurseProfile.getProfileImage());
+                model.addAttribute("nurseProfile", nurseProfile);
+            }
+
             if (nurseUserId != null) {
                 User nurse = messageService.getUserById(nurseUserId);
                 if (nurse != null) {
@@ -81,7 +95,6 @@ public class MessageController {
         logger.debug("Nhận yêu cầu lấy danh sách đối tác trò chuyện cho userId: {}", userId);
         try {
             List<User> partners = messageService.getConversationPartners(userId);
-            // Chuyển đổi danh sách User thành danh sách UserDTO
             List<UserDTO> partnerDTOs = partners.stream()
                     .map(user -> {
                         UserDTO dto = new UserDTO();

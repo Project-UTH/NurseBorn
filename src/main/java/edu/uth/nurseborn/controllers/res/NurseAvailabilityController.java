@@ -3,11 +3,14 @@ package edu.uth.nurseborn.controllers.res;
 import edu.uth.nurseborn.dtos.NurseAvailabilityDTO;
 import edu.uth.nurseborn.dtos.UserDTO;
 import edu.uth.nurseborn.models.Booking;
+import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.BookingStatus;
+import edu.uth.nurseborn.repositories.NurseProfileRepository;
 import edu.uth.nurseborn.repositories.UserRepository;
 import edu.uth.nurseborn.services.BookingService;
 import edu.uth.nurseborn.services.NurseAvailabilityService;
+import edu.uth.nurseborn.services.NurseProfileService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,9 @@ public class NurseAvailabilityController {
 
     @Autowired
     private NurseAvailabilityService nurseAvailabilityService;
+
+    @Autowired
+    private NurseProfileRepository nurseProfileRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -93,6 +99,13 @@ public class NurseAvailabilityController {
         try {
             UserDTO userDTO = authenticateAndGetNurse(model);
             NurseAvailabilityDTO availabilityDTO = nurseAvailabilityService.getAvailabilityByUserId(userDTO.getUserId());
+
+            // Thêm nurseProfile vào model
+            NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(userDTO.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + userDTO.getUserId()));
+            logger.debug("NurseProfile userId={}, profileImage={}", userDTO.getUserId(), nurseProfile.getProfileImage());
+            model.addAttribute("nurseProfile", nurseProfile);
+
             model.addAttribute("availabilityDTO", availabilityDTO);
             model.addAttribute("user", userDTO);
             model.addAttribute("daysOfWeek", Arrays.asList("Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"));
@@ -151,6 +164,12 @@ public class NurseAvailabilityController {
             Map<LocalDate, List<Booking>> bookingsByDate = acceptedBookings.stream()
                     .filter(booking -> !booking.getBookingDate().isBefore(startOfWeek) && !booking.getBookingDate().isAfter(endOfWeek))
                     .collect(Collectors.groupingBy(Booking::getBookingDate));
+
+            // Thêm nurseProfile
+            NurseProfile nurseProfile = nurseProfileRepository.findByUserUserId(userDTO.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy NurseProfile cho userId: " + userDTO.getUserId()));
+            logger.debug("NurseProfile userId={}, profileImage={}", userDTO.getUserId(), nurseProfile.getProfileImage());
+            model.addAttribute("nurseProfile", nurseProfile);
 
             model.addAttribute("availabilityDTO", availabilityDTO);
             model.addAttribute("daysOfWeek", daysOfWeek);
