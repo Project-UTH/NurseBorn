@@ -24,4 +24,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // Phương thức tìm kiếm lịch theo nurseUserId và trạng thái
     @Query("SELECT b FROM Booking b WHERE b.nurseUser.userId = :nurseUserId AND b.status = :status")
     List<Booking> findByNurseUserUserIdAndStatus(@Param("nurseUserId") Long nurseUserId, @Param("status") BookingStatus status);
+
+    List<Booking> findByFamilyUserAndStatus(User familyUser, BookingStatus status);
 }

@@ -1,78 +1,102 @@
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.FeedbackDTO;
+import edu.uth.nurseborn.models.Booking;
+import edu.uth.nurseborn.models.User;
+import edu.uth.nurseborn.repositories.UserRepository;
+import edu.uth.nurseborn.services.BookingService;
 import edu.uth.nurseborn.services.FeedbackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/feedbacks")
+@Controller
 public class FeedbackController {
 
     private static final Logger logger = LoggerFactory.getLogger(FeedbackController.class);
 
-    @Autowired
-    private FeedbackService feedbackService;
+    private final UserRepository userRepository;
+    private final BookingService bookingService;
+    private final FeedbackService feedbackService;
 
-    // Tạo mới một đánh giá
-    @PostMapping
-    public ResponseEntity<FeedbackDTO> createFeedback(@RequestBody FeedbackDTO danhGiaDTO) {
-        logger.info("Nhận yêu cầu tạo đánh giá: {}", danhGiaDTO);
-        FeedbackDTO createdFeedback = feedbackService.createFeedback(danhGiaDTO);
-        logger.info("Đã tạo đánh giá thành công với ID: {}", createdFeedback.getFeedbackId());
-        return new ResponseEntity<>(createdFeedback, HttpStatus.CREATED);
+    public FeedbackController(UserRepository userRepository, BookingService bookingService, FeedbackService feedbackService) {
+        this.userRepository = userRepository;
+        this.bookingService = bookingService;
+        this.feedbackService = feedbackService;
     }
 
-    // Lấy đánh giá theo feedbackId
-    @GetMapping("/{feedbackId}")
-    public ResponseEntity<FeedbackDTO> getFeedbackById(@PathVariable Integer feedbackId) {
-        logger.info("Nhận yêu cầu lấy đánh giá với ID: {}", feedbackId);
-        FeedbackDTO feedback = feedbackService.getFeedbackById(feedbackId);
-        logger.info("Đã lấy đánh giá thành công với ID: {}", feedbackId);
-        return new ResponseEntity<>(feedback, HttpStatus.OK);
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            throw new IllegalStateException("Người dùng chưa đăng nhập");
+        }
+
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + username));
     }
 
-    // Lấy đánh giá theo bookingId
-    @GetMapping("/booking/{bookingId}")
-    public ResponseEntity<FeedbackDTO> getFeedbackByBooking(@PathVariable Integer bookingId) {
-        logger.info("Nhận yêu cầu lấy đánh giá cho lịch đặt ID: {}", bookingId);
-        FeedbackDTO feedback = feedbackService.getFeedbackByBooking(bookingId);
-        logger.info("Đã lấy đánh giá thành công cho lịch đặt ID: {}", bookingId);
-        return new ResponseEntity<>(feedback, HttpStatus.OK);
+    @GetMapping("/family/feedback")
+    public String showFeedbackPage(Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User user = getCurrentUser();
+
+            if (!"FAMILY".equalsIgnoreCase(user.getRole().name())) {
+                logger.warn("Người dùng {} không phải FAMILY, không có quyền truy cập", user.getUsername());
+                redirectAttributes.addFlashAttribute("error", "Bạn cần vai trò FAMILY để truy cập!");
+                return "redirect:/";
+            }
+
+            List<Booking> completedBookings = bookingService.getCompletedBookingsForFamily(user);
+            model.addAttribute("completedBookings", completedBookings);
+            model.addAttribute("user", user);
+            model.addAttribute("feedbackDTO", new FeedbackDTO());
+
+            logger.info("Hiển thị trang đánh giá cho người dùng {} với {} lịch đặt đã hoàn thành", user.getUsername(), completedBookings.size());
+            return "family/feedback";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", "Bạn cần đăng nhập!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang đánh giá: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+            return "redirect:/error";
+        }
     }
 
-    // Lấy đánh giá theo bookingId và nurseUserId
-    @GetMapping("/booking/{bookingId}/nurse/{nurseUserId}")
-    public ResponseEntity<FeedbackDTO> getFeedbackByBookingAndNurse(
-            @PathVariable Integer bookingId,
-            @PathVariable Long nurseUserId) { // Thay Integer thành Long
-        logger.info("Nhận yêu cầu lấy đánh giá cho lịch đặt ID: {} và y tá ID: {}", bookingId, nurseUserId);
-        FeedbackDTO feedback = feedbackService.getFeedbackByBookingAndNurse(bookingId, nurseUserId);
-        logger.info("Đã lấy đánh giá thành công cho lịch đặt ID: {} và y tá ID: {}", bookingId, nurseUserId);
-        return new ResponseEntity<>(feedback, HttpStatus.OK);
-    }
+    @PostMapping("/family/rate-booking")
+    public String submitFeedback(@ModelAttribute("feedbackDTO") FeedbackDTO feedbackDTO, RedirectAttributes redirectAttributes) {
+        try {
+            User user = getCurrentUser();
 
-    // Lấy tất cả đánh giá của một y tá
-    @GetMapping("/nurse/{nurseUserId}")
-    public ResponseEntity<List<FeedbackDTO>> getFeedbacksByNurse(@PathVariable Long nurseUserId) { // Thay Integer thành Long
-        logger.info("Nhận yêu cầu lấy tất cả đánh giá cho y tá ID: {}", nurseUserId);
-        List<FeedbackDTO> feedbacks = feedbackService.getFeedbacksByNurse(nurseUserId);
-        logger.info("Đã lấy {} đánh giá cho y tá ID: {}", feedbacks.size(), nurseUserId);
-        return new ResponseEntity<>(feedbacks, HttpStatus.OK);
-    }
+            if (!"FAMILY".equalsIgnoreCase(user.getRole().name())) {
+                logger.warn("Người dùng {} không phải FAMILY, không có quyền gửi đánh giá", user.getUsername());
+                redirectAttributes.addFlashAttribute("error", "Bạn cần vai trò FAMILY để gửi đánh giá!");
+                return "redirect:/";
+            }
 
-    // Lấy tất cả đánh giá của một gia đình
-    @GetMapping("/family/{familyUserId}")
-    public ResponseEntity<List<FeedbackDTO>> getFeedbacksByFamily(@PathVariable Long familyUserId) { // Thay Integer thành Long
-        logger.info("Nhận yêu cầu lấy tất cả đánh giá cho gia đình ID: {}", familyUserId);
-        List<FeedbackDTO> feedbacks = feedbackService.getFeedbacksByFamily(familyUserId);
-        logger.info("Đã lấy {} đánh giá cho gia đình ID: {}", feedbacks.size(), familyUserId);
-        return new ResponseEntity<>(feedbacks, HttpStatus.OK);
+            feedbackService.createFeedback(feedbackDTO, user);
+            redirectAttributes.addFlashAttribute("success", "Gửi đánh giá thành công!");
+            logger.info("Người dùng {} đã gửi đánh giá cho lịch đặt ID: {}", user.getUsername(), feedbackDTO.getBookingId());
+        } catch (IllegalStateException e) {
+            logger.warn("Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+            redirectAttributes.addFlashAttribute("error", "Bạn cần đăng nhập!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            logger.error("Lỗi khi gửi đánh giá: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi gửi đánh giá: " + e.getMessage());
+        }
+
+        return "redirect:/family/feedback";
     }
 }

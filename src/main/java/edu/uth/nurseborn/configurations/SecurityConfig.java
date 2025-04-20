@@ -68,10 +68,10 @@ public class SecurityConfig {
 
                             // Family endpoints
                             .requestMatchers("/family/**", "/nursepage", "/nurse_review/**").hasRole("FAMILY")
-                            .requestMatchers("/messages").hasAnyRole("NURSE","FAMILY")
+                            .requestMatchers("/messages").hasAnyRole("NURSE", "FAMILY")
 
                             // Nurse endpoints
-                            .requestMatchers("/nurse/income").hasRole("NURSE") // Thêm để cho phép y tá truy cập thống kê thu nhập
+                            .requestMatchers("/nurse/income").hasRole("NURSE")
                             .requestMatchers(HttpMethod.POST, "/api/nurse-availability").hasRole("NURSE")
                             .requestMatchers(HttpMethod.PUT, "/api/nurse-availability/**").hasRole("NURSE")
                             .requestMatchers(HttpMethod.DELETE, "/api/nurse-availability/**").hasRole("NURSE")
@@ -90,12 +90,13 @@ public class SecurityConfig {
                             .requestMatchers("/nurse-service/**").hasAnyRole("NURSE", "FAMILY")
 
                             // Web endpoints
-                            .requestMatchers("/dashboard", "/create-profile", "/manage-services", "/feedbacks").authenticated()
+                            .requestMatchers("/dashboard", "/create-profile", "/manage-services").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
                             .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
                             .requestMatchers("/nursepage/**").permitAll()
                             .requestMatchers("/nurse_review/**").permitAll()
                             .requestMatchers("/notifications/**").permitAll()
+                            .requestMatchers("/error").permitAll()
 
                             .anyRequest().authenticated();
                 })

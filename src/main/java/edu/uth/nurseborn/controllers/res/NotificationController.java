@@ -42,7 +42,7 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getAllNotificationsForUser(user);
         model.addAttribute("notifications", notifications);
         model.addAttribute("user", user);
-        return "nurse/notifications"; // Tên template Thymeleaf để hiển thị thông báo
+        return "master/notifications"; // Tên template Thymeleaf để hiển thị thông báo
     }
 
     @GetMapping("/notifications/mark-as-read/{notificationId}")

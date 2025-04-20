@@ -1,16 +1,12 @@
 package edu.uth.nurseborn.dtos;
 
-import lombok.Data;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class FeedbackDTO {
-    private Integer feedbackId;
-    private Integer bookingId;
-    private Long familyUserId;
-    private Long nurseUserId;
-    private Integer rating;
-    private String comment;
-    private String response;
-    private LocalDateTime createdAt;
+    private Long bookingId; // ID của lịch đặt
+    private int rating; // Điểm đánh giá (1-5)
+    private String comment; // Phản hồi văn bản
 }

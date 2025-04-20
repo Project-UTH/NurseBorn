@@ -363,6 +363,15 @@ public class BookingService {
             logger.info("Đã tạo bản ghi NurseIncome cho booking_id: {}", bookingId);
         }
 
+        // Tạo thông báo cho khách hàng (family) khi đơn booking hoàn thành
+        String message = String.format("Lịch đặt của bạn vào ngày %s đã được y tá %s hoàn thành.",
+                booking.getBookingDate(), booking.getNurseUser().getFullName());
+        notificationService.createNotification(booking.getFamilyUser(), message, booking);
+
         logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành COMPLETED", bookingId);
+    }
+
+    public List<Booking> getCompletedBookingsForFamily(User familyUser) {
+        return bookingRepository.findByFamilyUserAndStatus(familyUser, BookingStatus.COMPLETED);
     }
 }

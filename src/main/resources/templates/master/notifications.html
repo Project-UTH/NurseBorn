@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <div th:replace="~{master/head::head}"></div>
+    <style>
+        .notification {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 5px solid #4a90e2;
+            margin-bottom: 15px;
+        }
+        .notification.unread {
+            background-color: #e6f0fa;
+            font-weight: 500;
+            border-left-color: #ff6f61;
+        }
+        .notification.read {
+            background-color: #f0f0f0;
+            border-left-color: #ccc;
+        }
+        .notification:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        .notification p {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            text-align: left;
+        }
+        .notification small {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #777;
+        }
+        .notification a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background-color: #4a90e2;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .notification a:hover {
+            background-color: #357abd;
+        }
+    </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <!-- Placeholder để JavaScript thêm menu -->
+        <div id="menu-placeholder"></div>
+
+        <div class="layout-page">
+            <div th:replace="~{master/navbar :: navbar}"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+                    <!-- Tiêu đề -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="mb-4 text-primary">Thông Báo</h4>
+                            <!-- Nếu không có thông báo -->
+                            <div th:if="${notifications.isEmpty()}">
+                                <p class="text-center text-muted">Không có thông báo nào.</p>
+                            </div>
+
+                            <!-- Danh sách thông báo -->
+                            <div th:unless="${notifications.isEmpty()}">
+                                <ul class="list-unstyled">
+                                    <li th:each="notification : ${notifications}">
+                                        <div th:class="${notification.isRead} ? 'notification read' : 'notification unread'">
+                                            <p th:text="${notification.message}"></p>
+                                            <small th:text="${notification.createdAt}"></small>
+                                            <a th:if="${!notification.isRead}"
+                                               th:href="@{/notifications/mark-as-read/{id}(id=${notification.notificationId})}">
+                                                Đánh dấu đã đọc
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Nút quay lại -->
+                            <a href="/nursepage" class="btn btn-danger mt-3">Quay lại</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/js/main.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const currentUser = {
+        userId: [[${user.userId}]],
+        username: [[${user.username}]],
+        role: [[${user.role}]]
+    };
+
+    // Hàm để thêm menu dựa trên vai trò
+    function loadMenuBasedOnRole() {
+        const menuPlaceholder = document.getElementById('menu-placeholder');
+
+        if (currentUser.role === 'NURSE') {
+            // Menu cho Nurse
+            menuPlaceholder.innerHTML = `
+                <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                    <div class="app-brand demo">
+                        <a href="/home" class="app-brand-link">
+                            <span class="app-brand-logo demo">
+                                <img src="/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
+                            </span>
+                            <span class="app-brand-text demo text-body fw-bolder text-uppercase">NURSEBORN</span>
+                        </a>
+                        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+                            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+                        </a>
+                    </div>
+                    <div class="menu-inner-shadow"></div>
+                    <ul class="menu-inner py-1">
+                        <li class="menu-item">
+                            <a href="/home-nurse" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                                <div data-i18n="Dashboard">Trang chủ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/nurse-schedule" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                                <div data-i18n="Schedule">Lịch Làm Việc</div>
+                            </a>
+                        </li>
+                        <li class="menu-item active">
+                            <a href="/notifications" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-bell"></i>
+                                <div data-i18n="Notifications">Thông Báo</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/nurse/pending-bookings" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time"></i>
+                                <div data-i18n="Pending Bookings">Lịch Đặt Chờ Xác Nhận</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/nurse-availability" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-check-square"></i>
+                                <div data-i18n="Availability">Quản Lý Lịch Làm Việc</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/messages" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-message-square"></i>
+                                <div data-i18n="Messages">Trò chuyện</div>
+                            </a>
+                        </li>
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text">Tài Khoản</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="Account Settings">Cài Đặt Tài Khoản</div>
+                            </a>
+                            <ul class="menu-sub">
+                                <li class="menu-item">
+                                    <a href="/nurse-profile" class="menu-link">
+                                        <div data-i18n="Account">Tài Khoản</div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/logout" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-log-out"></i>
+                                <div data-i18n="Logout">Đăng Xuất</div>
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+            `;
+        } else if (currentUser.role === 'FAMILY') {
+            // Menu cho Family
+            menuPlaceholder.innerHTML = `
+                <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                    <div class="app-brand demo">
+                        <a href="/family/home" class="app-brand-link">
+                            <span class="app-brand-logo demo">
+                                <img src="/static/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
+                            </span>
+                            <span class="app-brand-text demo text-body fw-bolder text-uppercase">NURSEBORN</span>
+                        </a>
+                        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+                            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+                        </a>
+                    </div>
+                    <div class="menu-inner-shadow"></div>
+                    <ul class="menu-inner py-1">
+                        <li class="menu-item">
+                            <a href="/family/home" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                                <div data-i18n="Analytics">Dashboard</div>
+                            </a>
+                        </li>
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text">Quản lý Gia đình</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/nursepage" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-search"></i>
+                                <div data-i18n="FindNurse">Đặt dịch vụ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/messages" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-message-square"></i>
+                                <div data-i18n="Messages">Trò chuyện</div>
+                            </a>
+                        </li>
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text">Tài khoản</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/user-profile" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="Profile">Hồ sơ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/update-user" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="UpdateProfile">Cập nhật hồ sơ</div>
+                            </a>
+                        </li>
+                        <li class="menu-item active">
+                            <a href="/notifications" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-bell"></i>
+                                <div data-i18n="Notifications">Thông Báo</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/feedback" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-star"></i>
+                                <div data-i18n="Feedback">Đánh giá</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/logout" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-log-out"></i>
+                                <div data-i18n="Logout">Đăng xuất</div>
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+            `;
+        } else {
+            // Menu mặc định (cho vai trò khác, ví dụ ADMIN)
+            menuPlaceholder.innerHTML = `
+                <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                    <div class="app-brand demo">
+                        <a href="/" class="app-brand-link">
+                            <span class="app-brand-logo demo">
+                                <img src="/static/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
+                            </span>
+                            <span class="app-brand-text demo text-body fw-bolder text-uppercase">NURSEBORN</span>
+                        </a>
+                        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+                            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+                        </a>
+                    </div>
+                    <div class="menu-inner-shadow"></div>
+                    <ul class="menu-inner py-1">
+                        <li class="menu-item">
+                            <a href="/login" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-log-in"></i>
+                                <div data-i18n="Login">Đăng nhập</div>
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+            `;
+        }
+
+        // Kích hoạt lại JavaScript của menu (nếu cần)
+        if (typeof initMenu === 'function') {
+            initMenu();
+        }
+    }
+
+    // Gọi hàm loadMenuBasedOnRole khi trang được tải
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMenuBasedOnRole();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
