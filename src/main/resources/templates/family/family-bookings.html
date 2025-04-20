@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th='http://www.thymeleaf.org' lang="vi">
+<head>
+    <th:block th:replace="~{master/head :: head}"></th:block>
+    <title>Lịch Đặt Của Gia Đình - NurseBorn</title>
+    <style>
+        .booking-card .card {
+            border: none;
+            border-radius: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .booking-card .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        .status-pending {
+            color: #ffc107;
+            font-weight: 500;
+        }
+        .status-accepted {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .status-completed {
+            color: #17a2b8;
+            font-weight: 500;
+        }
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .btn-feedback {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            color: #fff;
+            margin: 5px;
+        }
+        .btn-feedback:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+        .btn-cancel {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            color: #fff;
+            margin: 5px;
+        }
+        .btn-cancel:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+        .card-text {
+            margin-bottom: 8px;
+        }
+        .card-body {
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div th:replace="~{family/layoutmenufamily :: menu}"></div>
+        <div class="layout-page">
+            <div th:replace="~{master/navbar :: navbar}"></div>
+            <div class="content-wrapper">
+                <div class="content-xxl flex-grow-1 container-p-y">
+                    <div class="card mb-4">
+                        <h5 class="card-header text-center">Danh Sách Lịch Đặt</h5>
+                        <div class="card-body">
+                            <!-- Error Message -->
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                                <span th:text="${error}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <!-- Success Message -->
+                            <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                                <span th:text="${success}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <!-- Bookings Display -->
+                            <div th:if="${bookings != null and not #lists.isEmpty(bookings)}" class="row">
+                                <div th:each="booking : ${bookings}" class="col-md-4 mb-4 booking-card">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <span th:text="'Y tá: ' + ${booking.nurseUser.fullName}"></span>
+                                            </h5>
+                                            <p class="card-text">
+                                                <strong>ID Booking:</strong>
+                                                <span th:text="${booking.bookingId}"></span>
+                                            </p>
+                                            <p class="card-text">
+                                                <strong>Ngày đặt:</strong>
+                                                <span th:text="${booking.bookingDate}"></span>
+                                            </p>
+                                            <p class="card-text">
+                                                <strong>Loại dịch vụ:</strong>
+                                                <span th:text="${booking.serviceType}"></span>
+                                            </p>
+                                            <p class="card-text" th:if="${booking.serviceType == 'HOURLY'}">
+                                                <strong>Giờ bắt đầu:</strong>
+                                                <span th:text="${booking.startTime}"></span>
+                                                <br>
+                                                <strong>Giờ kết thúc:</strong>
+                                                <span th:text="${booking.endTime}"></span>
+                                            </p>
+                                            <p class="card-text">
+                                                <strong>Giá:</strong>
+                                                <span th:text="${booking.price} + ' VND'"></span>
+                                            </p>
+                                            <p class="card-text">
+                                                <strong>Trạng thái:</strong>
+                                                <span th:class="'status-' + ${#strings.toLowerCase(booking.status.name())}"
+                                                      th:text="${booking.status}"></span>
+                                            </p>
+                                            <p class="card-text">
+                                                <strong>Ghi chú:</strong>
+                                                <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                                            </p>
+                                            <!-- Nút Đánh giá cho trạng thái COMPLETED -->
+                                            <div class="text-center" th:if="${booking.status.name() == 'COMPLETED'}">
+                                                <a th:href="@{/feedback(bookingId=${booking.bookingId})}" class="btn btn-feedback">Đánh giá</a>
+                                            </div>
+                                            <!-- Nút Hủy cho trạng thái PENDING -->
+                                            <div class="text-center" th:if="${booking.status.name() == 'PENDING'}">
+                                                <form th:action="@{/family/cancel-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
+                                                    <button type="submit" class="btn btn-cancel">Hủy</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${bookings == null or #lists.isEmpty(bookings)}" class="text-center">
+                                <p>Không có lịch đặt nào.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core JS -->
+<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/static/assets/vendor/libs/popper/popper.js"></script>
+<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/static/assets/vendor/js/menu.js"></script>
+<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script src="/static/assets/js/main.js"></script>
+<script src="/static/assets/js/dashboards-analytics.js"></script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>

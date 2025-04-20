@@ -298,7 +298,7 @@ public class BookingService {
         notificationService.createNotification(booking.getFamilyUser(), message, booking);
     }
 
-    // Hủy lịch đặt
+    // Hủy lịch đặt từ phía NURSE
     @Transactional
     public void cancelBooking(Long bookingId, Long nurseUserId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -317,7 +317,39 @@ public class BookingService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
-        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành CANCELLED", bookingId);
+        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành CANCELLED bởi NURSE", bookingId);
+
+        // Tạo thông báo cho khách hàng
+        String message = String.format("Lịch đặt của bạn vào ngày %s đã bị y tá %s hủy.",
+                booking.getBookingDate(), booking.getNurseUser().getFullName());
+        notificationService.createNotification(booking.getFamilyUser(), message, booking);
+    }
+
+    // Hủy lịch đặt từ phía FAMILY
+    @Transactional
+    public void cancelBookingByFamily(Long bookingId, Long familyUserId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch đặt với ID: " + bookingId));
+
+        // Kiểm tra xem lịch đặt có thuộc về khách hàng này không
+        if (!booking.getFamilyUser().getUserId().equals(familyUserId)) {
+            throw new IllegalArgumentException("Lịch đặt không thuộc về khách hàng này");
+        }
+
+        // Kiểm tra trạng thái hiện tại của lịch
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalArgumentException("Lịch đặt không ở trạng thái PENDING");
+        }
+
+        // Cập nhật trạng thái thành CANCELLED
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+        logger.info("Đã cập nhật trạng thái lịch đặt với ID: {} thành CANCELLED bởi FAMILY", bookingId);
+
+        // Tạo thông báo cho y tá
+        String message = String.format("Lịch đặt vào ngày %s đã bị khách hàng %s hủy.",
+                booking.getBookingDate(), booking.getFamilyUser().getFullName());
+        notificationService.createNotification(booking.getNurseUser(), message, booking);
     }
 
     // Hoàn thành lịch đặt và tạo bản ghi NurseIncome
@@ -373,5 +405,10 @@ public class BookingService {
 
     public List<Booking> getCompletedBookingsForFamily(User familyUser) {
         return bookingRepository.findByFamilyUserAndStatus(familyUser, BookingStatus.COMPLETED);
+    }
+
+    // Lấy tất cả lịch đặt của FAMILY
+    public List<Booking> getBookingsByFamilyUser(User familyUser) {
+        return bookingRepository.findByFamilyUser(familyUser);
     }
 }

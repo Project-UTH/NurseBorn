@@ -1,6 +1,7 @@
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.dtos.MessageDTO;
+import edu.uth.nurseborn.dtos.UserDTO;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.services.MessageService;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/messages")
@@ -79,7 +81,17 @@ public class MessageController {
         logger.debug("Nhận yêu cầu lấy danh sách đối tác trò chuyện cho userId: {}", userId);
         try {
             List<User> partners = messageService.getConversationPartners(userId);
-            return ResponseEntity.ok(partners);
+            // Chuyển đổi danh sách User thành danh sách UserDTO
+            List<UserDTO> partnerDTOs = partners.stream()
+                    .map(user -> {
+                        UserDTO dto = new UserDTO();
+                        dto.setUserId(user.getUserId());
+                        dto.setUsername(user.getUsername());
+                        dto.setFullName(user.getFullName());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(partnerDTOs);
         } catch (Exception e) {
             logger.error("Lỗi khi lấy danh sách đối tác trò chuyện: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

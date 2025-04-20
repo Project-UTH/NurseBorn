@@ -9,24 +9,25 @@
         .chat-container {
             display: flex;
             height: 70vh;
-            border: 1px solid #ebedf0;
+            border: 1px solid #d1d3e2;
             border-radius: 8px;
-            background-color: #fff;
+            background-color: #f8fafc;
             margin: 0;
             padding: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
         .sidebar {
             width: 30%;
-            background-color: #f8f9fa;
+            background-color: #f1f5f9;
             padding: 20px;
-            border-right: 1px solid #ebedf0;
+            border-right: 1px solid #d1d3e2;
             overflow-y: auto;
         }
         .sidebar h5 {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #333;
+            color: #2d3748;
         }
         .sidebar ul {
             list-style: none;
@@ -39,13 +40,18 @@
             border-radius: 4px;
             margin-bottom: 5px;
             transition: background-color 0.2s;
+            color: #4a5568;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .sidebar li:hover {
-            background-color: #e9ecef;
+            background-color: #e2e8f0;
         }
         .sidebar li.selected {
-            background-color: #dee2e6;
+            background-color: #cbd5e0;
             font-weight: 500;
+            color: #1a202c;
         }
         .chat-area {
             width: 70%;
@@ -57,14 +63,14 @@
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #333;
+            color: #2d3748;
         }
         .messages {
             flex: 1;
             overflow-y: auto;
             margin-bottom: 20px;
             padding: 10px;
-            background-color: #f9f9f9;
+            background-color: #edf2f7;
             border-radius: 4px;
         }
         .message {
@@ -75,12 +81,12 @@
             line-height: 1.4;
         }
         .message.sent {
-            background-color: #4e73df;
-            color: white;
+            background-color: #4299e1;
+            color: #ffffff;
             margin-left: auto;
         }
         .message.received {
-            background-color: #e9ecef;
+            background-color: #e2e8f0;
             margin-right: auto;
         }
         .message p {
@@ -89,7 +95,7 @@
         }
         .message span {
             font-size: 12px;
-            color: #6c757d;
+            color: #718096;
             display: block;
             margin-top: 5px;
         }
@@ -101,19 +107,19 @@
         .message-input input {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #ced4da;
+            border: 1px solid #d1d3e2;
             border-radius: 4px;
             font-size: 14px;
             outline: none;
         }
         .message-input input:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 5px rgba(78, 115, 223, 0.2);
+            border-color: #4299e1;
+            box-shadow: 0 0 5px rgba(66, 153, 225, 0.3);
         }
         .message-input button {
             padding: 8px 20px;
-            background-color: #4e73df;
-            color: white;
+            background-color: #4299e1;
+            color: #ffffff;
             border: none;
             border-radius: 4px;
             font-size: 14px;
@@ -121,16 +127,16 @@
             transition: background-color 0.2s;
         }
         .message-input button:hover {
-            background-color: #3b5bdb;
+            background-color: #3182ce;
         }
         .error-message {
-            color: #dc3545;
+            color: #e53e3e;
             font-size: 14px;
             padding: 10px;
             text-align: center;
         }
         .no-data {
-            color: #6c757d;
+            color: #718096;
             font-size: 14px;
             padding: 10px;
             text-align: center;
@@ -204,7 +210,8 @@
     if (hasSelectedNurse) {
         selectedNurse = {
             userId: [[${selectedNurse != null ? selectedNurse.userId : ''}]],
-        username: [[${selectedNurse != null ? selectedNurse.username : ''}]]
+        username: [[${selectedNurse != null ? selectedNurse.username : ''}]],
+        fullName: [[${selectedNurse != null ? selectedNurse.fullName : ''}]]
     };
     }
 
@@ -251,6 +258,12 @@
                             <a href="/nurse-schedule" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-calendar"></i>
                                 <div data-i18n="Schedule">Lịch Làm Việc</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/notifications" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                                <div data-i18n="notifications">Thông Báo</div>
                             </a>
                         </li>
 
@@ -364,6 +377,12 @@
                                 <div data-i18n="UpdateProfile">Cập nhật hồ sơ</div>
                             </a>
                         </li>
+                        <li class="menu-item">
+                            <a href="/notifications" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                                <div data-i18n="notifications">Thông Báo</div>
+                            </a>
+                        </li>
 
                         <!-- Logout -->
                         <li class="menu-item">
@@ -462,7 +481,8 @@
                 }
                 partners.forEach(partner => {
                     const li = document.createElement('li');
-                    li.textContent = partner.username;
+                    // Sử dụng fullName thay vì username
+                    li.textContent = partner.fullName || partner.username; // Nếu không có fullName, dùng username làm dự phòng
                     li.setAttribute('data-user-id', partner.userId);
                     li.onclick = function() {
                         selectUser(partner);
@@ -470,7 +490,7 @@
                     if (hasSelectedNurse && selectedNurse && partner.userId === selectedNurse.userId) {
                         li.classList.add('selected');
                         selectedUser = partner;
-                        document.getElementById('chat-with').textContent = `Trò chuyện với ${partner.username}`;
+                        document.getElementById('chat-with').textContent = `Trò chuyện với ${partner.fullName || partner.username}`;
                         loadMessages();
                     }
                     list.appendChild(li);
@@ -486,7 +506,7 @@
 
     function selectUserFromNursePage(nurse) {
         selectedUser = nurse;
-        document.getElementById('chat-with').textContent = `Trò chuyện với ${nurse.username}`;
+        document.getElementById('chat-with').textContent = `Trò chuyện với ${nurse.fullName || nurse.username}`;
         loadMessages();
     }
 
@@ -497,7 +517,7 @@
         if (selectedLi) {
             selectedLi.classList.add('selected');
         }
-        document.getElementById('chat-with').textContent = `Trò chuyện với ${user.username}`;
+        document.getElementById('chat-with').textContent = `Trò chuyện với ${user.fullName || user.username}`;
         loadMessages();
     }
 
@@ -721,3 +741,4 @@
 </script>
 </body>
 </html>
+

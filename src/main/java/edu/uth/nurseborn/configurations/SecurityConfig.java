@@ -96,6 +96,7 @@ public class SecurityConfig {
                             .requestMatchers("/nursepage/**").permitAll()
                             .requestMatchers("/nurse_review/**").permitAll()
                             .requestMatchers("/notifications/**").permitAll()
+                            .requestMatchers("/family/bookings","/family/cancel-booking").hasRole("FAMILY")
                             .requestMatchers("/error").permitAll()
 
                             .anyRequest().authenticated();
