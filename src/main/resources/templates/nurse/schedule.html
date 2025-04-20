@@ -53,6 +53,19 @@
             background-color: #218838;
             border-color: #1e7e34;
         }
+        .btn-chat {
+            background-color: #4299e1;
+            border-color: #4299e1;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            color: #ffffff;
+        }
+        .btn-chat:hover {
+            background-color: #3182ce;
+            border-color: #2b6cb0;
+        }
         .alert {
             border-radius: 8px;
         }
@@ -70,33 +83,33 @@
             <div class="layout-page">
                 <div th:replace="~{profile/navbar-nurse::navbar-nurse}"></div>
                 <div class="content-wrapper">
-                <div class="content-xxl flex-grow-1 container-p-y">
-                    <th:block th:fragment="content">
-                        <div class="card mb-4">
-                            <h5 class="card-header text-center">Lịch Làm Việc</h5>
-                            <div class="card-body">
-                                <!-- Error Message -->
-                                <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
-                                    <span th:text="${error}"></span>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                                <!-- Success Message -->
-                                <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
-                                    <span th:text="${success}"></span>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
+                    <div class="content-xxl flex-grow-1 container-p-y">
+                        <th:block th:fragment="content">
+                            <div class="card mb-4">
+                                <h5 class="card-header text-center">Lịch Làm Việc</h5>
+                                <div class="card-body">
+                                    <!-- Error Message -->
+                                    <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                                        <span th:text="${error}"></span>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                    <!-- Success Message -->
+                                    <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                                        <span th:text="${success}"></span>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
 
-                                <!-- Navigation Buttons -->
-                                <div class="text-center mb-3">
-                                    <a th:href="@{/nurse-schedule(weekOffset=${weekOffset - 1})}" class="btn btn-primary me-2">Tuần Trước</a>
-                                    <a th:href="@{/nurse-schedule(weekOffset=${weekOffset + 1})}" class="btn btn-primary">Tuần Sau</a>
-                                </div>
+                                    <!-- Navigation Buttons -->
+                                    <div class="text-center mb-3">
+                                        <a th:href="@{/nurse-schedule(weekOffset=${weekOffset - 1})}" class="btn btn-primary me-2">Tuần Trước</a>
+                                        <a th:href="@{/nurse-schedule(weekOffset=${weekOffset + 1})}" class="btn btn-primary">Tuần Sau</a>
+                                    </div>
 
-                                <!-- Calendar View -->
-                                <table class="calendar-table">
-                                    <thead>
-                                    <tr>
-                                        <th th:each="date : ${weekDates}">
+                                    <!-- Calendar View -->
+                                    <table class="calendar-table">
+                                        <thead>
+                                        <tr>
+                                            <th th:each="date : ${weekDates}">
                                             <span th:switch="${date.getDayOfWeek().toString()}">
                                                 <span th:case="'MONDAY'" th:text="'Thứ Hai'"></span>
                                                 <span th:case="'TUESDAY'" th:text="'Thứ Ba'"></span>
@@ -106,67 +119,68 @@
                                                 <span th:case="'SATURDAY'" th:text="'Thứ Bảy'"></span>
                                                 <span th:case="'SUNDAY'" th:text="'Chủ Nhật'"></span>
                                             </span>
-                                            <br>
-                                            <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span>
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td th:each="date : ${weekDates}"
-                                            th:classappend="${#lists.contains(availabilityDTO.getSelectedDays(), date.getDayOfWeek().toString())} ? 'working-day' : '' + (${date.equals(currentDate)} ? ' current-day' : '')">
-                                            <div th:if="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
-                                                <div th:each="booking : ${bookingsByDate.get(date)}" class="booking-item">
-                                                    <strong>ID Booking:</strong> <span th:text="${booking.bookingId}"></span><br>
-                                                    <strong>Khách hàng:</strong> <span th:text="${booking.familyUser.fullName}"></span><br>
-                                                    <strong>Tên trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childName : 'N/A'}"></span><br>
-                                                    <strong>Tuổi trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childAge : 'N/A'}"></span><br>
-                                                    <strong>Vị trí:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.preferredLocation : 'N/A'}"></span><br>
-                                                    <strong>Loại dịch vụ:</strong> <span th:text="${booking.serviceType}"></span><br>
-                                                    <div th:if="${booking.serviceType == 'HOURLY'}">
-                                                        <strong>Giờ bắt đầu:</strong> <span th:text="${booking.startTime}"></span><br>
-                                                        <strong>Giờ kết thúc:</strong> <span th:text="${booking.endTime}"></span><br>
-                                                    </div>
-                                                    <strong>Giá:</strong> <span th:text="${booking.price} + ' VND'"></span><br>
-                                                    <strong>Ghi chú:</strong> <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
-                                                    <div class="text-center mt-2">
-                                                        <form th:action="@{/nurse/complete-booking(bookingId=${booking.bookingId}, weekOffset=${weekOffset})}" method="post">
-                                                            <button type="submit" class="btn btn-complete">Hoàn thành</button>
-                                                        </form>
+                                                <br>
+                                                <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td th:each="date : ${weekDates}"
+                                                th:classappend="${#lists.contains(availabilityDTO.getSelectedDays(), date.getDayOfWeek().toString())} ? 'working-day' : '' + (${date.equals(currentDate)} ? ' current-day' : '')">
+                                                <div th:if="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
+                                                    <div th:each="booking : ${bookingsByDate.get(date)}" class="booking-item">
+                                                        <strong>ID Booking:</strong> <span th:text="${booking.bookingId}"></span><br>
+                                                        <strong>Khách hàng:</strong> <span th:text="${booking.familyUser.fullName}"></span><br>
+                                                        <strong>Tên trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childName : 'N/A'}"></span><br>
+                                                        <strong>Tuổi trẻ:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.childAge : 'N/A'}"></span><br>
+                                                        <strong>Vị trí:</strong> <span th:text="${booking.familyUser.familyProfile != null ? booking.familyUser.familyProfile.preferredLocation : 'N/A'}"></span><br>
+                                                        <strong>Loại dịch vụ:</strong> <span th:text="${booking.serviceType}"></span><br>
+                                                        <div th:if="${booking.serviceType == 'HOURLY'}">
+                                                            <strong>Giờ bắt đầu:</strong> <span th:text="${booking.startTime}"></span><br>
+                                                            <strong>Giờ kết thúc:</strong> <span th:text="${booking.endTime}"></span><br>
+                                                        </div>
+                                                        <strong>Giá:</strong> <span th:text="${booking.price} + ' VND'"></span><br>
+                                                        <strong>Ghi chú:</strong> <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                                                        <div class="text-center mt-2">
+                                                            <form th:action="@{/nurse/complete-booking(bookingId=${booking.bookingId}, weekOffset=${weekOffset})}" method="post">
+                                                                <button type="submit" class="btn btn-complete">Hoàn thành</button>
+                                                            </form>
+                                                            <a th:href="@{/messages(nurseUserId=${booking.familyUser.userId})}" class="btn btn-chat mt-2">Trò chuyện</a>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div th:unless="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
-                                                <p>Không có lịch</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                                                <div th:unless="${bookingsByDate.get(date) != null and not #lists.isEmpty(bookingsByDate.get(date))}">
+                                                    <p>Không có lịch</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
 
-                                <div class="text-center mt-4">
-                                    <a th:href="@{/nurse-availability}" class="btn btn-primary">
-                                        Chỉnh Sửa Lịch Làm Việc
-                                    </a>
+                                    <div class="text-center mt-4">
+                                        <a th:href="@{/nurse-availability}" class="btn btn-primary">
+                                            Chỉnh Sửa Lịch Làm Việc
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </th:block>
+                        </th:block>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Core JS -->
-<script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
-<script src="/static/assets/vendor/libs/popper/popper.js"></script>
-<script src="/static/assets/vendor/js/bootstrap.js"></script>
-<script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-<script src="/static/assets/vendor/js/menu.js"></script>
-<script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-<script src="/static/assets/js/main.js"></script>
-<script src="/static/assets/js/dashboards-analytics.js"></script>
-<script async defer src="https://buttons.github.io/buttons.js"></script>
+    <!-- Core JS -->
+    <script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/assets/vendor/js/menu.js"></script>
+    <script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="/static/assets/js/main.js"></script>
+    <script src="/static/assets/js/dashboards-analytics.js"></script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>

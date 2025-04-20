@@ -15,12 +15,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/nurse")
 public class NurseController {
 
     private static final Logger logger = LoggerFactory.getLogger(NurseController.class);
@@ -59,6 +61,28 @@ public class NurseController {
         return user;
     }
 
+    // Xử lý trang chủ y tá
+    @GetMapping("/home-nurse")
+    public String showHomePage(Model model) {
+        logger.debug("Hiển thị trang chủ cho y tá");
+
+        try {
+            User nurseUser = authenticateAndGetNurse("redirect:/login", null, model);
+            NurseProfile nurseProfile = nurseServiceService.getNurseProfileByUserId(nurseUser.getUserId());
+
+            model.addAttribute("user", nurseUser);
+            model.addAttribute("nurseProfile", nurseProfile);
+            logger.info("Hiển thị trang chủ cho y tá: {}", nurseUser.getUsername());
+            return "nurse/home-nurse";
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        } catch (Exception e) {
+            logger.error("Lỗi khi hiển thị trang chủ: {}", e.getMessage(), e);
+            model.addAttribute("error", "Lỗi khi tải trang chủ: " + e.getMessage());
+            return "error";
+        }
+    }
+
     @GetMapping("/nursepage")
     public String nursePage(Model model) {
         logger.debug("Hiển thị trang danh sách y tá");
@@ -75,7 +99,7 @@ public class NurseController {
         }
     }
 
-    @GetMapping("/nurse/pending-bookings")
+    @GetMapping("/pending-bookings")
     public String showPendingBookings(Model model) {
         logger.debug("Hiển thị danh sách lịch đặt chờ xác nhận cho y tá");
 
@@ -94,7 +118,7 @@ public class NurseController {
         }
     }
 
-    @PostMapping("/nurse/accept-booking")
+    @PostMapping("/accept-booking")
     public String acceptBooking(@RequestParam("bookingId") Long bookingId, RedirectAttributes redirectAttributes) {
         logger.debug("Xử lý chấp nhận lịch đặt với bookingId: {}", bookingId);
 
@@ -113,7 +137,7 @@ public class NurseController {
         }
     }
 
-    @PostMapping("/nurse/cancel-booking")
+    @PostMapping("/cancel-booking")
     public String cancelBooking(@RequestParam("bookingId") Long bookingId, RedirectAttributes redirectAttributes) {
         logger.debug("Xử lý hủy lịch đặt với bookingId: {}", bookingId);
 

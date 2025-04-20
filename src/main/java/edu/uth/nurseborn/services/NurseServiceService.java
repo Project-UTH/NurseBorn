@@ -262,4 +262,8 @@ public class NurseServiceService {
         serviceRepository.flush();
         logger.info("Đã cập nhật trạng thái dịch vụ với serviceId: {} thành {}", serviceId, status);
     }
+
+    public NurseProfile getNurseProfileByUserId(Long userId) {
+        return null;
+    }
 }

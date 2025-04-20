@@ -38,6 +38,19 @@
       background-color: #c82333;
       border-color: #bd2130;
     }
+    .btn-chat {
+      background-color: #4299e1;
+      border-color: #4299e1;
+      border-radius: 25px;
+      padding: 8px 20px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      color: #ffffff;
+    }
+    .btn-chat:hover {
+      background-color: #3182ce;
+      border-color: #2b6cb0;
+    }
   </style>
 </head>
 <body>
@@ -115,6 +128,7 @@
                         <form th:action="@{/nurse/cancel-booking(bookingId=${booking.bookingId})}" method="post" style="display:inline;">
                           <button type="submit" class="btn btn-cancel">Hủy</button>
                         </form>
+                        <a th:href="@{/messages(nurseUserId=${booking.familyUser.userId})}" class="btn btn-chat mt-2">Trò chuyện</a>
                       </div>
                     </div>
                   </div>

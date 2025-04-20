@@ -14,7 +14,7 @@
                     <!-- Welcome Content -->
                     <div class="card mb-4">
                         <div class="card-body text-center">
-                            <h5 class="card-title">Chào mừng, <span th:text="${user.fullName != null ? user.fullName : 'Y Tá'}"></span>!</h5>
+                            <h5 class="card-title">Chào mừng, <span th:text="${user != null and user.fullName != null} ? ${user.fullName} : 'Y Tá'"></span>!</h5>
                             <p class="card-text">
                                 Chào mừng bạn đến với NurseBorn! Bạn đã sẵn sàng để bắt đầu công việc chưa?
                                 Hãy kiểm tra lịch làm việc và các lịch đặt chờ xác nhận của bạn.

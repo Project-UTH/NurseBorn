@@ -227,11 +227,10 @@
         const menuPlaceholder = document.getElementById('menu-placeholder');
 
         if (currentUser.role === 'NURSE') {
-            // Menu cho Nurse
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-                    <div class="app-brand demo">
-                        <a href="/home" class="app-brand-link">
+                     <div class="app-brand demo">
+                        <a href="/nurse/home-nurse" class="app-brand-link">
                             <span class="app-brand-logo demo">
                                 <img src="/assets/img/favicon/favicon.png" alt="Logo" width="30" height="30">
                             </span>
@@ -247,7 +246,7 @@
                     <ul class="menu-inner py-1">
                         <!-- Dashboard -->
                         <li class="menu-item active">
-                            <a href="/home-nurse" class="menu-link">
+                            <a href="/nurse/home-nurse" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                                 <div data-i18n="Dashboard">Trang chủ</div>
                             </a>
@@ -289,23 +288,30 @@
                             </a>
                         </li>
 
+                        <li class="menu-item">
+                            <a href="/nurse/income" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-wallet"></i>
+                                <div data-i18n="nurse_income">Thống Kê Thu Nhập</div>
+                            </a>
+                        </li>
+
                         <li class="menu-header small text-uppercase">
                             <span class="menu-header-text">Tài Khoản</span>
                         </li>
-                        <!-- Account Settings -->
-                        <li class="menu-item">
-                            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
-                                <div data-i18n="Account Settings">Cài Đặt Tài Khoản</div>
-                            </a>
-                            <ul class="menu-sub">
-                                <li class="menu-item">
-                                    <a href="/nurse-profile" class="menu-link">
-                                        <div data-i18n="Account">Tài Khoản</div>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+       <!-- Account Settings -->
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                <div data-i18n="Account Settings">Cài Đặt Tài Khoản</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item">
+                    <a href="/nurse-profile" class="menu-link">
+                        <div data-i18n="Account">Tài Khoản</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
                         <!-- Misc -->
                         <li class="menu-item">
@@ -318,7 +324,6 @@
                 </aside>
             `;
         } else if (currentUser.role === 'FAMILY') {
-            // Menu cho Family
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                     <div class="app-brand demo">
@@ -340,7 +345,14 @@
                         <li class="menu-item active">
                             <a href="/family/home" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                                <div data-i18n="Analytics">Dashboard</div>
+                                <div data-i18n="Analytics">Home</div>
+                            </a>
+                        </li>
+
+                        <li class="menu-item active">
+                            <a href="/family/bookings" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                                <div data-i18n="Analytics">Danh Sách Lịch Đặt</div>
                             </a>
                         </li>
 
@@ -349,7 +361,7 @@
                             <span class="menu-header-text">Quản lý Gia đình</span>
                         </li>
                         <li class="menu-item">
-                            <a href="/nursepage" class="menu-link">
+                            <a href="/nurse/nursepage" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-search"></i>
                                 <div data-i18n="FindNurse">Đặt dịch vụ</div>
                             </a>
@@ -395,7 +407,6 @@
                 </aside>
             `;
         } else {
-            // Menu mặc định (cho vai trò khác, ví dụ ADMIN)
             menuPlaceholder.innerHTML = `
                 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                     <div class="app-brand demo">
@@ -423,9 +434,22 @@
         }
     }
 
-    // Gọi hàm loadMenuBasedOnRole khi trang được tải
+    // Gọi hàm loadMenuBasedOnRole và khởi tạo menu khi trang được tải
     document.addEventListener('DOMContentLoaded', function() {
-        loadMenuBasedOnRole();
+        try {
+            loadMenuBasedOnRole();
+            if (typeof Menu !== 'undefined') {
+                const menuElements = document.querySelectorAll('.menu');
+                menuElements.forEach(menu => {
+                    new Menu(menu);
+                });
+                console.log('Menu initialized successfully');
+            } else {
+                console.error('Menu class is not defined. Ensure menu.js is loaded correctly.');
+            }
+        } catch (error) {
+            console.error('Error initializing menu:', error);
+        }
     });
 
     if (currentUser.role === 'ADMIN') {
@@ -481,8 +505,7 @@
                 }
                 partners.forEach(partner => {
                     const li = document.createElement('li');
-                    // Sử dụng fullName thay vì username
-                    li.textContent = partner.fullName || partner.username; // Nếu không có fullName, dùng username làm dự phòng
+                    li.textContent = partner.fullName || partner.username;
                     li.setAttribute('data-user-id', partner.userId);
                     li.onclick = function() {
                         selectUser(partner);
@@ -741,4 +764,3 @@
 </script>
 </body>
 </html>
-

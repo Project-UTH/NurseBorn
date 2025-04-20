@@ -92,7 +92,9 @@ public class SecurityConfig {
                             // Web endpoints
                             .requestMatchers("/dashboard", "/create-profile", "/manage-services").authenticated()
                             .requestMatchers("/hired-nurses").hasRole("FAMILY")
-                            .requestMatchers("/job-requests", "/track-income").hasRole("NURSE")
+
+                            .requestMatchers("/job-requests", "/track-income", "nurse/home-nurse").hasRole("NURSE")
+
                             .requestMatchers("/nursepage/**").permitAll()
                             .requestMatchers("/nurse_review/**").permitAll()
                             .requestMatchers("/notifications/**").permitAll()
