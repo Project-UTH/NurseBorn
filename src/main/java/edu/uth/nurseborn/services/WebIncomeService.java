@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,12 +35,30 @@ public class WebIncomeService {
                 .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
                 .collect(Collectors.toList());
 
+        // Tính toán thu nhập ngày hiện tại
+        LocalDate today = LocalDate.now();
+        List<Booking> todayBookings = completedBookings.stream()
+                .filter(booking -> booking.getBookingDate().equals(today))
+                .collect(Collectors.toList());
+        long todayBookingCount = todayBookings.size();
+        double todayNurseIncome = todayBookings.stream().mapToDouble(Booking::getPrice).sum() ;
+        double todayWebIncome = todayNurseIncome * 0.1;
+        double todayNurseAfterDiscount = todayNurseIncome - todayWebIncome;
+
         // Lọc theo thời gian
         if (filterValue != null && !filterValue.isEmpty()) {
-            if ("daily".equalsIgnoreCase(filterType)) {
-                LocalDate date = LocalDate.parse(filterValue);
+            if ("weekly".equalsIgnoreCase(filterType)) {
+                // Giả sử filterValue có định dạng "2023-W45"
+                String[] parts = filterValue.split("-W");
+                int year = Integer.parseInt(parts[0]);
+                int week = Integer.parseInt(parts[1]);
+                WeekFields weekFields = WeekFields.of(Locale.getDefault());
+                LocalDate weekStart = LocalDate.of(year, 1, 1)
+                        .with(weekFields.weekOfYear(), week)
+                        .with(weekFields.dayOfWeek(), 1);
+                LocalDate weekEnd = weekStart.plusDays(6);
                 completedBookings = completedBookings.stream()
-                        .filter(booking -> booking.getBookingDate().equals(date))
+                        .filter(booking -> !booking.getBookingDate().isBefore(weekStart) && !booking.getBookingDate().isAfter(weekEnd))
                         .collect(Collectors.toList());
             } else if ("monthly".equalsIgnoreCase(filterType)) {
                 YearMonth yearMonth = YearMonth.parse(filterValue);
@@ -58,8 +77,8 @@ public class WebIncomeService {
 
         // Tính toán thống kê
         long bookingCount = completedBookings.size();
-        double nurseIncome = completedBookings.stream().mapToDouble(Booking::getPrice).sum() * 1000; // Nhân 1000
-        double webIncome = nurseIncome * 0.1; // 10% tổng thu nhập y tá
+        double nurseIncome = completedBookings.stream().mapToDouble(Booking::getPrice).sum() ;
+        double webIncome = nurseIncome * 0.1;
         double nurseAfterDiscount = nurseIncome - webIncome;
 
         // Đếm số lượng gia đình và y tá
@@ -71,16 +90,23 @@ public class WebIncomeService {
         List<String> chartLabels = new ArrayList<>();
         List<Double> chartData = new ArrayList<>();
 
-        if ("daily".equalsIgnoreCase(filterType)) {
-            // Thống kê theo giờ trong ngày
-            for (int hour = 0; hour < 24; hour++) {
-                final int h = hour;
-                double hourlyIncome = completedBookings.stream()
-                        .filter(booking -> booking.getStartTime() != null && booking.getStartTime().getHour() == h)
+        if ("weekly".equalsIgnoreCase(filterType)) {
+            // Thống kê theo ngày trong tuần
+            String[] parts = filterValue != null ? filterValue.split("-W") : new String[]{String.valueOf(today.getYear()), String.valueOf(today.get(WeekFields.of(Locale.getDefault()).weekOfYear()))};
+            int year = Integer.parseInt(parts[0]);
+            int week = Integer.parseInt(parts[1]);
+            WeekFields weekFields = WeekFields.of(Locale.getDefault());
+            LocalDate weekStart = LocalDate.of(year, 1, 1)
+                    .with(weekFields.weekOfYear(), week)
+                    .with(weekFields.dayOfWeek(), 1);
+            for (int day = 0; day < 7; day++) {
+                LocalDate date = weekStart.plusDays(day);
+                double dailyIncome = completedBookings.stream()
+                        .filter(booking -> booking.getBookingDate().equals(date))
                         .mapToDouble(Booking::getPrice)
-                        .sum() * 1000; // Nhân 1000
-                chartLabels.add(String.format("%02d:00", hour));
-                chartData.add(hourlyIncome);
+                        .sum();
+                chartLabels.add("Thứ " + (day + 2));
+                chartData.add(dailyIncome);
             }
         } else if ("monthly".equalsIgnoreCase(filterType)) {
             // Thống kê theo ngày trong tháng
@@ -91,7 +117,7 @@ public class WebIncomeService {
                 double dailyIncome = completedBookings.stream()
                         .filter(booking -> booking.getBookingDate().equals(date))
                         .mapToDouble(Booking::getPrice)
-                        .sum() * 1000; // Nhân 1000
+                        .sum();
                 chartLabels.add(String.format("%02d", day));
                 chartData.add(dailyIncome);
             }
@@ -102,7 +128,7 @@ public class WebIncomeService {
                 double monthlyIncome = completedBookings.stream()
                         .filter(booking -> booking.getBookingDate().getMonthValue() == m)
                         .mapToDouble(Booking::getPrice)
-                        .sum() * 1000; // Nhân 1000
+                        .sum() ;
                 chartLabels.add(String.format("Tháng %02d", month));
                 chartData.add(monthlyIncome);
             }
@@ -117,6 +143,10 @@ public class WebIncomeService {
         dto.setNurseCount(nurseCount);
         dto.setChartLabels(chartLabels);
         dto.setChartData(chartData);
+        dto.setTodayBookingCount(todayBookingCount);
+        dto.setTodayWebIncome(todayWebIncome);
+        dto.setTodayNurseIncome(todayNurseIncome);
+        dto.setTodayNurseAfterDiscount(todayNurseAfterDiscount);
 
         return dto;
     }

@@ -12,20 +12,92 @@
             <div th:replace="~{master/navbar::navbar}"></div>
             <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
-                    <h4 class="fw-bold py-3 mb-4">Thống Kê Doanh Thu</h4>
+                    <!-- Thống kê người dùng -->
+                    <h4 class="fw-bold py-3 mb-4">Thống Kê Người Dùng</h4>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng Gia Đình</h5>
+                                    <p class="card-text" id="familyCount" th:text="${webIncomeDTO.familyCount}">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng Y Tá</h5>
+                                    <p class="card-text" id="nurseCount" th:text="${webIncomeDTO.nurseCount}">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tiêu đề động dựa trên bộ lọc -->
+                    <h4 class="fw-bold py-3 mb-4" th:with="filterTitle=${webIncomeDTO.filterType != null and webIncomeDTO.filterValue != null} ?
+                        (${webIncomeDTO.filterType == 'weekly'} ? ('Tuần ' + ${webIncomeDTO.filterValue.split('-W')[1] + ' Năm ' + webIncomeDTO.filterValue.split('-W')[0]}) :
+                        (${webIncomeDTO.filterType == 'monthly'} ? ('Tháng ' + ${webIncomeDTO.filterValue.split('-')[1] + ' Năm ' + webIncomeDTO.filterValue.split('-')[0]}) :
+                        (${webIncomeDTO.filterType == 'yearly'} ? ('Năm ' + ${webIncomeDTO.filterValue}) : ''))) : ''">
+                        Thống Kê Doanh Thu <span th:if="${filterTitle != ''}" th:text="'- ' + ${filterTitle}"></span>
+                    </h4>
+
+                    <!-- Thu nhập ngày hiện tại -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Thu Nhập Ngày Hôm Nay</h5>
+                            <div class="row text-white">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-info">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Số Lượng Đặt Lịch</h6>
+                                            <p class="card-text" th:text="${webIncomeDTO.todayBookingCount}">0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-success">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Thu Nhập Web</h6>
+                                            <p class="card-text" th:text="${#numbers.formatInteger(webIncomeDTO.todayWebIncome, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-warning">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Thu Nhập Thuần Y Tá</h6>
+                                            <p class="card-text" th:text="${#numbers.formatInteger(webIncomeDTO.todayNurseIncome, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-danger">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Thu Nhập Y Tá Sau Chiết Khấu</h6>
+                                            <p class="card-text" th:text="${#numbers.formatInteger(webIncomeDTO.todayNurseAfterDiscount, 0, 'COMMA')} + ' VNĐ'">0 VNĐ</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Bộ lọc -->
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <select class="form-control" id="filterType" onchange="onFilterChange()">
-                                <option value="daily">Theo Ngày</option>
+                                <option value="weekly">Theo Tuần</option>
                                 <option value="monthly">Theo Tháng</option>
                                 <option value="yearly">Theo Năm</option>
                             </select>
                         </div>
                         <div class="col-md-4" id="datePickerContainer"></div>
+                        <!-- Hiển thị thời gian đã chọn -->
                         <div class="col-md-4">
-                            <button class="btn btn-primary btn-block" onclick="applyFilter()">Lọc Thống Kê</button>
+                            <div class="alert alert-info" id="selectedTime" style="display: none;">
+                                Đang xem thống kê: <span id="selectedTimeValue"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -65,26 +137,6 @@
                         </div>
                     </div>
 
-                    <!-- Thống kê người dùng -->
-                    <div class="row mt-4">
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Tổng Gia Đình</h5>
-                                    <p class="card-text" id="familyCount" th:text="${webIncomeDTO.familyCount}">0</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Tổng Y Tá</h5>
-                                    <p class="card-text" id="nurseCount" th:text="${webIncomeDTO.nurseCount}">0</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Biểu đồ -->
                     <div class="card mt-5">
                         <div class="card-body">
@@ -101,7 +153,7 @@
 <!-- Core JS -->
 <script src="/static/assets/vendor/libs/jquery/jquery.js"></script>
 <script src="/static/assets/vendor/libs/popper/popper.js"></script>
-<script src="/static/assets/vendor/js/bootstrap.js"></script>
+<script src="/static/assets/js/bootstrap.js"></script>
 <script src="/static/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 <script src="/static/assets/vendor/js/menu.js"></script>
 <script src="/static/assets/vendor/libs/apex-charts/apexcharts.js"></script>
@@ -118,16 +170,20 @@
         const container = document.getElementById("datePickerContainer");
         container.innerHTML = "";
 
-        if (filterType === "daily") {
-            container.innerHTML = `<input type="date" id="filterDate" class="form-control">`;
+        if (filterType === "weekly") {
+            container.innerHTML = `<input type="week" id="filterWeek" class="form-control" onchange="applyFilter()">`;
         } else if (filterType === "monthly") {
-            container.innerHTML = `<input type="month" id="filterMonth" class="form-control">`;
+            container.innerHTML = `<input type="month" id="filterMonth" class="form-control" onchange="applyFilter()">`;
         } else if (filterType === "yearly") {
             container.innerHTML = `
-                <select id="filterYear" class="form-control">
+                <select id="filterYear" class="form-control" onchange="applyFilter()">
                     ${generateYearOptions(2020, new Date().getFullYear())}
                 </select>`;
         }
+
+        // Reset thời gian đã chọn khi thay đổi loại bộ lọc
+        document.getElementById("selectedTime").style.display = "none";
+        document.getElementById("selectedTimeValue").innerText = "";
     }
 
     function generateYearOptions(start, end) {
@@ -141,16 +197,37 @@
     function applyFilter() {
         const type = document.getElementById("filterType").value;
         let value = "";
+        let displayText = "";
 
-        if (type === "daily") value = document.getElementById("filterDate").value;
-        if (type === "monthly") value = document.getElementById("filterMonth").value;
-        if (type === "yearly") value = document.getElementById("filterYear").value;
+        if (type === "weekly") {
+            value = document.getElementById("filterWeek").value;
+            if (value) {
+                const [year, week] = value.split("-W");
+                displayText = `Tuần ${week} Năm ${year}`;
+            }
+        } else if (type === "monthly") {
+            value = document.getElementById("filterMonth").value;
+            if (value) {
+                const [year, month] = value.split("-");
+                displayText = `Tháng ${month} Năm ${year}`;
+            }
+        } else if (type === "yearly") {
+            value = document.getElementById("filterYear").value;
+            if (value) {
+                displayText = `Năm ${value}`;
+            }
+        }
 
         if (!value) {
-            alert("Vui lòng chọn thời gian thống kê!");
+            document.getElementById("selectedTime").style.display = "none";
             return;
         }
 
+        // Hiển thị thời gian đã chọn
+        document.getElementById("selectedTime").style.display = "block";
+        document.getElementById("selectedTimeValue").innerText = displayText;
+
+        // Gửi yêu cầu tới server
         window.location.href = `/admin/web-income?filterType=${type}&filterValue=${value}`;
     }
 
@@ -181,7 +258,26 @@
         }
     });
 
-    window.onload = onFilterChange;
+    window.onload = () => {
+        onFilterChange();
+        // Hiển thị thời gian đã chọn nếu có filterValue từ server
+        const filterType = /*[[${webIncomeDTO.filterType}]]*/ null;
+        const filterValue = /*[[${webIncomeDTO.filterValue}]]*/ null;
+        if (filterType && filterValue) {
+            let displayText = "";
+            if (filterType === "weekly") {
+                const [year, week] = filterValue.split("-W");
+                displayText = `Tuần ${week} Năm ${year}`;
+            } else if (filterType === "monthly") {
+                const [year, month] = filterValue.split("-");
+                displayText = `Tháng ${month} Năm ${year}`;
+            } else if (filterType === "yearly") {
+                displayText = `Năm ${filterValue}`;
+            }
+            document.getElementById("selectedTime").style.display = "block";
+            document.getElementById("selectedTimeValue").innerText = displayText;
+        }
+    };
 </script>
 </body>
 </html>

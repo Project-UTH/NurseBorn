@@ -64,7 +64,7 @@ public class NurseIncomeService {
         User nurseUser = userRepository.findById(nurseUserId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + nurseUserId));
         Double total = nurseIncomeRepository.sumIncomeByNurseUserAndDateRange(nurseUser, startDate, endDate);
-        return total != null ? total * 1000 : 0.0; // Nhân 1000 để đúng mệnh giá
+        return total != null ? total  : 0.0; // Nhân 1000 để đúng mệnh giá
     }
 
     /**
@@ -156,7 +156,7 @@ public class NurseIncomeService {
             case "DAY":
                 // Chỉ có 1 ngày
                 Double dayIncome = incomeByLabel.getOrDefault(startDate.toString(), 0.0);
-                data.add(dayIncome * 1000); // Nhân 1000 để đúng mệnh giá
+                data.add(dayIncome );
                 break;
 
             case "WEEK":
@@ -165,7 +165,7 @@ public class NurseIncomeService {
                 while (!currentDay.isAfter(endDate)) {
                     String label = "Ngày " + currentDay.toString();
                     Double dailyIncome = incomeByLabel.getOrDefault(label, 0.0);
-                    data.add(dailyIncome * 1000); // Nhân 1000 để đúng mệnh giá
+                    data.add(dailyIncome );
                     currentDay = currentDay.plusDays(1);
                 }
                 break;
@@ -176,7 +176,7 @@ public class NurseIncomeService {
                 while (!currentWeekStart.isAfter(endDate)) {
                     String label = "Tuần " + currentWeekStart.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
                     Double weeklyIncome = incomeByLabel.getOrDefault(label, 0.0);
-                    data.add(weeklyIncome * 1000); // Nhân 1000 để đúng mệnh giá
+                    data.add(weeklyIncome);
                     currentWeekStart = currentWeekStart.plusWeeks(1);
                 }
                 break;
