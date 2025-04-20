@@ -140,11 +140,15 @@
             background-color: #3b5bdb;
             border-color: #3b5bdb;
         }
-        .card-footer {
-            background-color: #f8f9fa;
-            border-top: none;
-            color: #6c757d;
-            font-size: 0.9rem;
+        /* Số sao trung bình */
+        .average-rating {
+            color: #ffc107;
+            font-size: 1rem;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .average-rating i {
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -162,8 +166,6 @@
                 <div class="content-xxl flex-grow-1 container-p-y">
                     <div class="container mt-5">
                         <h2 class="text-center mb-4">Danh sách Y Tá</h2>
-
-
 
                         <!-- Hiển thị thông báo lỗi nếu có -->
                         <div th:if="${error}" class="alert alert-danger" role="alert">
@@ -188,6 +190,16 @@
                                 <div class="card">
                                     <img th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/assets/img/default_profile.jpg'}"
                                          class="card-img-top" alt="Ảnh Y Tá"/>
+                                    <!-- Hiển thị số sao trung bình -->
+                                    <div class="average-rating">
+                                        <span th:if="${averageRatings[nurse.user.userId] != null and averageRatings[nurse.user.userId] > 0}">
+                                            Đánh Giá: <i class="fas fa-star"></i>
+                                            <span th:text="${#numbers.formatDecimal(averageRatings[nurse.user.userId], 1, 2)} + ' sao'"></span>
+                                        </span>
+                                        <span th:unless="${averageRatings[nurse.user.userId] != null and averageRatings[nurse.user.userId] > 0}">
+                                            Đánh Giá: Chưa có đánh giá
+                                        </span>
+                                    </div>
                                     <div class="card-body">
                                         <h5 class="card-title" th:text="${nurse.user.fullName} + ' | ' + (${nurse.skills != null ? nurse.skills : ''})"></h5>
                                         <p class="card-text">
@@ -201,13 +213,13 @@
                                                 Chưa có lịch
                                             </span>
                                         </p>
-                                        <p class="card-text"><strong>Giá khám theo giờ:</strong>
+                                        <p class="card-text"><strong>Giá theo giờ:</strong>
                                             <span th:text="${nurse.hourlyRate != null ? nurse.hourlyRate + 'đ/giờ' : 'Chưa có giá'}"></span>
                                         </p>
-                                        <p class="card-text"><strong>Giá khám theo ngày:</strong>
+                                        <p class="card-text"><strong>Giá theo ngày:</strong>
                                             <span th:text="${nurse.dailyRate != null ? nurse.dailyRate + 'đ/ngày' : 'Chưa có giá'}"></span>
                                         </p>
-                                        <p class="card-text"><strong>Giá khám theo tuần:</strong>
+                                        <p class="card-text"><strong>Giá theo tuần:</strong>
                                             <span th:text="${nurse.weeklyRate != null ? nurse.weeklyRate + 'đ/tuần' : 'Chưa có giá'}"></span>
                                         </p>
                                         <div class="d-flex gap-2">
@@ -215,9 +227,6 @@
                                             <a th:href="@{/set_service(nurseUserId=${nurse.user.userId})}" class="btn btn-primary">Đặt dịch vụ</a>
                                             <a th:href="@{/messages(nurseUserId=${nurse.user.userId})}" class="btn btn-chat text-white">Trò chuyện</a>
                                         </div>
-                                    </div>
-                                    <div class="card-footer">
-                                        <small class="text-muted">Bác sĩ Chuyên Khoa</small>
                                     </div>
                                 </div>
                             </div>
@@ -262,3 +271,4 @@
 </script>
 </body>
 </html>
+

@@ -1,10 +1,12 @@
 package edu.uth.nurseborn.controllers.res;
 
 import edu.uth.nurseborn.models.Booking;
+import edu.uth.nurseborn.models.Feedback;
 import edu.uth.nurseborn.models.NurseProfile;
 import edu.uth.nurseborn.models.User;
 import edu.uth.nurseborn.models.enums.BookingStatus;
 import edu.uth.nurseborn.services.BookingService;
+import edu.uth.nurseborn.services.FeedbackService;
 import edu.uth.nurseborn.services.NurseServiceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,14 +17,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
-@RequestMapping("/nurse")
 public class NurseController {
 
     private static final Logger logger = LoggerFactory.getLogger(NurseController.class);
@@ -32,6 +34,9 @@ public class NurseController {
 
     @Autowired
     private BookingService bookingService;
+
+    @Autowired
+    private FeedbackService feedbackService;
 
     // Phương thức tiện ích để kiểm tra và lấy thông tin người dùng
     private User authenticateAndGetNurse(String redirectUrl, RedirectAttributes redirectAttributes, Model model) {
@@ -61,35 +66,29 @@ public class NurseController {
         return user;
     }
 
-    // Xử lý trang chủ y tá
-    @GetMapping("/home-nurse")
-    public String showHomePage(Model model) {
-        logger.debug("Hiển thị trang chủ cho y tá");
-
-        try {
-            User nurseUser = authenticateAndGetNurse("redirect:/login", null, model);
-            NurseProfile nurseProfile = nurseServiceService.getNurseProfileByUserId(nurseUser.getUserId());
-
-            model.addAttribute("user", nurseUser);
-            model.addAttribute("nurseProfile", nurseProfile);
-            logger.info("Hiển thị trang chủ cho y tá: {}", nurseUser.getUsername());
-            return "nurse/home-nurse";
-        } catch (IllegalStateException e) {
-            return e.getMessage();
-        } catch (Exception e) {
-            logger.error("Lỗi khi hiển thị trang chủ: {}", e.getMessage(), e);
-            model.addAttribute("error", "Lỗi khi tải trang chủ: " + e.getMessage());
-            return "error";
-        }
-    }
-
     @GetMapping("/nursepage")
     public String nursePage(Model model) {
         logger.debug("Hiển thị trang danh sách y tá");
 
         try {
             List<NurseProfile> nurses = nurseServiceService.getApprovedNurses();
+
+            // Tính số sao trung bình cho từng y tá
+            Map<Long, Double> averageRatings = new HashMap<>();
+            for (NurseProfile nurse : nurses) {
+                List<Feedback> feedbacks = feedbackService.getFeedbacksByNurse(nurse.getUser());
+                double averageRating = 0.0;
+                if (feedbacks != null && !feedbacks.isEmpty()) {
+                    double totalRating = feedbacks.stream()
+                            .mapToDouble(Feedback::getRating)
+                            .sum();
+                    averageRating = totalRating / feedbacks.size();
+                }
+                averageRatings.put(nurse.getUser().getUserId(), averageRating);
+            }
+
             model.addAttribute("nurses", nurses);
+            model.addAttribute("averageRatings", averageRatings);
             logger.info("Đã lấy thành công {} y tá để hiển thị", nurses.size());
             return "family/nursepage";
         } catch (Exception ex) {
@@ -99,7 +98,7 @@ public class NurseController {
         }
     }
 
-    @GetMapping("/pending-bookings")
+    @GetMapping("/nurse/pending-bookings")
     public String showPendingBookings(Model model) {
         logger.debug("Hiển thị danh sách lịch đặt chờ xác nhận cho y tá");
 
@@ -118,7 +117,7 @@ public class NurseController {
         }
     }
 
-    @PostMapping("/accept-booking")
+    @PostMapping("/nurse/accept-booking")
     public String acceptBooking(@RequestParam("bookingId") Long bookingId, RedirectAttributes redirectAttributes) {
         logger.debug("Xử lý chấp nhận lịch đặt với bookingId: {}", bookingId);
 
@@ -137,7 +136,7 @@ public class NurseController {
         }
     }
 
-    @PostMapping("/cancel-booking")
+    @PostMapping("/nurse/cancel-booking")
     public String cancelBooking(@RequestParam("bookingId") Long bookingId, RedirectAttributes redirectAttributes) {
         logger.debug("Xử lý hủy lịch đặt với bookingId: {}", bookingId);
 
@@ -156,3 +155,4 @@ public class NurseController {
         }
     }
 }
+

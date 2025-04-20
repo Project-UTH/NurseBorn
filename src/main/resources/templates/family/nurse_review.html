@@ -84,6 +84,17 @@
             display: inline-block;
         }
 
+        /* Số sao trung bình */
+        .average-rating {
+            color: #ffc107;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .average-rating i {
+            margin-right: 5px;
+        }
+
         /* Khung giới thiệu */
         .bio-container {
             background-color: #f8f9fa;
@@ -100,6 +111,35 @@
         .bio-container p {
             margin: 0;
             font-size: 0.95rem;
+        }
+
+        /* Khung đánh giá */
+        .reviews-container {
+            background-color: #ffffff;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .reviews-container h5 {
+            color: #0d6efd;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .review-item {
+            border-bottom: 1px solid #e3f2fd;
+            padding: 10px 0;
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-item p {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        .review-item .rating {
+            color: #ffc107;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -126,6 +166,12 @@
                                 <div class="col-md-5">
                                     <img th:src="${nurse.profileImage != null ? nurse.profileImage : '/static/assets/img/default_profile.jpg'}"
                                          class="img-fluid card-img-top" alt="Ảnh Y Tá">
+                                    <!-- Hiển thị số sao trung bình -->
+                                    <div class="average-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span th:if="${averageRating != null and averageRating > 0}" th:text="${#numbers.formatDecimal(averageRating, 1, 2)} + ' sao'"></span>
+                                        <span th:unless="${averageRating != null and averageRating > 0}">Chưa có đánh giá</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-7">
                                     <div class="card-body">
@@ -147,6 +193,27 @@
                         <div class="bio-container">
                             <h5>Giới thiệu</h5>
                             <p th:text="${nurse.bio != null ? nurse.bio : 'Chưa có thông tin'}"></p>
+                        </div>
+
+                        <!-- Khung hiển thị đánh giá -->
+                        <div class="reviews-container">
+                            <h5>Đánh giá của khách hàng</h5>
+                            <div th:if="${feedbacks != null and not #lists.isEmpty(feedbacks)}">
+                                <div class="review-item" th:each="feedback : ${feedbacks}">
+                                    <div class="rating">
+                                        <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                        <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">
+                                            <i class="far fa-star"></i>
+                                        </span>
+                                    </div>
+                                    <p th:text="${feedback.comment != null ? feedback.comment : 'Không có nhận xét'}"></p>
+                                </div>
+                            </div>
+                            <div th:unless="${feedbacks != null and not #lists.isEmpty(feedbacks)}">
+                                <p>Chưa có đánh giá nào cho y tá này.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -170,3 +237,4 @@
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>
+
