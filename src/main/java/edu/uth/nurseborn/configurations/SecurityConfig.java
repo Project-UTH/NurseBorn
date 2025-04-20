@@ -96,7 +96,9 @@ public class SecurityConfig {
                             .requestMatchers("/job-requests", "/track-income", "nurse/home-nurse").hasRole("NURSE")
 
                             .requestMatchers("/nursepage/**").permitAll()
+                            .requestMatchers("/family/feedbacks","/family/rate-booking").hasRole("FAMILY")
                             .requestMatchers("/nurse_review/**").permitAll()
+                            .requestMatchers("/feedback/**").hasRole("FAMILY")
                             .requestMatchers("/notifications/**").permitAll()
                             .requestMatchers("/family/bookings","/family/cancel-booking").hasRole("FAMILY")
                             .requestMatchers("/error").permitAll()

@@ -1,222 +1,191 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <title>Đánh Giá Y Tá</title>
-    <div th:replace="~{master/head::head}"></div>
+    <th:block th:replace="~{master/head :: head}"></th:block>
+    <title>Đánh Giá Dịch Vụ - NurseBorn</title>
     <style>
-        /* Modal (Popup) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            overflow: auto;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
+        .feedback-form {
             max-width: 500px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: relative;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
-
-        .modal-content h5 {
-            color: #4a90e2;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            border-bottom: 2px solid #4a90e2;
-            padding-bottom: 10px;
+        .card-header {
+            background-color: #007bff;
+            color: #fff;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
-
-        /* Nút đóng modal */
-        .close {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #ff6f61;
-            text-decoration: none;
-        }
-
-        /* Form đánh giá */
         .rating {
             display: flex;
             justify-content: center;
-            gap: 10px;
             margin-bottom: 20px;
         }
-
-        .rating input[type="radio"] {
+        .rating input {
             display: none;
         }
-
         .rating label {
             font-size: 30px;
-            color: #ccc;
+            color: #ddd;
             cursor: pointer;
             transition: color 0.3s ease;
+            margin: 0 2px;
         }
-
-        .rating input[type="radio"]:checked ~ label,
+        .rating input:checked ~ label,
+        .rating input:hover ~ label,
         .rating label:hover,
         .rating label:hover ~ label {
-            color: #ff6f61;
+            color: #ffc107;
         }
-
-        .rating label:hover ~ label {
-            color: #ccc;
+        .btn-submit {
+            background-color: #007bff;
+            border-color: #007bff;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            color: #fff;
+            width: 100%;
         }
-
-        .form-group {
-            margin-bottom: 20px;
+        .btn-submit:hover {
+            background-color: #0056b3;
+            border-color: #004085;
         }
-
-        .form-group label {
-            display: block;
-            font-size: 16px;
-            color: #333;
+        select, textarea {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .form-label {
+            font-weight: 500;
             margin-bottom: 5px;
         }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            resize: vertical;
+        .booking-info {
+            margin-bottom: 20px;
         }
-
-        .form-group button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #4a90e2;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .status-completed {
+            color: #17a2b8;
+            font-weight: 500;
         }
-
-        .form-group button:hover {
-            background-color: #357abd;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .modal-content {
-                width: 95%;
-                margin: 20% auto;
-            }
-
-            .modal-content h5 {
-                font-size: 20px;
-            }
-
-            .rating label {
-                font-size: 24px;
-            }
-
-            .form-group textarea,
-            .form-group button {
-                font-size: 14px;
-            }
+        .card-text {
+            margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
 <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
-        <div th:replace="~{family/layoutmenu_family::menu-family}"></div>
+        <div th:replace="~{family/layoutmenufamily :: menu}"></div>
         <div class="layout-page">
-            <div th:replace="~{profile/navbar-family::navbar-family}"></div>
+            <div th:replace="~{master/navbar :: navbar}"></div>
             <div class="content-wrapper">
                 <div class="content-xxl flex-grow-1 container-p-y">
-                    <!-- Feedback Content -->
                     <div class="card mb-4">
+                        <h5 class="card-header text-center">Đánh Giá Dịch Vụ</h5>
                         <div class="card-body">
-                            <h5 class="card-title text-center">Đánh Giá Y Tá</h5>
-                            <div th:if="${completedBookings.isEmpty()}">
-                                <p class="text-center">Không có lịch đặt nào đã hoàn thành để đánh giá.</p>
+                            <!-- Error Message -->
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                                <span th:text="${error}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                            <div th:unless="${completedBookings.isEmpty()}">
-                                <table class="table table-bordered">
-                                    <thead>
-                                    <tr>
-                                        <th>Ngày Đặt</th>
-                                        <th>Y Tá</th>
-                                        <th>Loại Dịch Vụ</th>
-                                        <th>Hành Động</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr th:each="booking : ${completedBookings}">
-                                        <td th:text="${#dates.format(booking.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></td>
-                                        <td th:text="${booking.nurseUser.fullName}"></td>
-                                        <td th:text="${booking.serviceType}"></td>
-                                        <td>
-                                            <button class="btn btn-primary" th:onclick="'openFeedbackModal(' + ${booking.bookingId} + ')'">Đánh Giá</button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                            <!-- Success Message -->
+                            <div th:if="${success}" class="alert alert-success alert-dismissible" role="alert">
+                                <span th:text="${success}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <!-- Booking Info -->
+                            <div class="booking-info" th:if="${booking != null}">
+                                <h5 class="card-title">
+                                    <span th:text="'Bệnh Dưỡng: ' + ${booking.nurseUser.fullName}"></span>
+                                </h5>
+                                <p class="card-text">
+                                    <strong>Mã đặt lịch:</strong>
+                                    <span th:text="${booking.bookingId}"></span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Ngày đặt:</strong>
+                                    <span th:text="${booking.bookingDate}"></span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Loại dịch vụ:</strong>
+                                    <span th:text="${booking.serviceType}"></span>
+                                </p>
+                                <p class="card-text" th:if="${booking.serviceType == 'HOURLY'}">
+                                    <strong>Giờ bắt đầu:</strong>
+                                    <span th:text="${booking.startTime}"></span>
+                                    <br>
+                                    <strong>Giờ kết thúc:</strong>
+                                    <span th:text="${booking.endTime}"></span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Giá:</strong>
+                                    <span th:text="${booking.price} + ' VND'"></span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Trạng thái:</strong>
+                                    <span th:class="'status-' + ${#strings.toLowerCase(booking.status.name())}"
+                                          th:text="${booking.status}"></span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Ghi chú:</strong>
+                                    <span th:text="${booking.notes != null ? booking.notes : 'Không có ghi chú'}"></span>
+                                </p>
+                            </div>
+                            <!-- Feedback Form -->
+                            <div class="feedback-form">
+                                <form th:action="@{/family/submit-feedback}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="bookingId" th:value="${booking?.bookingId}"/>
+                                    <input type="hidden" name="nurseId" th:value="${booking?.nurseUser?.userId}"/>
+                                    <div class="mb-3">
+                                        <label for="star5" class="form-label">Đánh giá của bạn:</label>
+                                        <div class="rating">
+                                            <input type="radio" id="star5" name="rating" value="5" required/>
+                                            <label for="star5">★</label>
+                                            <input type="radio" id="star4" name="rating" value="4"/>
+                                            <label for="star4">★</label>
+                                            <input type="radio" id="star3" name="rating" value="3"/>
+                                            <label for="star3">★</label>
+                                            <input type="radio" id="star2" name="rating" value="2"/>
+                                            <label for="star2">★</label>
+                                            <input type="radio" id="star1" name="rating" value="1"/>
+                                            <label for="star1">★</label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">Chia sẻ đánh giá của bạn:</label>
+                                        <textarea id="comment" name="comment" placeholder="Chia sẻ đánh giá của bạn..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="attachment" class="form-label">Tải lên hình ảnh hoặc tệp PDF (tối đa 5 tệp):</label>
+                                        <input type="file" id="attachment" name="attachment" accept="image/*,.pdf" multiple/>
+                                    </div>
+                                    <button type="submit" class="btn btn-submit">Gửi đánh giá</button>
+                                </form>
+                                <div class="text-center mt-3">
+                                    <a href="/family/bookings" class="text-muted">Quay lại danh sách lịch đặt</a>
+                                </div>
+                            </div>
+                            <!-- Nurse Review Section -->
+                            <div id="nurse_review" class="mt-4">
+                                <h5>Đánh giá của y tá</h5>
+                                <div id="reviews_list" th:if="${booking != null}">
+                                    <div th:each="feedback : ${feedbacks}" th:if="${feedback.booking.nurseUser.userId == booking.nurseUser.userId}">
+                                        <p>Đánh giá: <span th:text="${feedback.rating} + ' sao'"></span> - <span th:text="${feedback.comment}"></span></p>
+                                    </div>
+                                    <div th:if="${feedbacks == null or #lists.isEmpty(feedbacks)}">
+                                        <p>Chưa có đánh giá nào cho y tá này.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Modal đánh giá -->
-<div id="feedbackModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeFeedbackModal()">×</span>
-        <h5>Đánh Giá Y Tá</h5>
-        <form th:action="@{/family/rate-booking}" method="post">
-            <input type="hidden" name="bookingId" id="bookingId">
-            <div class="form-group">
-                <label for="rating">Đánh Giá (Số Sao):</label>
-                <div class="rating" id="rating">
-                    <input type="radio" id="star5" name="rating" value="5">
-                    <label for="star5" onclick="setRating(5)">★</label>
-                    <input type="radio" id="star4" name="rating" value="4">
-                    <label for="star4" onclick="setRating(4)">★</label>
-                    <input type="radio" id="star3" name="rating" value="3">
-                    <label for="star3" onclick="setRating(3)">★</label>
-                    <input type="radio" id="star2" name="rating" value="2">
-                    <label for="star2" onclick="setRating(2)">★</label>
-                    <input type="radio" id="star1" name="rating" value="1">
-                    <label for="star1" onclick="setRating(1)">★</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="comment">Phản Hồi:</label>
-                <textarea id="comment" name="comment" rows="4" placeholder="Nhập phản hồi của bạn..."></textarea>
-            </div>
-            <div class="form-group">
-                <button type="submit">Gửi Đánh Giá</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -230,39 +199,27 @@
 <script src="/static/assets/js/main.js"></script>
 <script src="/static/assets/js/dashboards-analytics.js"></script>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
-
 <script>
-    function openFeedbackModal(bookingId) {
-        var modal = document.getElementById("feedbackModal");
-        var bookingIdInput = document.getElementById("bookingId");
-        bookingIdInput.value = bookingId;
-        modal.style.display = "block";
-    }
+    // Validate file upload
+    document.getElementById('attachment').addEventListener('change', function(e) {
+        const files = e.target.files;
+        const maxFiles = 5;
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-    function closeFeedbackModal() {
-        var modal = document.getElementById("feedbackModal");
-        modal.style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        var modal = document.getElementById("feedbackModal");
-        if (event.target == modal) {
-            modal.style.display = "none";
+        if (files.length > maxFiles) {
+            alert(`Bạn chỉ có thể tải lên tối đa ${maxFiles} tệp`);
+            e.target.value = '';
+            return;
         }
-    }
 
-    function setRating(value) {
-        var stars = document.querySelectorAll('.rating input[type="radio"]');
-        stars.forEach(function(star) {
-            star.checked = false;
-            if (star.value <= value) {
-                star.nextElementSibling.style.color = "#ff6f61";
-            } else {
-                star.nextElementSibling.style.color = "#ccc";
+        for (let file of files) {
+            if (file.size > maxFileSize) {
+                alert('Kích thước tệp không được vượt quá 5MB');
+                e.target.value = '';
+                return;
             }
-        });
-        document.getElementById("star" + value).checked = true;
-    }
+        }
+    });
 </script>
 </body>
 </html>

@@ -26,4 +26,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByNurseUserUserIdAndStatus(@Param("nurseUserId") Long nurseUserId, @Param("status") BookingStatus status);
 
     List<Booking> findByFamilyUserAndStatus(User familyUser, BookingStatus status);
+
 }

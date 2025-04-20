@@ -130,7 +130,7 @@
                                             </p>
                                             <!-- Nút Đánh giá cho trạng thái COMPLETED -->
                                             <div class="text-center" th:if="${booking.status.name() == 'COMPLETED'}">
-                                                <a th:href="@{/feedback(bookingId=${booking.bookingId})}" class="btn btn-feedback">Đánh giá</a>
+                                                <a th:href="@{/family/feedback(bookingId=${booking.bookingId})}" class="btn btn-feedback">Đánh giá</a>
                                             </div>
                                             <!-- Nút Hủy cho trạng thái PENDING -->
                                             <div class="text-center" th:if="${booking.status.name() == 'PENDING'}">
